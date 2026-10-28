@@ -787,7 +787,8 @@ PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'Hold
                            'OthersCouldChange', 'NoteFolderOthersCouldChange', 'NoteFoldersOthersCouldChange', 'HardenForRestart', 'CheckFoldersBeforeTheStop',
                            'FoldersChangedLine', 'RestoreServiceStart', 'GetCustomSetupExitCode', 'IsServiceInstalled',
                            'DataFolderIsAllowed', 'DatabaseFilesWhy', 'HardenDataFolder', 'AddRestartFolder', 'StaleEntryLetsOthers', 'HandsDownWriteTo',
-                           'NoteStaleItem', 'StaleItemIn', 'TakenEntriesLetOthers', 'RestartRecordedForWalked', 'WalkedFinal', 'MakeFolderIn')
+                           'NoteStaleItem', 'StaleItemIn', 'TakenEntriesLetOthers', 'RestartRecordedForWalked', 'WalkedFinal', 'MakeFolderIn',
+                           'HardenDistrustedFolder', 'ProgramFolderWaitsForTheFiles')
 
 # Each decision of R1 to R4 held by its exact statement, so that a one-line change of
 # one is refused (the review of 26 October 2026 changed nineteen such lines, one at a
@@ -957,9 +958,11 @@ PROGRAM_FOLDER_STATEMENTS = (
     # R2: hardened, and refused when it cannot be.
     ('PrepareProgramFolders', 'a program folder that is not there is decided by its path',
      "if not g_bProgramFolderThere then begin if not MakeFolders(g_szProgramFolderHeld, g_hProgramFolder, g_szProgramFolderReal, 0, hMade, szWhy) then begin Result := ~; Exit; end; g_hProgramFolderPrepared := hMade; g_bProgramFolderHardened := true;"),
-    ('PrepareProgramFolders', 'the program folder is left as it is for an inheriting data folder that is not the earlier installation\'s',
-     "szInherits := ''; if g_bEarlierInstallation then if DirExists(AddBackslash(g_szProgramFolderReal) + 'Data') or "
-     "FileExists(AddBackslash(g_szBinReal) + 'hMailServer.INI') then szInherits := DataFolderThatInherits(g_szProgramFolderReal);"),
+    ('PrepareProgramFolders', 'the program folder is left as it is by a rule other than the one the restart rule asks (ProgramFolderWaitsForTheFiles), or what an entry of its own lets a named account do is not said then (check 6 of R1 to R4, 28 October 2026)',
+     "szInherits := ProgramFolderWaitsForTheFiles(); if szInherits <> '' then begin Log(~); SayWriteEntriesKept(g_szProgramFolderReal, g_hProgramFolder); end else if not HardenHeldFolder(g_szProgramFolderReal, g_hProgramFolder, false, szWhy) then"),
+    ('ProgramFolderWaitsForTheFiles', 'the program folder is left as it is for an inheriting data folder that is not the earlier installation\'s',
+     "^function ProgramFolderWaitsForTheFiles(): String; begin Result := ''; if g_bEarlierInstallation then if DirExists(AddBackslash(g_szProgramFolderReal) + 'Data') or "
+     "FileExists(AddBackslash(g_szBinReal) + 'hMailServer.INI') then Result := DataFolderThatInherits(g_szProgramFolderReal); end;$"),
     ('PrepareProgramFolders', 'a program folder that could not be hardened, or given the file setup keeps in it, is installed into, or one another account owns is taken',
      "else if not HardenHeldFolder(g_szProgramFolderReal, g_hProgramFolder, false, szWhy) then begin Result := ~; Exit; end else if not MakePlaceholder(g_szProgramFolderReal, g_hProgramFolder, szWhy) then begin Result := ~; Exit; end else g_bProgramFolderHardened := true; g_hProgramFolderPrepared := g_hProgramFolder;"),
     ('PrepareProgramFolders', 'a Bin that is there and held nothing is not made again, one made a link since the walk is hardened through its path, one that could not be hardened or given the file setup keeps in it is installed into, or one another account owns is taken (check 3 and check 4 of R1 to R4, 27 October 2026)',
@@ -1061,7 +1064,7 @@ PROGRAM_FOLDER_STATEMENTS = (
      "if bLink or bCode or bFolder then begin Found := Found + 1;"),
     ('CheckWhatElseIsInside', 'a data folder is not held to its rule, the earlier installation\'s that another account owns is installed into without a restart or one of a new installation taken, or the Database\'s files are not looked at (check 5 of R1 to R4, 27 October 2026)',
      "else if bData then begin @@if not DataFolderIsAllowed(szItem, handle, bOwner, szWho, szRemedy) then begin if bOwner and g_bEarlierInstallation and (not Final) then begin "
-     "AddRestartFolder(szItem, -1, true, szItem + ' was ' + Copy(szWho, 4, Length(szWho))); szWho := ''; szRemedy := ''; end; end else if CompareText(rec.Name, 'Database') = 0 then "
+     "AddRestartFolder(szItem, -1, true, false, szItem + ' was ' + Copy(szWho, 4, Length(szWho))); szWho := ''; szRemedy := ''; end; end else if CompareText(rec.Name, 'Database') = 0 then "
      "szWho := DatabaseFilesWhy(szItem, szRemedy); end"),
     ('CheckWhatElseIsInside', 'a program, a script or a settings file of the program folder that an entry it kept from where it was made lets another account change is not noted for the restart rule (check 5 of R1 to R4, 27 October 2026)',
      "else if bCode and (not Final) and StaleEntryLetsOthers(pDacl, pAppDescriptor, pAppDacl, false, szText) then NoteStaleItem(szItem, szText);"),
@@ -1210,7 +1213,7 @@ PROGRAM_FOLDER_STATEMENTS = (
      "begin Result := false; Why := ''; hLink := HoldForSetup(Link);"),
     ('DataLinkLeadsWhereAllowed', 'where a data folder\'s link leads, owned by another account or with an entry of its own that lets one write it, is taken, or the earlier installation\'s is installed into without a restart (check 5 of R1 to R4, 27 October 2026)',
      "if not DataFolderIsAllowed(szReal, hHeld, bOwner, szWho, szRemedy) then begin if bOwner and g_bEarlierInstallation and (not Final) then "
-     "AddRestartFolder(szReal, hHeld, true, Link + ' led to ' + szReal + ', which was ' + Copy(szWho, 4, Length(szWho))) else begin Why := ~; Exit; end; end; Result := true; end;$"),
+     "AddRestartFolder(szReal, hHeld, true, false, Link + ' led to ' + szReal + ', which was ' + Copy(szWho, 4, Length(szWho))) else begin Why := ~; Exit; end; end; Result := true; end;$"),
     ('DataFolderIsAllowed', 'a data folder whose owner and permissions cannot be read, or whose owner is another account than the three or the service, is taken (check 5 of R1 to R4, 27 October 2026)',
      "readResult := ReadHeldSecurity(Handle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor); if readResult <> 0 then begin Who := ~; Exit; end; "
      "if pOwner = 0 then Who := ~ else if (not IsTrustedSid(pOwner)) and (not SidIs(pOwner, HM_SERVICE_SID)) then begin Owner := true;"),
@@ -1230,10 +1233,10 @@ PROGRAM_FOLDER_STATEMENTS = (
     ('HardenDataFolder', 'a data folder another account owned is rebuilt as a program folder (the service\'s entries dropped, Users given Read), not read again, or its owner named after the list is freed',
      "szOwner := SidNameAt(pOwner); Result := RebuildFolderOfUntrustedOwner(Folder, pDacl, false, true, Why); FreeWindowsMemory(pDescriptor); if not Result then Exit; "
      "Result := HeldFolderIsHardened(HeldHandle, true, true, Why); if not Result then begin Why := ~; Exit; end;"),
-    ('AddRestartFolder', 'a folder is noted for the restart rule twice, or without whether it is a data folder',
+    ('AddRestartFolder', 'a folder is noted for the restart rule twice, or without whether it is a data folder, or whether another account could change its permissions or its owner (check 6 of R1 to R4, 28 October 2026)',
      "for index := 0 to GetArrayLength(g_aRestartFolders) - 1 do if CompareText(g_aRestartFolders[index], Folder) = 0 then Exit; count := GetArrayLength(g_aRestartFolders) + 1; "
-     "SetArrayLength(g_aRestartFolders, count); SetArrayLength(g_aRestartHandles, count); SetArrayLength(g_aRestartData, count); g_aRestartFolders[count - 1] := Folder; "
-     "g_aRestartHandles[count - 1] := Handle; g_aRestartData[count - 1] := Data;"),
+     "SetArrayLength(g_aRestartFolders, count); SetArrayLength(g_aRestartHandles, count); SetArrayLength(g_aRestartData, count); SetArrayLength(g_aRestartDistrust, count); "
+     "g_aRestartFolders[count - 1] := Folder; g_aRestartHandles[count - 1] := Handle; g_aRestartData[count - 1] := Data; g_aRestartDistrust[count - 1] := Distrust;"),
     ('StaleEntryLetsOthers', 'an entry a file kept from where it was made is not found, or one the folder it is in hands down is taken for it (check 5 of R1 to R4, 27 October 2026)',
      "if ((aceFlags and HM_INHERITED_ACE) <> 0) and ((aceFlags and HM_INHERIT_ONLY) = 0) and ((head.TypeFlagsSize and $FF) = HM_ACCESS_ALLOWED) and "
      "((head.Mask and HM_FOLDER_WRITE_RIGHTS) <> 0) and (not IsTrustedSid(pAce + 8)) and (not SidIs(pAce + 8, 'S-1-3-4')) and "
@@ -1274,17 +1277,17 @@ PROGRAM_FOLDER_STATEMENTS = (
     ('CheckProgramFolders', 'what another account could change before this installation is not looked at, or looked at before every refusal of the check',
      "if found > 0 then begin Result := ~; Exit; end; @@NoteFoldersOthersCouldChange(); end;$"),
     ('CheckProgramFolders', 'what an earlier pass found another account could change, or found changed, is kept when the folder page is gone back to',
-     "g_bFoldersChanged := false; SetArrayLength(g_aRestartFolders, 0); SetArrayLength(g_aRestartHandles, 0); SetArrayLength(g_aRestartData, 0); SetArrayLength(g_aStaleItems, 0); "
+     "g_bFoldersChanged := false; SetArrayLength(g_aRestartFolders, 0); SetArrayLength(g_aRestartHandles, 0); SetArrayLength(g_aRestartData, 0); SetArrayLength(g_aRestartDistrust, 0); SetArrayLength(g_aStaleItems, 0); "
      "SetArrayLength(g_aStaleWhat, 0); g_szRestartWhy := ''; @@g_hProgramFolder := -1; g_hBin := -1; g_hControlPanel := -1;"),
     ('NoteFoldersOthersCouldChange', 'the program folder, a Bin or a ControlPanel setup hardens in place is not asked whether another account could change it',
-     "if not g_bProgramFolderThere then Exit; NoteFolderOthersCouldChange(g_szProgramFolderReal, g_hProgramFolder, true); if g_bBinThere and (not g_bRemakeBin) then NoteFolderOthersCouldChange(g_szBinReal, g_hBin, true); if g_bControlPanelThere and (not g_bRemakeControlPanel) then NoteFolderOthersCouldChange(g_szControlPanelReal, g_hControlPanel, true);"),
+     "if not g_bProgramFolderThere then Exit; NoteFolderOthersCouldChange(g_szProgramFolderReal, g_hProgramFolder, true, ProgramFolderWaitsForTheFiles() <> ''); if g_bBinThere and (not g_bRemakeBin) then NoteFolderOthersCouldChange(g_szBinReal, g_hBin, true, false); if g_bControlPanelThere and (not g_bRemakeControlPanel) then NoteFolderOthersCouldChange(g_szControlPanelReal, g_hControlPanel, true, false);"),
     ('NoteFoldersOthersCouldChange', 'Addons, Events, DBScripts, WebAdmin and Languages are not asked whether another account could change them, or are asked through a link',
-     "handle := HoldFolder(szFolder, HM_HOLD_FOLDER_ACCESS, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle <> -1 then begin if not HeldIsLink(handle, bKnown) then NoteFolderOthersCouldChange(szFolder, handle, false); ReleaseFolder(handle); end;"),
-    ('NoteFolderOthersCouldChange', 'a folder that holds something but empty folders is not asked who could write it',
-     "if not OthersCouldChange(Folder, HeldHandle, not HoldsOnlyEmptyFolders(Folder), szWhat) then begin szWhat := StaleItemIn(Folder); if szWhat = '' then Exit; end; "
-     "if Keep then AddRestartFolder(Folder, HeldHandle, false, szWhat) else AddRestartFolder(Folder, -1, false, szWhat);"),
+     "handle := HoldFolder(szFolder, HM_HOLD_FOLDER_ACCESS, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle <> -1 then begin if not HeldIsLink(handle, bKnown) then NoteFolderOthersCouldChange(szFolder, handle, false, false); ReleaseFolder(handle); end;"),
+    ('NoteFolderOthersCouldChange', 'a folder that holds something but empty folders, or the program folder setup leaves unhardened before the files, is not asked who could write it, or a folder whose permissions another account could change is not noted so (check 6 of R1 to R4, 28 October 2026)',
+     "if not OthersCouldChange(Folder, HeldHandle, Unhardened or (not HoldsOnlyEmptyFolders(Folder)), bDistrust, szWhat) then begin szWhat := StaleItemIn(Folder); if szWhat = '' then Exit; end; "
+     "if Keep then AddRestartFolder(Folder, HeldHandle, false, bDistrust, szWhat) else AddRestartFolder(Folder, -1, false, bDistrust, szWhat);"),
     ('OthersCouldChange', 'an owner other than the three, an entry that lets another account change the permissions or the owner, or one that lets it write a folder that holds something, is not found, or a folder whose permissions cannot be read is taken',
-     "Result := true; What := ''; pOwner := 0; pDacl := 0; pDescriptor := 0; readResult := ReadHeldSecurity(HeldHandle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor); if readResult <> 0 then begin What := ~; Exit; end; if pOwner = 0 then What := ~ else if not IsTrustedSid(pOwner) then What := ~ else if TakenEntriesLetOthers(pDacl, HM_CHANGE_PERMISSIONS_RIGHTS, szWho) then What := ~ else if Contents and TakenEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, szWho) then What := ~ else Result := false;"),
+     "Result := true; Distrust := false; What := ''; pOwner := 0; pDacl := 0; pDescriptor := 0; readResult := ReadHeldSecurity(HeldHandle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor); if readResult <> 0 then begin What := ~; Exit; end; if pOwner = 0 then What := ~ else if not IsTrustedSid(pOwner) then What := ~ else if TakenEntriesLetOthers(pDacl, HM_CHANGE_PERMISSIONS_RIGHTS, szWho) then begin What := ~; Distrust := true; end else if Contents and TakenEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, szWho) then What := ~ else Result := false;"),
     ('HoldsOnlyEmptyFolders', 'a file, a link or a folder that holds something is taken for an empty folder, or a folder whose listing cannot be read for one that holds only those',
      "Result := false; if FindFirst(AddBackslash(Folder) + '*', rec) then begin try Result := true; repeat if (rec.Name <> '.') and (rec.Name <> '..') then begin if ((rec.Attributes and FILE_ATTRIBUTE_DIRECTORY) = 0) or ((rec.Attributes and HM_REPARSE_POINT) <> 0) then Result := false else if not FolderHoldsNothing(AddBackslash(Folder) + rec.Name) then Result := false; end; until (not Result) or (not FindNext(rec));"),
     ('HardenForRestart', 'what another account could change is installed into without a restart, or the restart is not recorded before anything is changed',
@@ -1292,7 +1295,12 @@ PROGRAM_FOLDER_STATEMENTS = (
     ('HardenForRestart', 'a folder another account could change is not hardened, or one another account owned is taken for a folder other than the earlier installation\'s',
      "handle := g_aRestartHandles[index]; if handle = -1 then handle := HoldForSetup(g_aRestartFolders[index]); if handle = -1 then szWhy := ~ else if g_aRestartData[index] then begin "
      "if not HardenDataFolder(g_aRestartFolders[index], handle, szWhy) then begin if szWhy = '' then szWhy := ~; end else szWhy := ''; end "
+     "else if g_aRestartDistrust[index] then begin if not HardenDistrustedFolder(g_aRestartFolders[index], handle, szWhy) then begin if szWhy = '' then szWhy := ~; end else szWhy := ''; end "
      "else if not HardenHeldFolder(g_aRestartFolders[index], handle, g_bEarlierInstallation, szWhy) then"),
+    ('HardenDistrustedFolder', 'a folder whose permissions another account could change keeps an entry of its own that lets another account write - one that account could have written - or is not read through its handle, or one another account owns is taken although it is not the earlier installation\'s (check 6 of R1 to R4, 28 October 2026)',
+     "readResult := ReadHeldSecurity(HeldHandle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor); if readResult <> 0 then begin Why := ~; Exit; end; "
+     "if pOwner = 0 then Why := ~ else if (not IsTrustedSid(pOwner)) and (not g_bEarlierInstallation) then Why := ~ else Result := RebuildFolderOfUntrustedOwner(Folder, pDacl, EveryUserMayRead(pDacl), false, Why); "
+     "FreeWindowsMemory(pDescriptor); if not Result then Exit; Result := HeldFolderIsHardened(HeldHandle, true, false, Why);"),
     ('HardenForRestart', 'the installation goes on once what another account could change is hardened, rather than being refused until Windows has restarted',
      "szDone := szDone + g_aRestartFolders[index] + ', '; end; Result := 'Setup does not install into ' + szApp + ' until Windows has restarted: "),
     ('CheckFoldersBeforeTheStop', 'what another account could change is not hardened and refused before the service is stopped, or is after a refusal of the check',
@@ -1504,18 +1512,18 @@ PROGRAM_FOLDER_CODE = (
     ('AclLetsEveryUserWrite', '7fd37319681c8b53'),
     ('AclLetsOthers', '6b00430bd84cb1ab'),
     ('AddAsOwnEntry', 'f0c0620c1378f54d'),
-    ('AddRestartFolder', '3313d4d16987c5f5'),
+    ('AddRestartFolder', '49938388fed2521d'),
     ('BroadGroupSid', '963f744993f423ee'),
     ('CheckFoldersBeforeTheStop', 'a2e38e9db48a13e5'),
-    ('CheckProgramFolders', '044219bbb9f4e218'),
-    ('CheckWhatElseIsInside', 'f2896ff3801fe3fb'),
+    ('CheckProgramFolders', '85dbd1b64f25185c'),
+    ('CheckWhatElseIsInside', 'fd39329fb2e6503e'),
     ('CheckWhatIsInside', '5561af99098d653f'),
     ('ControlPanelIsInstalled', '3ab47178b35c2ef7'),
     ('DatabaseFilesWhy', '385a1b53ff151af2'),
     ('DatabaseTargetIsTheAdministrators', '5aafe7086f1634b2'),
     ('DataFolderIsAllowed', 'b1088c905684623f'),
     ('DataFolderThatInherits', '66c2cd8de8d2f08b'),
-    ('DataLinkLeadsWhereAllowed', '28960491a628110e'),
+    ('DataLinkLeadsWhereAllowed', '0b4799996608f6cd'),
     ('DataLinkTargetIsGrantable', '49b5e0fd9d0bf941'),
     ('EveryUserMayRead', '311a6e77de030208'),
     ('EveryUserMayReadMadeIn', 'b9e6f38e684da9c5'),
@@ -1529,7 +1537,8 @@ PROGRAM_FOLDER_CODE = (
     ('FoldersWereAsPrepared', '7b86c82e306d4585'),
     ('HandsDownWriteTo', 'b01e2967c4cdc428'),
     ('HardenDataFolder', 'fb9e890fb43679ae'),
-    ('HardenForRestart', 'd0c31c828f3ab2e9'),
+    ('HardenDistrustedFolder', '3463104dcc3133d8'),
+    ('HardenForRestart', '13ee441b644792ec'),
     ('HardenHeldFolder', '8e38a444233c3c88'),
     ('HeldFolderIsHardened', '3e667a4213e1312e'),
     ('HeldIsLink', 'dc9e0afb79a54681'),
@@ -1561,20 +1570,21 @@ PROGRAM_FOLDER_CODE = (
     ('MakeFolderIn', '34f935fa5de4000f'),
     ('MakeFolders', '2c2296fc7c4ad8cc'),
     ('MakePlaceholder', '0b825c9ab1d96d0e'),
-    ('NoteFolderOthersCouldChange', '9566fa00378b4379'),
-    ('NoteFoldersOthersCouldChange', '50fd84a9f84b7a28'),
+    ('NoteFolderOthersCouldChange', 'f6ed4de1f7a769ea'),
+    ('NoteFoldersOthersCouldChange', 'c54fe879a3164712'),
     ('NoteStaleItem', '8faf68da80c3e0e9'),
     ('NothingTurnedIn', 'f4dba71743a003e6'),
-    ('OthersCouldChange', 'c0c5c7b183571308'),
+    ('OthersCouldChange', '59cd57cd4f2192fb'),
     ('OwnEntriesLetOthers', '432884347c2a0dfa'),
     ('OwnerIsAllowed', '01366659a7062c32'),
     ('PreparedFolderIsAsLeft', 'b6fb831f8e861123'),
     ('PreparedFolderIsLink', 'ba199f0e24f474c1'),
-    ('PrepareProgramFolders', 'c568b2893f40ca78'),
+    ('PrepareProgramFolders', '3939bbc55228cdc3'),
     ('PreviousInstallationFolder', 'e5316bef61ccd228'),
     ('ProfilesFolder', '510631cc6e496304'),
     ('ProgramFolderMadeAsNamed', '4126d0c1e6214bee'),
-    ('RebuildFolderOfUntrustedOwner', 'e5c2213894d2cbbf'),
+    ('ProgramFolderWaitsForTheFiles', 'a89df9530e50e3d1'),
+    ('RebuildFolderOfUntrustedOwner', 'dedaf61436fb3d03'),
     ('RecordRestartNeeded', '235f797c1cefa764'),
     ('ReleaseHeldFolders', 'f8c80f82d876588b'),
     ('ReleasePlaceholders', '676d729ff0128f12'),
@@ -2683,7 +2693,7 @@ def negative_controls(texts):
         ('a data folder not held to its rule (check 5 of R1 to R4)',
          altered(texts, EXTENSION, 'if not DataFolderIsAllowed(szItem, handle, bOwner, szWho, szRemedy) then', 'if false then')),
         ('the earlier installation\'s data folder another account owns installed into without a restart (check 5 of R1 to R4)',
-         altered(texts, EXTENSION, "                           AddRestartFolder(szItem, -1, true, szItem + ' was ' + Copy(szWho, 4, Length(szWho)));\n", '')),
+         altered(texts, EXTENSION, "                           AddRestartFolder(szItem, -1, true, false, szItem + ' was ' + Copy(szWho, 4, Length(szWho)));\n", '')),
         ('a new installation\'s data folder another account owns taken as the earlier installation\'s is (check 5 of R1 to R4)',
          altered(texts, EXTENSION, "if bOwner and g_bEarlierInstallation and (not Final) then\n                        begin\n                           AddRestartFolder(szItem",
                  "if bOwner and (not Final) then\n                        begin\n                           AddRestartFolder(szItem")),
@@ -2922,11 +2932,33 @@ def negative_controls(texts):
         ('a folder that holds something and lets another account write it taken',
          altered(texts, EXTENSION, 'else if Contents and TakenEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, szWho) then', 'else if false then')),
         ('the program folder never asked whether another account could change it',
-         altered(texts, EXTENSION, '   NoteFolderOthersCouldChange(g_szProgramFolderReal, g_hProgramFolder, true);\n', '')),
+         altered(texts, EXTENSION, "   NoteFolderOthersCouldChange(g_szProgramFolderReal, g_hProgramFolder, true, ProgramFolderWaitsForTheFiles() <> '');\n", '')),
         ('Addons, Events, DBScripts, WebAdmin and Languages never asked whether another account could change them',
-         altered(texts, EXTENSION, '            NoteFolderOthersCouldChange(szFolder, handle, false);', '            szFolder := szFolder;')),
+         altered(texts, EXTENSION, '            NoteFolderOthersCouldChange(szFolder, handle, false, false);', '            szFolder := szFolder;')),
         ('a folder that holds only a file asked as one that holds nothing',
-         altered(texts, EXTENSION, 'if not OthersCouldChange(Folder, HeldHandle, not HoldsOnlyEmptyFolders(Folder), szWhat) then', 'if not OthersCouldChange(Folder, HeldHandle, false, szWhat) then')),
+         altered(texts, EXTENSION, 'if not OthersCouldChange(Folder, HeldHandle, Unhardened or (not HoldsOnlyEmptyFolders(Folder)), bDistrust, szWhat) then',
+                 'if not OthersCouldChange(Folder, HeldHandle, Unhardened, bDistrust, szWhat) then')),
+        # Repair 6 of R1 to R4 (check 6, 28 October 2026): the restart rule's distrusted folders and the unhardened program folder.
+        ('a folder whose permissions another account could change hardened keeping the entries of its own (check 6 of R1 to R4)',
+         altered(texts, EXTENSION, '      else if g_aRestartDistrust[index] then\n', '      else if false then\n')),
+        ('a folder whose permissions another account could change never noted so (check 6 of R1 to R4)',
+         altered(texts, EXTENSION, "      What := Folder + ' let ' + szWho + ' change its permissions or its owner';\n      Distrust := true;\n",
+                 "      What := Folder + ' let ' + szWho + ' change its permissions or its owner';\n      Distrust := false;\n")),
+        ('whether a folder\'s permissions could be changed not recorded for the restart rule (check 6 of R1 to R4)',
+         altered(texts, EXTENSION, '   g_aRestartDistrust[count - 1] := Distrust;\n', '   g_aRestartDistrust[count - 1] := false;\n')),
+        ('HardenDistrustedFolder keeping a named account\'s entry of its own, as HardenHeldFolder does (check 6 of R1 to R4)',
+         altered(texts, EXTENSION, '      Result := RebuildFolderOfUntrustedOwner(Folder, pDacl, EveryUserMayRead(pDacl), false, Why);\n',
+                 '      Result := HardenHeldFolder(Folder, HeldHandle, false, Why);\n')),
+        ('HardenDistrustedFolder reading the folder again as a folder the administrators hardened in place (check 6 of R1 to R4)',
+         altered(texts, EXTENSION, '   Result := HeldFolderIsHardened(HeldHandle, true, false, Why);\n   if not Result then\n      Why := \'once setup had rebuilt',
+                 '   Result := HeldFolderIsHardened(HeldHandle, false, false, Why);\n   if not Result then\n      Why := \'once setup had rebuilt')),
+        ('the program folder setup leaves unhardened before the files asked as one that holds only empty folders (check 6 of R1 to R4)',
+         altered(texts, EXTENSION, "NoteFolderOthersCouldChange(g_szProgramFolderReal, g_hProgramFolder, true, ProgramFolderWaitsForTheFiles() <> '');",
+                 'NoteFolderOthersCouldChange(g_szProgramFolderReal, g_hProgramFolder, true, false);')),
+        ('PrepareProgramFolders leaving the program folder unhardened by a rule of its own (check 6 of R1 to R4)',
+         altered(texts, EXTENSION, '   szInherits := ProgramFolderWaitsForTheFiles();\n', '   szInherits := DataFolderThatInherits(g_szProgramFolderReal);\n')),
+        ('an entry of its own for a named account on the program folder left unhardened not said (check 6 of R1 to R4)',
+         altered(texts, EXTENSION, '      SayWriteEntriesKept(g_szProgramFolderReal, g_hProgramFolder);\n   end\n', '   end\n')),
         ('what another account could change never noted by the check',
          altered(texts, EXTENSION, '   NoteFoldersOthersCouldChange();\nend;', 'end;')),
         ('the restart not recorded when setup hardens what another account could change',

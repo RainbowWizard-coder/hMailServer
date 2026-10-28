@@ -260,6 +260,12 @@ var
   // it is in does not hand down, let another account change, with what it let and whom
   // (NoteFolderOthersCouldChange) - check 5 of R1 to R4, 27 October 2026.
   g_aRestartData: array of Boolean;
+  // For each of g_aRestartFolders, whether its owner, or an entry setup's hardening takes
+  // away, let another account change its permissions or its owner (OthersCouldChange): an
+  // entry of its own for a named account may then be one that account wrote through that
+  // right, which HardenForRestart does not keep (HardenDistrustedFolder) - check 6 of R1
+  // to R4, 28 October 2026.
+  g_aRestartDistrust: array of Boolean;
   g_aStaleItems: array of String;
   g_aStaleWhat: array of String;
   // Set when PrepareProgramFolders, after the service was stopped, found a folder it
@@ -2527,7 +2533,10 @@ end;
 // their privilege whatever its list gives them - its owner may have left them no
 // right to change its owner or its permissions - and the list is then written, which
 // its new owner may always do. Only the earlier installation's own folders come here
-// (HardenHeldFolder, HardenDataFolder). True when it was written; false with Why otherwise.
+// (HardenHeldFolder, HardenDataFolder), and a folder whose permissions let another account
+// change them or its owner (HardenDistrustedFolder, check 6 of R1 to R4, 28 October 2026),
+// whose entries of its own that account could have written. True when it was written;
+// false with Why otherwise.
 function RebuildFolderOfUntrustedOwner(Folder: String; pDacl: cardinal; Users: Boolean; Service: Boolean; var Why: String): Boolean;
 var
    info: ACL_SIZE_INFO;
@@ -2679,9 +2688,10 @@ begin
       if szDropped = '' then
          szDropped := ', none';
       if Result then
-         Log(Folder + ' was owned by an account other than SYSTEM, the Administrators or TrustedInstaller, who could have changed what is in it and its permissions again: ' +
-             'it is now the Administrators'', with SYSTEM and the Administrators full control, ' + szSaid + ', nothing inherited, and the entries of its own that give no right to write ' +
-             'kept, the service''s among them. Entries that gave a right to write and were dropped: ' + Copy(szDropped, 3, Length(szDropped)) + '.')
+         Log(Folder + ' was owned by an account other than SYSTEM, the Administrators or TrustedInstaller, or its permissions let one change them or its owner, so that the ' +
+             'entries of its own may be that account''s: it is now the Administrators'', with SYSTEM and the Administrators full control, ' + szSaid + ', nothing inherited, and ' +
+             'the entries of its own that give no right to write kept, the service''s among them. Entries that gave a right to write and were dropped: ' +
+             Copy(szDropped, 3, Length(szDropped)) + '.')
       else
          Why := 'it was given to the Administrators, but its new permissions could not be written (Windows error ' + IntToStr(written) + ')';
    end;
@@ -3161,9 +3171,11 @@ end;
 // One folder for HardenForRestart (NoteFolderOthersCouldChange, CheckWhatElseIsInside,
 // DataLinkLeadsWhereAllowed), once: the folder; the handle that holds it, or -1 for one
 // HardenForRestart holds itself; whether it is a data folder, taken keeping the service's
-// entries (HardenDataFolder); and what another account could do, said in the setup log and
-// in the refusal.
-procedure AddRestartFolder(Folder: String; Handle: Integer; Data: Boolean; What: String);
+// entries (HardenDataFolder); whether another account could change its permissions or its
+// owner, so that no entry of its own that lets another account write is kept
+// (Distrust, HardenDistrustedFolder); and what another account could do, said in the
+// setup log and in the refusal.
+procedure AddRestartFolder(Folder: String; Handle: Integer; Data: Boolean; Distrust: Boolean; What: String);
 var
    index: Integer;
    count: Integer;
@@ -3175,9 +3187,11 @@ begin
    SetArrayLength(g_aRestartFolders, count);
    SetArrayLength(g_aRestartHandles, count);
    SetArrayLength(g_aRestartData, count);
+   SetArrayLength(g_aRestartDistrust, count);
    g_aRestartFolders[count - 1] := Folder;
    g_aRestartHandles[count - 1] := Handle;
    g_aRestartData[count - 1] := Data;
+   g_aRestartDistrust[count - 1] := Distrust;
    if g_szRestartWhy <> '' then
       g_szRestartWhy := g_szRestartWhy + '; ';
    g_szRestartWhy := g_szRestartWhy + What;
@@ -3996,7 +4010,7 @@ begin
    if not DataFolderIsAllowed(szReal, hHeld, bOwner, szWho, szRemedy) then
    begin
       if bOwner and g_bEarlierInstallation and (not Final) then
-         AddRestartFolder(szReal, hHeld, true, Link + ' led to ' + szReal + ', which was ' + Copy(szWho, 4, Length(szWho)))
+         AddRestartFolder(szReal, hHeld, true, false, Link + ' led to ' + szReal + ', which was ' + Copy(szWho, 4, Length(szWho)))
       else
       begin
          Why := 'it leads to ' + szReal + ', which ' + szWho + ' (' + Copy(szRemedy, 1, Length(szRemedy) - 1) + ')';
@@ -4141,7 +4155,7 @@ begin
                      begin
                         if bOwner and g_bEarlierInstallation and (not Final) then
                         begin
-                           AddRestartFolder(szItem, -1, true, szItem + ' was ' + Copy(szWho, 4, Length(szWho)));
+                           AddRestartFolder(szItem, -1, true, false, szItem + ' was ' + Copy(szWho, 4, Length(szWho)));
                            szWho := '';
                            szRemedy := '';
                         end;
@@ -4528,7 +4542,13 @@ end;
 // store, the uninstaller's record, which Inno Setup appends to, a library an
 // administrator put there - it changes, or removes, what setup does not replace. What
 // says which, and who; also when what it is cannot be read, which counts as one.
-function OthersCouldChange(Folder: String; HeldHandle: Integer; Contents: Boolean; var What: String): Boolean;
+// Distrust is set for a folder SYSTEM, the Administrators or TrustedInstaller own whose
+// entry setup's hardening takes away let another account change its permissions or its
+// owner: that account could have written an entry of the folder's own for itself, which
+// setup cannot tell from one an administrator gave, and so HardenForRestart keeps none
+// that lets another account write (HardenDistrustedFolder, check 6 of R1 to R4, 28 October
+// 2026); one another account owns HardenHeldFolder rebuilds so already.
+function OthersCouldChange(Folder: String; HeldHandle: Integer; Contents: Boolean; var Distrust: Boolean; var What: String): Boolean;
 var
    pOwner: cardinal;
    pDacl: cardinal;
@@ -4537,6 +4557,7 @@ var
    szWho: String;
 begin
    Result := true;
+   Distrust := false;
    What := '';
    pOwner := 0;
    pDacl := 0;
@@ -4552,7 +4573,10 @@ begin
    else if not IsTrustedSid(pOwner) then
       What := Folder + ' was owned by ' + SidNameAt(pOwner) + ', who may always change its permissions'
    else if TakenEntriesLetOthers(pDacl, HM_CHANGE_PERMISSIONS_RIGHTS, szWho) then
-      What := Folder + ' let ' + szWho + ' change its permissions or its owner'
+   begin
+      What := Folder + ' let ' + szWho + ' change its permissions or its owner';
+      Distrust := true;
+   end
    else if Contents and TakenEntriesLetOthers(pDacl, HM_FOLDER_WRITE_RIGHTS, szWho) then
       What := Folder + ' let ' + szWho + ' change what is in it'
    else
@@ -4587,21 +4611,41 @@ end;
 // check 5 of R1 to R4, 27 October 2026) - hardening the folder rewrites that entry, and a
 // restart closes what was opened while it applied - with the handle that holds it when
 // Keep is set (the walk's, for the program folder, Bin and ControlPanel), or -1 for one
-// HardenForRestart holds itself (Addons, Events, DBScripts, WebAdmin, Languages).
-procedure NoteFolderOthersCouldChange(Folder: String; HeldHandle: Integer; Keep: Boolean);
+// HardenForRestart holds itself (Addons, Events, DBScripts, WebAdmin, Languages). A right
+// to write the folder counts when it holds something but empty folders, or when
+// Unhardened is set: the program folder PrepareProgramFolders does not harden before the
+// files (ProgramFolderWaitsForTheFiles), into which Inno Setup makes the folders the last
+// look removed and copies what they hold (check 6 of R1 to R4, 28 October 2026).
+procedure NoteFolderOthersCouldChange(Folder: String; HeldHandle: Integer; Keep: Boolean; Unhardened: Boolean);
 var
+   bDistrust: Boolean;
    szWhat: String;
 begin
-   if not OthersCouldChange(Folder, HeldHandle, not HoldsOnlyEmptyFolders(Folder), szWhat) then
+   if not OthersCouldChange(Folder, HeldHandle, Unhardened or (not HoldsOnlyEmptyFolders(Folder)), bDistrust, szWhat) then
    begin
       szWhat := StaleItemIn(Folder);
       if szWhat = '' then
          Exit;
    end;
    if Keep then
-      AddRestartFolder(Folder, HeldHandle, false, szWhat)
+      AddRestartFolder(Folder, HeldHandle, false, bDistrust, szWhat)
    else
-      AddRestartFolder(Folder, -1, false, szWhat);
+      AddRestartFolder(Folder, -1, false, bDistrust, szWhat);
+end;
+
+// The data folder of the earlier installation's server - Data, Logs, Temp, Database or
+// Events, the first that is there and still inherits from the program folder
+// (DataFolderThatInherits) - for which PrepareProgramFolders does not harden the program
+// folder before the files, its change being handed down through the message store; ''
+// when it hardens it. Asked by CheckProgramFolders' NoteFoldersOthersCouldChange and by
+// PrepareProgramFolders alike, so that a program folder left unhardened before the files
+// is one no other account could write (check 6 of R1 to R4, 28 October 2026).
+function ProgramFolderWaitsForTheFiles(): String;
+begin
+   Result := '';
+   if g_bEarlierInstallation then
+      if DirExists(AddBackslash(g_szProgramFolderReal) + 'Data') or FileExists(AddBackslash(g_szBinReal) + 'hMailServer.INI') then
+         Result := DataFolderThatInherits(g_szProgramFolderReal);
 end;
 
 // Work item 78's R2 and R3, in CheckProgramFolders, which changes nothing: the folders
@@ -4621,11 +4665,11 @@ var
 begin
    if not g_bProgramFolderThere then
       Exit;
-   NoteFolderOthersCouldChange(g_szProgramFolderReal, g_hProgramFolder, true);
+   NoteFolderOthersCouldChange(g_szProgramFolderReal, g_hProgramFolder, true, ProgramFolderWaitsForTheFiles() <> '');
    if g_bBinThere and (not g_bRemakeBin) then
-      NoteFolderOthersCouldChange(g_szBinReal, g_hBin, true);
+      NoteFolderOthersCouldChange(g_szBinReal, g_hBin, true, false);
    if g_bControlPanelThere and (not g_bRemakeControlPanel) then
-      NoteFolderOthersCouldChange(g_szControlPanelReal, g_hControlPanel, true);
+      NoteFolderOthersCouldChange(g_szControlPanelReal, g_hControlPanel, true, false);
    for index := 0 to 4 do
    begin
       case index of
@@ -4640,15 +4684,67 @@ begin
       if handle <> -1 then
       begin
          if not HeldIsLink(handle, bKnown) then
-            NoteFolderOthersCouldChange(szFolder, handle, false);
+            NoteFolderOthersCouldChange(szFolder, handle, false, false);
          ReleaseFolder(handle);
       end;
    end;
 end;
 
+// Work item 78's restart rule (check 6 of R1 to R4, 28 October 2026): a folder of the
+// program whose owner, or an entry setup's hardening takes away, let another account
+// change its permissions or its owner (OthersCouldChange's Distrust) - Everyone's Full
+// control handed down to a folder made beforehand, say. Through that right the account
+// could have written an entry of the folder's own for itself, which setup cannot tell from
+// one an administrator gave, and which HardenHeldFolder would keep, as it keeps a named
+// account's on a folder nobody else could change: so the folder is rebuilt as the earlier
+// installation's folder another account owned is (RebuildFolderOfUntrustedOwner) -
+// given to the Administrators with takeown.exe /A, which leaves one they own as it is,
+// every entry of its own that lets an account other than SYSTEM, the Administrators or
+// TrustedInstaller write dropped and named in the setup log, the entries that give no
+// right to write kept (the service's Read & execute on Bin among them), SYSTEM and the
+// Administrators full control, Users Read & execute where every user could read it, and
+// nothing inherited - and read again through the handle that holds it, no account but the
+// three left with a right to write (HeldFolderIsHardened). A folder another account owns
+// that is not the earlier installation's is not taken (CheckProgramFolders refuses the
+// program folder, Bin and ControlPanel of that kind before this). True when it was
+// rebuilt; false with Why otherwise.
+function HardenDistrustedFolder(Folder: String; HeldHandle: Integer; var Why: String): Boolean;
+var
+   pOwner: cardinal;
+   pDacl: cardinal;
+   pDescriptor: cardinal;
+   readResult: cardinal;
+begin
+   Result := false;
+   Why := '';
+   pOwner := 0;
+   pDacl := 0;
+   pDescriptor := 0;
+   readResult := ReadHeldSecurity(HeldHandle, HM_FILE_OBJECT, HM_OWNER_AND_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);
+   if readResult <> 0 then
+   begin
+      Why := 'its owner and permissions could not be read (Windows error ' + IntToStr(readResult) + ')';
+      Exit;
+   end;
+   if pOwner = 0 then
+      Why := 'its owner could not be read'
+   else if (not IsTrustedSid(pOwner)) and (not g_bEarlierInstallation) then
+      Why := 'it was made by ' + SidNameAt(pOwner) + ', who may still hold it open with the right to change its permissions, and so it is not taken'
+   else
+      Result := RebuildFolderOfUntrustedOwner(Folder, pDacl, EveryUserMayRead(pDacl), false, Why);
+   FreeWindowsMemory(pDescriptor);
+   if not Result then
+      Exit;
+   Result := HeldFolderIsHardened(HeldHandle, true, false, Why);
+   if not Result then
+      Why := 'once setup had rebuilt its permissions, ' + Why;
+end;
+
 // Work item 78's R2 and R3: the folders of the program that were there and that
 // another account could change (NoteFoldersOthersCouldChange) - each hardened, by
-// HardenHeldFolder, as PrepareProgramFolders hardens one: the earlier installation's
+// HardenHeldFolder, as PrepareProgramFolders hardens one, or rebuilt by
+// HardenDistrustedFolder when another account could change its permissions or its
+// owner (check 6 of R1 to R4, 28 October 2026): the earlier installation's
 // folder another account owned given to the Administrators and its permissions rebuilt,
 // and the program folder hardened whatever its data folders inherit, its permissions
 // handed down through them as hMailServer.exe /ProtectFolders hands them down after the
@@ -4691,6 +4787,16 @@ begin
          else
             szWhy := '';
       end
+      else if g_aRestartDistrust[index] then
+      begin
+         if not HardenDistrustedFolder(g_aRestartFolders[index], handle, szWhy) then
+         begin
+            if szWhy = '' then
+               szWhy := 'its permissions could not be rebuilt';
+         end
+         else
+            szWhy := '';
+      end
       else if not HardenHeldFolder(g_aRestartFolders[index], handle, g_bEarlierInstallation, szWhy) then
       begin
          if szWhy = '' then
@@ -4709,8 +4815,9 @@ begin
    end;
    Result := 'Setup does not install into ' + szApp + ' until Windows has restarted: before this installation, ' + g_szRestartWhy + ', and a program that account started ' +
              'then may still hold it, or what is in it, open with that right, which no change of the permissions takes away. Setup has hardened ' + szDone + 'so that only ' +
-             'SYSTEM and the Administrators may change them now, and does not install there until Windows has restarted, which closes every such handle: restart Windows, ' +
-             'and run setup again. Nothing has been installed.';
+             'SYSTEM and the Administrators may change them now - but for an entry an administrator gave a named account on a folder whose permissions no other account could ' +
+             'change, which the setup log names - and does not install there until Windows has restarted, which closes every such handle: restart Windows, and run setup ' +
+             'again. Nothing has been installed.';
 end;
 
 // Work item 78's R1 to R4, the first half, which changes nothing: the program folder,
@@ -4748,6 +4855,7 @@ begin
    SetArrayLength(g_aRestartFolders, 0);
    SetArrayLength(g_aRestartHandles, 0);
    SetArrayLength(g_aRestartData, 0);
+   SetArrayLength(g_aRestartDistrust, 0);
    SetArrayLength(g_aStaleItems, 0);
    SetArrayLength(g_aStaleWhat, 0);
    g_szRestartWhy := '';
@@ -5024,14 +5132,16 @@ begin
       Exit;
    end;
 
-   szInherits := '';
-   if g_bEarlierInstallation then
-      if DirExists(AddBackslash(g_szProgramFolderReal) + 'Data') or FileExists(AddBackslash(g_szBinReal) + 'hMailServer.INI') then
-         szInherits := DataFolderThatInherits(g_szProgramFolderReal);
+   szInherits := ProgramFolderWaitsForTheFiles();
    if szInherits <> '' then
+   begin
       Log('The program folder ' + g_szProgramFolderReal + ' is not hardened before the files: it holds the earlier installation''s server, whose ' + szInherits + ' still inherits from it, and the change ' +
-          'would be handed down through the message store. No other account may change it (CheckFoldersBeforeTheStop). hMailServer.exe /ProtectFolders makes the data folders private and then hardens it after the files' +
-          ' (an installation of the Control Panel alone runs none: an administrator runs "hMailServer.exe /ProtectFolders" from its Bin folder). Bin and ControlPanel are hardened, or made, before the files.')
+          'would be handed down through the message store. No inherited entry and no entry of a group of every user lets another account change it, or change what is in it ' +
+          '(CheckFoldersBeforeTheStop would have hardened it and refused until Windows has restarted), and an entry of its own for a named account is said below. ' +
+          'hMailServer.exe /ProtectFolders makes the data folders private and then hardens it after the files' +
+          ' (an installation of the Control Panel alone runs none: an administrator runs "hMailServer.exe /ProtectFolders" from its Bin folder). Bin and ControlPanel are hardened, or made, before the files.');
+      SayWriteEntriesKept(g_szProgramFolderReal, g_hProgramFolder);
+   end
    else if not HardenHeldFolder(g_szProgramFolderReal, g_hProgramFolder, false, szWhy) then
    begin
       Result := 'Setup does not install into ' + szApp + ': ' + g_szProgramFolderReal + ' could not be hardened before the files - ' + szWhy + ' - and the setup log says more. ' +
