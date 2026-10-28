@@ -85,8 +85,11 @@ counted against the name alone, never towards a ban of the address, and no
 address is counted as before. From 6.2.28 to 6.3.7 it was counted against
 127.0.0.1, so a ban could be written that refused 127.0.0.1 at SMTP, POP3, IMAP
 and ManageSieve, while the REST listener, which
-asks no range, went on answering; on those versions put `127.0.0.1, ::1` in
-`AutoBanNeverBan`. The listener's own accounting of the credentials it checks
+asks no range, went on answering. On 6.3.2 to 6.3.7 put `127.0.0.1, ::1` in
+`AutoBanNeverBan`; 6.2.28 to 6.3.1 have no `AutoBanNeverBan`, and there only the
+auto-ban on failed logons switched off (`AutoBanOnLogonFailure` false, or
+`MaxInvalidLogonAttempts` 0) or `AutoBanMinutes` 0, which disconnects without
+writing a range, avoids it, each for every address. The listener's own accounting of the credentials it checks
 itself - the administrator password, API keys, passkeys, the codes and passwords
 it asks again - has never charged loopback (`RegisterAuthenticationFailure_`),
 and spares all of 127.0.0.0/8 from the same release, where it spared 127.0.0.1

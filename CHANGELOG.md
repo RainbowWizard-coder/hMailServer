@@ -229,8 +229,10 @@ with `--check`).
   no `Auto-ban: logon failure` line is written for it; a failure from any other address counts as before. The
   listener's own accounting - of the administrator password, API keys, passkeys and the codes and passwords it
   checks itself - now spares all of 127.0.0.0/8, the peers it takes `X-Forwarded-Proto` from, where it spared
-  127.0.0.1 and ::1 alone. On 6.2.28 to 6.3.7, `AutoBanNeverBan` with `127.0.0.1, ::1` avoids it. The regression
-  fixture `Security.RestApiLoopbackBan` holds it: three failed sign-ins at `GET /api/v1/me` and at
+  127.0.0.1 and ::1 alone. On 6.3.2 to 6.3.7, `AutoBanNeverBan` with `127.0.0.1, ::1` avoids it; 6.2.28 to 6.3.1
+  have no `AutoBanNeverBan`, and there only the auto-ban on failed logons switched off (`AutoBanOnLogonFailure`
+  false, or `MaxInvalidLogonAttempts` 0) or `AutoBanMinutes` 0, which disconnects without writing a range, avoids
+  it, each for every address. The regression fixture `Security.RestApiLoopbackBan` holds it: three failed sign-ins at `GET /api/v1/me` and at
   `POST /api/v1/session` from loopback write no ban and no such line, SMTP and IMAP still greet loopback, and the
   name is locked; on the Windows suite, three from another address are still charged to it
   ([AutoBan.md](hmailserver/docs/AutoBan.md), [DevicesAndSessions.md](hmailserver/docs/DevicesAndSessions.md)).

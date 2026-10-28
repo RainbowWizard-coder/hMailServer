@@ -241,7 +241,7 @@ stopped, before anything is copied.
 Copy, do not move. The old tree is the rollback.
 
 Include `Bin\hMailServerApiKeys.ini` if it exists: the REST API key store lives
-there (`Common/Util/RestApiServer.cpp:10827`), and no installer manifest mentions
+there (`Common/Util/RestApiServer.cpp:10839`), and no installer manifest mentions
 it.
 
 **A copy takes the permissions of the folder it lands in**, not those of the tree

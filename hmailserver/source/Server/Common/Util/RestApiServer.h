@@ -2335,9 +2335,10 @@ namespace HM
       // where a reverse proxy on this machine puts every browser behind it (a
       // plain-HTTP listener binds the loopback address only), and the one peer
       // whose X-Forwarded-Proto is believed (BrowserCameOverTls_). Such a
-      // failure is counted against the name alone and never towards a ban of
-      // the address (AuthenticateAccount_, RegisterAuthenticationFailure_):
-      // a ban written for 127.0.0.1 would refuse it at every mail listener,
+      // failure is never counted towards a ban of the address:
+      // AuthenticateAccount_ has Logon count it against the name alone, and
+      // RegisterAuthenticationFailure_ counts nothing for it. A ban written
+      // for 127.0.0.1 would refuse it at every mail listener,
       // and with it a webmail on this machine and every local script. Reads
       // nothing.
       static bool IsForwarder_(const IPAddress &peer);

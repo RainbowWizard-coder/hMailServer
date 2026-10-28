@@ -333,11 +333,15 @@ wrong password at `POST /api/v1/session`, the webmail's and the portal's sign-in
 or in HTTP Basic on any other route - is counted against the name alone, by the
 per-name lockout, and never towards the auto-ban's count for the address, so it
 writes no ban and no `Auto-ban: logon failure` line for fail2ban; from any other
-address it is counted as on every protocol. From 6.2.28 to 6.3.7 it was counted
+address it is counted as before. From 6.2.28 to 6.3.7 it was counted
 against `127.0.0.1`, so a ban could be written that refused `127.0.0.1` at the
 SMTP, POP3, IMAP and ManageSieve listeners,
-while this listener, which never refuses loopback, went on answering; on those
-versions put `127.0.0.1, ::1` in `AutoBanNeverBan`. Since this listener never
+while this listener, which never refuses loopback, went on answering. On 6.3.2 to
+6.3.7 put `127.0.0.1, ::1` in `AutoBanNeverBan`; 6.2.28 to 6.3.1 have no
+`AutoBanNeverBan`, and there only the auto-ban on failed logons switched off
+(`AutoBanOnLogonFailure` false, or `MaxInvalidLogonAttempts` 0) or
+`AutoBanMinutes` 0, which disconnects without writing a range, avoids it, each for
+every address. Since this listener never
 refuses loopback, what limits the guesses at one account through such a proxy is
 the per-name lockout, `AccountLockoutThreshold`, off by default: turn it on where
 the webmail is behind one ([AutoBan.md](AutoBan.md)).

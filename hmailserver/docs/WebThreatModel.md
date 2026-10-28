@@ -71,7 +71,7 @@ Entry points
 Every route the two web listeners answer is in
 [WebAuthorisationMatrix.md](WebAuthorisationMatrix.md), read from the code:
 
-- **41 routes before any credential** (`ProcessRequest_`, RestApiServer.cpp:2493-2723), in four kinds:
+- **41 routes before any credential** (`ProcessRequest_`, RestApiServer.cpp:2505-2735), in four kinds:
   - the pages and their static files: `/`, `/index.html`, `/deck-lang/*.json`,
     `/portal`, `/portal*.js`, `/portal.webmanifest`, `/portal-sw.js`,
     `/portal-lang/*.json`, `/portal-protected.js`, `/api/v1/help` and its pages,
@@ -86,7 +86,7 @@ Every route the two web listeners answer is in
     `POST /api/v1/password-reset`;
   - **public list pages**: `/lists/{list}/subscribe` and `/archive`.
 - **609 rows (method, path and route kind) of 601 route kinds** decided by `Authorize_` (RestApiServer.cpp:9986,
-  called at :2917), each with what nine kinds of credential get.
+  called at :2929), each with what nine kinds of credential get.
 - **20 routes on the web services listener**, of which CalDAV, CardDAV and
   autodiscover take an account's password over HTTPS (`Dav::Authenticate`) and
   the rest are public by design.
@@ -136,7 +136,7 @@ Controls in place today
 | TLS required except on loopback | RestApiServer.cpp:1265 |
 | HSTS (one year, the name used, no includeSubDomains) on every response over TLS | RestApiServer.cpp:1368 |
 | `X-Forwarded-Proto` believed only from a loopback peer | `BrowserCameOverTls_`, RestApiSamlSignIn.cpp:84-100 |
-| The Host header checked before anything is served (421): closes DNS rebinding of the loopback console | `HostAllowed_`, RestApiServer.cpp:2230; asked at :2493 |
+| The Host header checked before anything is served (421): closes DNS rebinding of the loopback console | `HostAllowed_`, RestApiServer.cpp:2230; asked at :2505 |
 | Chunked bodies refused (411); a NUL in a text body refused (400) | HttpServer.cpp:776-791 |
 | Absolute time limits per request and per connection, 64 connections | RestApiServer.cpp:227-229 |
 | Apple profiles (which carry a password) only over HTTPS | WebServicesServer.cpp:944-956 |
@@ -146,12 +146,12 @@ Controls in place today
 | Control | Where |
 |---|---|
 | One 401 for every credential problem; `WWW-Authenticate: Basic` left out for a page's own fetch | RestApiServer.cpp:10665-10701; `IsPageScriptRequest_` :10649 |
-| The administrator password: PBKDF2, a growing per-source delay that refuses before checking (from loopback too), the second factor in `X-hMailServer-OTP`, each code taken once, five wrong codes lock for fifteen minutes | `AuthenticateBasic_` :1830-1923; throttle :2758-2787 |
+| The administrator password: PBKDF2, a growing per-source delay that refuses before checking (from loopback too), the second factor in `X-hMailServer-OTP`, each code taken once, five wrong codes lock for fifteen minutes | `AuthenticateBasic_` :1830-1923; throttle :2770-2799 |
 | API keys: `hmapi_` tokens stored as SHA-256; source address and expiry; a key cannot make a session, a passkey or another key | :1924; `Authorize_` :9997-10026, :10091-10145 |
 | Sessions: `HttpOnly; SameSite=Strict`, `Secure` over TLS; 30 minutes idle, 12 hours at most; 50 per principal; ended by a password change | :14866; the policy in docs/DevicesAndSessions.md |
 | Bearer sessions: accounts only, never the administrator, never administrative | `HandleSessionCreate_` :14637 (the OpenAPI text at :21080 says each rule) |
 | Passkeys, OIDC and SAML: sealed cookies bind each flow to the browser that started it; a one-use ticket and an `hmsso` cookie for the exchange; `X-Requested-With` on the exchange, so a cross-site form cannot plant an attacker's session (login CSRF) | RestApiPasskeys.cpp:518; RestApiOidcSignIn.cpp:93; RestApiSamlSignIn.cpp:119; RestApiServer.cpp:1664-1684 |
-| A request budget per credential: 200 in 10 seconds | :316-317, :2861 |
+| A request budget per credential: 200 in 10 seconds | :316-317, :2873 |
 | The auto-ban on repeated failures, never charged to loopback, where a reverse proxy on this machine puts every browser: an account's failed sign-in from there is counted against the name alone (the per-name lockout), from the release after 6.3.7; until then it banned 127.0.0.1 from the mail listeners | `RegisterAuthenticationFailure_` :2392; `AuthenticateAccount_` :13897, Logon's `chargeAddress` at :13940; `IsForwarder_` :2383; docs/AutoBan.md |
 | The web services listener: an address an IP range that allows none of SMTP, POP3 and IMAP holds (an auto-ban, or an administrator's range) refused at the accept, never loopback or a `WebServicesTrustedProxies` entry, whose failed sign-ins count against the name alone and never towards a ban of the address; every failed CalDAV, CardDAV or Autodiscover sign-in closes its connection | `IsConnectionAllowed_`, `JudgeByRanges`, `IsForwarder`, WebServicesServer.cpp:672-825; `Dav::Authenticate`, DavSupport.cpp:294; docs/AutoBan.md |
 
@@ -159,14 +159,14 @@ Controls in place today
 
 | Control | Where |
 |---|---|
-| One choke point: every route is a `RouteKind` decided by `Authorize_` before any handler runs | :2885-2917, :9986 |
+| One choke point: every route is a `RouteKind` decided by `Authorize_` before any handler runs | :2897-2929, :9986 |
 | Every `RouteKind` classified; the auditor reads everything and changes nothing; the decision functions exist | `build/check-role-choke-point.py` |
 | One decider of what a role may do. `administer_server` is the whole server only for a role that reaches every domain: one holding it with a list of domains - a full key issued for named domains, `serveradmin` assigned with a list - is confined to them as any confined role is and is refused `administer_server` itself; REST's `HoldsServerAuthority_` and COM's `GetIsServerAdmin` both read that answer | `RoleManager::Allows`, Application/RoleManager.cpp:798 (at 6e1a336c5); a grant with a list is confined at :873 and :890 from 3d01598eb |
-| A domain's administrator cannot change an account wider than itself (the server administrator's own mailbox in its domain) | `ChangesAccountByAddress_` :8613, asked at :2949 |
+| A domain's administrator cannot change an account wider than itself (the server administrator's own mailbox in its domain) | `ChangesAccountByAddress_` :8613, asked at :2961 |
 | What is the server's and not a domain's is refused a credential confined to named domains, whatever its role's permissions: the delivery queue, the message store, the quarantine, an inbound webhook pass, the report's server-wide sections, and every resource of the server's own - IP ranges, certificates, global rules, the logs, the backup, the server settings and the update check among them; the creation, rewriting and deletion of a custom role, since a role is assigned across domains (W-1); the metric history, counted from counters that carry no domain (W-3); and a new domain alias, which names a domain beyond the one the path names (W-10). The roles and their assignments stay readable, the assignments narrowed to the credential's domains | `Authorize_` :10203-10603 (W-1 :10282-10295, W-3 :10297-10308, W-10 :10310-10322); RestApiRoles.cpp:230-234 |
 | What a body names beyond the path's domain is the handler's to hold, since `Authorize_` sees the path only: an alias's name, a new account's address, a list's address and a mailbox move's target are held to the domain (RestApiRoutes.cpp:1185-1189; RestApiServer.cpp:11968-11971; RestApiAdministration.cpp:1423-1426; RestApiMailboxMove.cpp:94-99), and a change on a domain's path whose handler is not given the caller is flagged by the matrix (`F-write-blind`) | The handlers named; "The routes the matrix flags, judged", below |
 | What only the server's authority may set, held by the handler, which is given that authority (W-10): a domain's name - a rename decides what name the server accepts mail for - and, on a domain's or an account's rule, the actions that reach past the rule's owner into the server's configuration: `bind_to_address`, `send_using_route` and `script_function` (a global rule is the server administrator's already). The COM API holds the same for an administrator who is not the server's: `Domain.Name`, `DomainAlias.Save`, `Rule.Save` and `RuleAction.Save` | RestApiAdministration.cpp:1011-1020; RestApiRules.cpp:937-969, :1038, :1097, `RuleGuard::ActionReachesBeyondRuleOwner` Rules/RuleGuard.cpp:622-638; COM/InterfaceDomain.cpp:115-121, COM/InterfaceDomainAlias.cpp:116-124, COM/InterfaceRule.cpp:368-378, COM/InterfaceRuleAction.cpp:74-85 |
-| An app password reaches no route of a mailbox encrypted at rest | :2982-2989 |
+| An app password reaches no route of a mailbox encrypted at rest | :2994-3001 |
 | Folder rights decided in one place | `ACLManager`; `build/check-authz-choke-point.py` |
 | The matrix of every route against every credential, regenerated and compared in CI | `build/generate-auth-matrix.py --check` |
 
@@ -175,11 +175,11 @@ Controls in place today
 | Control | Where |
 |---|---|
 | The session cookie is `SameSite=Strict` | :14866 |
-| A write on a session (cookie or bearer) must carry `X-Requested-With: hMailServer`, which another origin cannot add without a preflight the server never grants | :2789-2803 |
+| A write on a session (cookie or bearer) must carry `X-Requested-With: hMailServer`, which another origin cannot add without a preflight the server never grants | :2801-2815 |
 | A credential in a body (passkey, SSO ticket) is accepted only with the same header | :1664-1684 |
-| A request that changes something and carries any credential - a session, HTTP Basic, which a browser keeps once it has answered the sign-in box, or a bearer token - is refused when the browser reports it as sent from another site: a `Sec-Fetch-Site` of `cross-site` or `same-site`, or, from a browser that sends no fetch metadata, an `Origin` that names another host than the request's own or names no host. A script, `hmctl` and the PowerShell module send neither header and pass; the Deck and the webmail act on their own origin (W-2) | `RequestIsCrossSite_` :1526-1580, asked at :2835-2841 |
+| A request that changes something and carries any credential - a session, HTTP Basic, which a browser keeps once it has answered the sign-in box, or a bearer token - is refused when the browser reports it as sent from another site: a `Sec-Fetch-Site` of `cross-site` or `same-site`, or, from a browser that sends no fetch metadata, an `Origin` that names another host than the request's own or names no host. A script, `hmctl` and the PowerShell module send neither header and pass; the Deck and the webmail act on their own origin (W-2) | `RequestIsCrossSite_` :1526-1580, asked at :2847-2853 |
 | The anonymous pages that act on a capability token (`/files/{token}`, `/confidential/{token}`, `/recovery/verify`, `/portal/reset`, `/held/release` and `/held/stop`, `/lists/confirm`, `/lists/unsubscribe`, `/lists/approve`) post back to themselves, each held by its token, and change nothing on GET but what the table of flagged routes says | the handlers of each page; the matrix's `F-anonymous-get` |
-| The two anonymous posts that carry no token - the public subscribe form (`POST /lists/{list}/subscribe`) and the reset request (`POST /api/v1/password-reset`) - are held by double opt-in, by one answer for every address, by a budget per source address, and by the same rule as a credentialed change: a post the browser reports as sent from another site is refused before its handler. The subscribe form alone takes an `Origin` that names no host, which a browser that sends no fetch metadata may send with this server's own form, as it is served under `Referrer-Policy: no-referrer` (W-12) | RestApiServer.cpp:2650-2665, :2700-2717; RestApiMailingLists.cpp:898-937; RestApiAccountRecovery.cpp:669-698 |
+| The two anonymous posts that carry no token - the public subscribe form (`POST /lists/{list}/subscribe`) and the reset request (`POST /api/v1/password-reset`) - are held by double opt-in, by one answer for every address, by a budget per source address, and by the same rule as a credentialed change: a post the browser reports as sent from another site is refused before its handler. The subscribe form alone takes an `Origin` that names no host, which a browser that sends no fetch metadata may send with this server's own form, as it is served under `Referrer-Policy: no-referrer` (W-12) | RestApiServer.cpp:2662-2677, :2712-2729; RestApiMailingLists.cpp:898-937; RestApiAccountRecovery.cpp:669-698 |
 
 ### Script in the pages (T-2)
 
@@ -202,7 +202,7 @@ Controls in place today
 
 | Control | Where |
 |---|---|
-| The worker is a fixed route compiled in; `worker-src 'self'`; a worker needs a script type, which no attachment or shared file is served as | RestApiServer.cpp:2723, :21034-21042 |
+| The worker is a fixed route compiled in; `worker-src 'self'`; a worker needs a script type, which no attachment or shared file is served as | RestApiServer.cpp:2735, :21034-21042 |
 | A fixed shell list, network first | PortalServiceWorker.js:6-14, :185-189 |
 | Offline parts answered from IndexedDB with `Content-Security-Policy: sandbox` and attachment disposition for the types a browser would run | PortalServiceWorker.js:84-160 |
 | Web Push: the payload encrypted to the subscription; the worker shows it and fetches nothing | PortalServiceWorker.js:16-76 |
@@ -322,7 +322,7 @@ here so that the rebuild keeps the forced type.
 - **JSON answers carry no `X-Content-Type-Options: nosniff`** (`BuildResponse_`,
   RestApiServer.cpp:10628-10646 adds `Cache-Control` only). No current browser
   renders `application/json` as a page; add the header for completeness.
-- **A stale comment.** RestApiServer.cpp:2497 says the Deck's page "is the only
+- **A stale comment.** RestApiServer.cpp:2509 says the Deck's page "is the only
   unauthenticated route in the listener"; 41 routes come before
   `Authenticate_`. The matrix lists them; the comment should say so.
 - **A domain administrator reads the custom role definitions**
