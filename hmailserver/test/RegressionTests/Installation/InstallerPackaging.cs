@@ -1943,8 +1943,10 @@ namespace RegressionTests.Installation
       };
 
       // A [Code] comment (// to the end of the line, { }, (* *)), a string, or a run of
-      // white space; an external function's declaration; a routine's header; a record's.
-      private static readonly Regex CodeToken = new Regex(@"//[^\n]*|\{[^}]*\}|\(\*[\s\S]*?\*\)|'(?:[^'\n]|'')*'|\s+");
+      // white space; an external function's declaration; a routine's header; a record's. A
+      // brace that opens {# is no comment but the Inno Setup preprocessor's inline
+      // directive, which stays in a routine's code (check 6 of R1 to R4, 28 October 2026).
+      private static readonly Regex CodeToken = new Regex(@"//[^\n]*|\{(?!#)[^}]*\}|\(\*[\s\S]*?\*\)|'(?:[^'\n]|'')*'|\s+");
       private static readonly Regex ExternalDeclaration = new Regex(@"^(?:function|procedure)\s+(\w+)\s*(?:\([^()]*\))?\s*(?::\s*\w+\s*)?;\s*external\s+'[^']*'\s*;",
                                                                    RegexOptions.Multiline | RegexOptions.IgnoreCase);
       private static readonly Regex RoutineHeader = new Regex(@"^(?:function|procedure)\s+(\w+)\s*[(:;]", RegexOptions.Multiline | RegexOptions.IgnoreCase);
@@ -2286,7 +2288,7 @@ namespace RegressionTests.Installation
          var routines = RoutineBodies(extension);
          foreach (KeyValuePair<string, string[]> release in releases)
             CollectionAssert.AreEquivalent(release.Value,
-               routines.Where(pair => pair.Key != release.Key.ToLowerInvariant() && Regex.IsMatch(Regex.Replace(pair.Value[1], @"//[^\n]*|\{[^}]*\}|'(?:[^'\n]|'')*'", " "), @"\b" + release.Key + @"\s*\("))
+               routines.Where(pair => pair.Key != release.Key.ToLowerInvariant() && Regex.IsMatch(Regex.Replace(pair.Value[1], @"//[^\n]*|\{(?!#)[^}]*\}|'(?:[^'\n]|'')*'", " "), @"\b" + release.Key + @"\s*\("))
                        .Select(pair => pair.Value[0]).ToArray(),
                release.Key + " is called from elsewhere than " + string.Join(" and ", release.Value) + ", so that what setup holds is let go before the look after the files.");
          Assert.IsFalse(routines.ContainsKey("curinstallprogresschanged"), "CurInstallProgressChanged, which Inno Setup calls during the copy, is defined.");
@@ -2294,6 +2296,216 @@ namespace RegressionTests.Installation
          foreach (string call in new[] { "Exec", "ShellExec", "ExecAsOriginalUser", "ShellExecAsOriginalUser", "ProtectFolders", "ReleaseHeldFolders", "ReleasePlaceholders", "LetGoOfHeld" })
             Assert.IsFalse(Regex.IsMatch(page, @"\b" + call + @"\s*\("), "CurPageChanged, which Inno Setup calls as the install begins, runs " + call + ".");
       }
+
+      [Test]
+      [Description("Work item 78 (check 6 of R1 to R4, 28 October 2026): ISCC compiles what the Inno Setup preprocessor makes of the scripts, and the tests above read them as written. A line whose first character that is not white space is '#' - #if 0 and #endif, #emit, #include, #define, #pragma - and every inline directive, {#...}, which the preprocessor replaces with the text of its expression in a comment or a string too, is held to where it is now: the script, the routine of the [Code] or the section it is in, the line, the lines that are not blank before and after it, and how many times (build/check-installer-scripts.py's ISPP_PLACES). Check 6 found six one-line inline directives that switched R1, R2 or R3 off, and #if 0 around section_dirs.iss's {app} entry, passed by the checker and by this fixture.")]
+      public void TheScriptsAreHeldToWhatThePreprocessorMakesOfThem()
+      {
+         var held = new Dictionary<string, int>();
+         foreach (string[] place in IsppPlaces)
+            held[string.Join("\u0001", place.Take(5))] = int.Parse(place[5]);
+         var found = new Dictionary<string, int>();
+         var numbers = new Dictionary<string, int>();
+         foreach (string path in Directory.GetFiles(InstallationRoot).Where(file => file.EndsWith(".iss", StringComparison.OrdinalIgnoreCase)).OrderBy(file => file, StringComparer.Ordinal))
+         {
+            string name = Path.GetFileName(path);
+            foreach (string[] line in IsppLines(File.ReadAllText(path)))
+            {
+               string key = string.Join("\u0001", new[] { name, line[0], line[1], line[2], line[3] });
+               found[key] = found.TryGetValue(key, out int count) ? count + 1 : 1;
+               if (!numbers.ContainsKey(key))
+                  numbers[key] = int.Parse(line[4]);
+            }
+         }
+         var failed = new List<string>();
+         foreach (string key in found.Keys.Union(held.Keys).OrderBy(key => key, StringComparer.Ordinal))
+         {
+            found.TryGetValue(key, out int have);
+            held.TryGetValue(key, out int want);
+            if (have == want)
+               continue;
+            string[] parts = key.Split('\u0001');
+            failed.Add(want == 0 ? parts[0] + " line " + numbers[key] + " (" + parts[1] + "): \"" + parts[3] + "\" is read by the preprocessor and not held there"
+                       : have == 0 ? parts[0] + " (" + parts[1] + "): \"" + parts[3] + "\", after \"" + parts[2] + "\", is held there and is not there"
+                       : parts[0] + " line " + numbers[key] + ": \"" + parts[3] + "\" is there " + have + " times, held " + want);
+         }
+         Assert.IsEmpty(failed, "What the Inno Setup preprocessor reads in the installer's scripts is not where work item 78 holds it:\n" + string.Join("\n", failed));
+      }
+
+      /// <summary>
+      ///    The lines of one installer script the Inno Setup preprocessor reads - a line whose
+      ///    first character that is not white space is '#', or one with "{#" - each as where it
+      ///    is (the routine of the [Code] by its name, or else "[section]" in lower case, or ""
+      ///    before the first section), the nearest line before it that is not blank, the line,
+      ///    the nearest after it, all trimmed, and its number (build/check-installer-scripts.py's
+      ///    ispp_lines).
+      /// </summary>
+      private static List<string[]> IsppLines(string text)
+      {
+         text = text.Replace("\r\n", "\n");
+         string[] lines = text.Split('\n');
+         var routine = new string[lines.Length];
+         var starts = new List<int> { 0 };
+         foreach (string one in lines)
+            starts.Add(starts[starts.Count - 1] + one.Length + 1);
+         Func<int, int> lineOf = offset => { int at = starts.BinarySearch(offset); return at >= 0 ? at : ~at - 1; };
+         var externals = new HashSet<string>(ExternalDeclaration.Matches(text).Cast<Match>().Select(match => match.Groups[1].Value.ToLowerInvariant()));
+         var closing = new Regex(@"^end;", RegexOptions.Multiline);
+         foreach (Match header in RoutineHeader.Matches(text))
+         {
+            if (externals.Contains(header.Groups[1].Value.ToLowerInvariant()))
+               continue;
+            Match end = closing.Match(text, header.Index + header.Length);
+            if (!end.Success)
+               continue;
+            int first = lineOf(header.Index);
+            int last = lineOf(end.Index);
+            for (int index = first; index <= last; index++)
+               if (string.IsNullOrEmpty(routine[index]))
+                  routine[index] = header.Groups[1].Value;
+         }
+         var found = new List<string[]>();
+         string section = "";
+         var sectionHeader = new Regex(@"^\s*\[([^\]]+)\]\s*$");
+         var directive = new Regex(@"^[ \t]*#");
+         for (int index = 0; index < lines.Length; index++)
+         {
+            Match header = sectionHeader.Match(lines[index]);
+            if (header.Success && string.IsNullOrEmpty(routine[index]))
+               section = "[" + header.Groups[1].Value.Trim().ToLowerInvariant() + "]";
+            if (!directive.IsMatch(lines[index]) && !lines[index].Contains("{#"))
+               continue;
+            string before = Enumerable.Range(0, index).Reverse().Select(other => lines[other].Trim()).FirstOrDefault(other => other.Length > 0) ?? "";
+            string after = Enumerable.Range(index + 1, lines.Length - index - 1).Select(other => lines[other].Trim()).FirstOrDefault(other => other.Length > 0) ?? "";
+            found.Add(new[] { string.IsNullOrEmpty(routine[index]) ? section : routine[index], before, lines[index].Trim(), after, (index + 1).ToString() });
+         }
+         return found;
+      }
+
+      // build/check-installer-scripts.py's ISPP_PLACES: (script, where, the line before, the
+      // line, the line after, how many times).
+      private static readonly string[][] IsppPlaces =
+      {
+         new[] { "hMailServer64.iss", "", "", "#define HMAILSERVERLIBS = GetEnv(\"hMailServerLibs\")", "#define OPENSSL_LIBS_PATH HMAILSERVERLIBS + \"\\openssl-4.0.3\\out64\\bin\"", "1" },
+         new[] { "hMailServer64.iss", "", "#define DOTNET_CHANNEL \"10.0\"", "#define DOTNET_RUNTIME_FILE \"windowsdesktop-runtime-\" + DOTNET_CHANNEL + \"-win-x64.exe\"", "#include \"section_setup.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#define DOTNET_MAJOR \"10\"", "#define DOTNET_CHANNEL \"10.0\"", "#define DOTNET_RUNTIME_FILE \"windowsdesktop-runtime-\" + DOTNET_CHANNEL + \"-win-x64.exe\"", "1" },
+         new[] { "hMailServer64.iss", "", "#define DOTNET_RUNTIME_FILE \"windowsdesktop-runtime-\" + DOTNET_CHANNEL + \"-win-x64.exe\"", "#include \"section_setup.iss\"", "#include \"section_setup_64.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#define HMAILSERVERLIBS = GetEnv(\"hMailServerLibs\")", "#define OPENSSL_LIBS_PATH HMAILSERVERLIBS + \"\\openssl-4.0.3\\out64\\bin\"", "#define POSTGRESQL_LIBPQ_PATH HMAILSERVERLIBS + \"\\postgresql-18.6\\builddir\\src\\interfaces\\libpq\"", "1" },
+         new[] { "hMailServer64.iss", "", "#define OPENSSL_LIBS_PATH HMAILSERVERLIBS + \"\\openssl-4.0.3\\out64\\bin\"", "#define POSTGRESQL_LIBPQ_PATH HMAILSERVERLIBS + \"\\postgresql-18.6\\builddir\\src\\interfaces\\libpq\"", "; The bundled .NET Desktop Runtime, defined in one place because it used to be", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_components.iss\"", "#include \"section_files_common.iss\"", "#include \"section_files_64.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_custom_messages.iss\"", "#include \"section_languages.iss\"", "#include \"section_istool.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_dirs.iss\"", "#include \"section_run.iss\"", "#include \"section_uninstallrun.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_files_64.iss\"", "#include \"section_messages.iss\"", "#include \"section_ini.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_files_common.iss\"", "#include \"section_files_64.iss\"", "#include \"section_messages.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_icons.iss\"", "#include \"hMailServerInnoExtension.iss\"", "", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_ini.iss\"", "#include \"section_registry.iss\"", "#include \"section_dirs.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_istool.iss\"", "#include \"section_types.iss\"", "#include \"section_components.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_languages.iss\"", "#include \"section_istool.iss\"", "#include \"section_types.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_messages.iss\"", "#include \"section_ini.iss\"", "#include \"section_registry.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_registry.iss\"", "#include \"section_dirs.iss\"", "#include \"section_run.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_run.iss\"", "#include \"section_uninstallrun.iss\"", "#include \"section_icons.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_setup.iss\"", "#include \"section_setup_64.iss\"", "#include \"section_custom_messages.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_setup_64.iss\"", "#include \"section_custom_messages.iss\"", "#include \"section_languages.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_types.iss\"", "#include \"section_components.iss\"", "#include \"section_files_common.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "#include \"section_uninstallrun.iss\"", "#include \"section_icons.iss\"", "#include \"hMailServerInnoExtension.iss\"", "1" },
+         new[] { "hMailServer64.iss", "", "; forward across minor and patch versions but never across a major version.", "#define DOTNET_MAJOR \"10\"", "#define DOTNET_CHANNEL \"10.0\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#define DOTNET_CHANNEL \"10.0\"", "#define DOTNET_RUNTIME_FILE \"windowsdesktop-runtime-\" + DOTNET_CHANNEL + \"-win-arm64.exe\"", "; The version is read from section_setup_64.iss, so that the release's version", "1" },
+         new[] { "hMailServerARM64.iss", "", "#define DOTNET_MAJOR \"10\"", "#define DOTNET_CHANNEL \"10.0\"", "#define DOTNET_RUNTIME_FILE \"windowsdesktop-runtime-\" + DOTNET_CHANNEL + \"-win-arm64.exe\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#define HMAILSERVERLIBS = GetEnv(\"hMailServerLibs\")", "#define OPENSSL_LIBS_PATH HMAILSERVERLIBS + \"\\openssl-4.0.3-arm64\\out64\\bin\"", "#define POSTGRESQL_LIBPQ_PATH HMAILSERVERLIBS + \"\\postgresql-18.6-arm64\\builddir\\src\\interfaces\\libpq\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#define HM_APP_VERSION ReadIni(SourcePath + \"\\section_setup_64.iss\", \"Setup\", \"AppVersion\", \"\")", "#define HM_VERSION_INFO ReadIni(SourcePath + \"\\section_setup_64.iss\", \"Setup\", \"VersionInfoVersion\", \"\")", "#if HM_APP_VERSION == \"\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#define HM_ARM64", "#define HMAILSERVERLIBS = GetEnv(\"hMailServerLibs\")", "#define OPENSSL_LIBS_PATH HMAILSERVERLIBS + \"\\openssl-4.0.3-arm64\\out64\\bin\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#define HM_VERSION_INFO ReadIni(SourcePath + \"\\section_setup_64.iss\", \"Setup\", \"VersionInfoVersion\", \"\")", "#if HM_APP_VERSION == \"\"", "#error section_setup_64.iss names no AppVersion for the ARM64 installer to take", "1" },
+         new[] { "hMailServerARM64.iss", "", "#define OPENSSL_LIBS_PATH HMAILSERVERLIBS + \"\\openssl-4.0.3-arm64\\out64\\bin\"", "#define POSTGRESQL_LIBPQ_PATH HMAILSERVERLIBS + \"\\postgresql-18.6-arm64\\builddir\\src\\interfaces\\libpq\"", "; As in hMailServer64.iss, which says why these are defined once: the ARM64 build", "1" },
+         new[] { "hMailServerARM64.iss", "", "#endif", "#include \"section_setup.iss\"", "#include \"section_setup_arm64.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#error section_setup_64.iss names no AppVersion for the ARM64 installer to take", "#endif", "#include \"section_setup.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#if HM_APP_VERSION == \"\"", "#error section_setup_64.iss names no AppVersion for the ARM64 installer to take", "#endif", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_components.iss\"", "#include \"section_files_common.iss\"", "#include \"section_files_arm64.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_custom_messages.iss\"", "#include \"section_languages.iss\"", "#include \"section_istool.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_dirs.iss\"", "#include \"section_run.iss\"", "#include \"section_uninstallrun.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_files_arm64.iss\"", "#include \"section_messages.iss\"", "#include \"section_ini.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_files_common.iss\"", "#include \"section_files_arm64.iss\"", "#include \"section_messages.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_icons.iss\"", "#include \"hMailServerInnoExtension.iss\"", "", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_ini.iss\"", "#include \"section_registry.iss\"", "#include \"section_dirs.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_istool.iss\"", "#include \"section_types.iss\"", "#include \"section_components.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_languages.iss\"", "#include \"section_istool.iss\"", "#include \"section_types.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_messages.iss\"", "#include \"section_ini.iss\"", "#include \"section_registry.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_registry.iss\"", "#include \"section_dirs.iss\"", "#include \"section_run.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_run.iss\"", "#include \"section_uninstallrun.iss\"", "#include \"section_icons.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_setup.iss\"", "#include \"section_setup_arm64.iss\"", "#include \"section_custom_messages.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_setup_arm64.iss\"", "#include \"section_custom_messages.iss\"", "#include \"section_languages.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_types.iss\"", "#include \"section_components.iss\"", "#include \"section_files_common.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "#include \"section_uninstallrun.iss\"", "#include \"section_icons.iss\"", "#include \"hMailServerInnoExtension.iss\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "; and build\\get-dotnet-runtime.ps1 -Platform ARM64 places this one).", "#define DOTNET_MAJOR \"10\"", "#define DOTNET_CHANNEL \"10.0\"", "1" },
+         new[] { "hMailServerARM64.iss", "", "; has no ARM64 build, and an ARM64 process cannot load an x64 OLE DB provider.", "#define HM_ARM64", "#define HMAILSERVERLIBS = GetEnv(\"hMailServerLibs\")", "1" },
+         new[] { "hMailServerARM64.iss", "", "; stamp (RELEASE.md step 7) stays one file for the two installers.", "#define HM_APP_VERSION ReadIni(SourcePath + \"\\section_setup_64.iss\", \"Setup\", \"AppVersion\", \"\")", "#define HM_VERSION_INFO ReadIni(SourcePath + \"\\section_setup_64.iss\", \"Setup\", \"VersionInfoVersion\", \"\")", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#define HM_CONSTANTS_FILE AddBackslash(SourcePath) + \"..\\source\\Server\\Common\\Application\\Constants.h\"", "#define HM_REQUIRED_DB_VERSION \"\"", "#define HmConstantsHandle 0", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#define HM_REQUIRED_DB_VERSION \"\"", "#define HmConstantsHandle 0", "#define HmConstantsLine \"\"", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#define HmConstantsHandle 0", "#define HmConstantsLine \"\"", "#sub HmReadConstantsLine", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#define HmConstantsLine \"\"", "#sub HmReadConstantsLine", "#expr HmConstantsLine = Trim(FileRead(HmConstantsHandle))", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#endif", "#endsub", "#for {HmConstantsHandle = FileOpen(HM_CONSTANTS_FILE); HmConstantsHandle && !FileEof(HmConstantsHandle); 0} HmReadConstantsLine", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#endif", "#if HM_REQUIRED_DB_VERSION == \"\" || Int(HM_REQUIRED_DB_VERSION, 0) < 6000", "#error REQUIRED_DB_VERSION could not be read from Constants.h", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#endsub", "#for {HmConstantsHandle = FileOpen(HM_CONSTANTS_FILE); HmConstantsHandle && !FileEof(HmConstantsHandle); 0} HmReadConstantsLine", "#if HmConstantsHandle", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#error REQUIRED_DB_VERSION could not be read from Constants.h", "#endif", "[code]", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#expr FileClose(HmConstantsHandle)", "#endif", "#if HM_REQUIRED_DB_VERSION == \"\" || Int(HM_REQUIRED_DB_VERSION, 0) < 6000", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#expr HM_REQUIRED_DB_VERSION = Trim(Copy(HmConstantsLine, Len(\"#define REQUIRED_DB_VERSION \") + 1))", "#endif", "#endsub", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#expr HmConstantsLine = Trim(FileRead(HmConstantsHandle))", "#if Pos(\"#define REQUIRED_DB_VERSION \", HmConstantsLine) == 1", "#expr HM_REQUIRED_DB_VERSION = Trim(Copy(HmConstantsLine, Len(\"#define REQUIRED_DB_VERSION \") + 1))", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#for {HmConstantsHandle = FileOpen(HM_CONSTANTS_FILE); HmConstantsHandle && !FileEof(HmConstantsHandle); 0} HmReadConstantsLine", "#if HmConstantsHandle", "#expr FileClose(HmConstantsHandle)", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#if HM_REQUIRED_DB_VERSION == \"\" || Int(HM_REQUIRED_DB_VERSION, 0) < 6000", "#error REQUIRED_DB_VERSION could not be read from Constants.h", "#endif", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#if HmConstantsHandle", "#expr FileClose(HmConstantsHandle)", "#endif", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#if Pos(\"#define REQUIRED_DB_VERSION \", HmConstantsLine) == 1", "#expr HM_REQUIRED_DB_VERSION = Trim(Copy(HmConstantsLine, Len(\"#define REQUIRED_DB_VERSION \") + 1))", "#endif", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "#sub HmReadConstantsLine", "#expr HmConstantsLine = Trim(FileRead(HmConstantsHandle))", "#if Pos(\"#define REQUIRED_DB_VERSION \", HmConstantsLine) == 1", "1" },
+         new[] { "hMailServerInnoExtension.iss", "", "// variable of its own, gone when it returns.", "#define HM_CONSTANTS_FILE AddBackslash(SourcePath) + \"..\\source\\Server\\Common\\Application\\Constants.h\"", "#define HM_REQUIRED_DB_VERSION \"\"", "1" },
+         new[] { "hMailServerInnoExtension.iss", "CheckServiceAfterMove", "iVersion := ReadDatabaseVersion('after the move, through the service running as NT SERVICE\\hMailServer');", "if iVersion = {#HM_REQUIRED_DB_VERSION} then", "Exit;", "1" },
+         new[] { "hMailServerInnoExtension.iss", "CheckServiceAfterMove", "if iVersion > 0 then", "szWhat := 'it opened its database at version ' + IntToStr(iVersion) + ', where this build needs {#HM_REQUIRED_DB_VERSION}'", "else", "1" },
+         new[] { "hMailServerInnoExtension.iss", "CreateWizardPages", "Checked := False;", "#endif", "end;", "1" },
+         new[] { "hMailServerInnoExtension.iss", "CreateWizardPages", "Checked := True;", "#endif", "end;", "1" },
+         new[] { "hMailServerInnoExtension.iss", "CreateWizardPages", "OnClick := @rdoUseExternal_Click;", "#ifdef HM_ARM64", "// MySQL and MariaDB need an ARM64 libmysql.dll that this installer does not carry.", "1" },
+         new[] { "hMailServerInnoExtension.iss", "CreateWizardPages", "OnClick := @rdoUseInternal_Click;", "#ifdef HM_ARM64", "// SQL Server Compact has no ARM64 build (docs/WindowsOnArm.md).", "1" },
+         new[] { "hMailServerInnoExtension.iss", "DotNetDesktopMissing", "Result := True;", "if not FindFirst(ExpandConstant('{pf64}\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\{#DOTNET_MAJOR}.*'), findRec) then", "Exit;", "1" },
+         new[] { "hMailServerInnoExtension.iss", "EndDatabaseStep", "end", "else if (g_iDatabaseVersionBefore >= {#HM_REQUIRED_DB_VERSION}) and (g_iDatabaseVersionAfter <= 0) then", "begin", "1" },
+         new[] { "hMailServerInnoExtension.iss", "EndDatabaseStep", "g_bDatabaseChanged := false;", "Log('Database step left the database unchanged, at version ' + IntToStr(g_iDatabaseVersionBefore) + ': this build needs version {#HM_REQUIRED_DB_VERSION}, ' +", "'which the database had reached before the step, and nothing in the step moves a database at or past it, though its version after the step could not be read.');", "1" },
+         new[] { "hMailServerInnoExtension.iss", "InitializeSetup", "DeleteFile(RefusalFileName());", "// The .NET tools require the .NET {#DOTNET_MAJOR} Desktop Runtime; it is", "// bundled and installed automatically when missing, so no up-front framework", "1" },
+         new[] { "hMailServerInnoExtension.iss", "InitializeWizard", "g_bUseInternal := false;", "#endif", "OverrideInstallationFolder();", "1" },
+         new[] { "hMailServerInnoExtension.iss", "InitializeWizard", "g_bUseInternal := false;", "#ifdef HM_ARM64", "// No built-in database on ARM64, whatever the command line says: a new", "1" },
+         new[] { "hMailServerInnoExtension.iss", "InstallDotNetRuntime", "Exit;", "if (Exec(ExpandConstant('{tmp}\\{#DOTNET_RUNTIME_FILE}'), '/install /quiet /norestart', '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) = False) then", "begin", "1" },
+         new[] { "hMailServerInnoExtension.iss", "InstallDotNetRuntime", "begin", "SuppressibleMsgBox('The .NET {#DOTNET_MAJOR} Desktop Runtime could not be installed. The database setup tools will not work until it is installed.' + #13#10 +", "SysErrorMessage(ResultCode), mbError, MB_OK, IDOK);", "1" },
+         new[] { "hMailServerInnoExtension.iss", "InstallDotNetRuntime", "begin", "SuppressibleMsgBox('The .NET {#DOTNET_MAJOR} Desktop Runtime installation failed with exit code ' + IntToStr(ResultCode) + '.' + #13#10 +", "'The database setup tools will not work until the runtime is installed. ' +", "1" },
+         new[] { "hMailServerInnoExtension.iss", "InstallSQLCE", "Exit;", "#endif", "// x64 only: ArchitecturesAllowed=x64 in section_setup_64.iss, so IsWin64 is", "1" },
+         new[] { "hMailServerInnoExtension.iss", "InstallSQLCE", "Exit;", "#ifdef HM_ARM64", "// Unreachable: InitializeWizard never chooses the built-in database on ARM64,", "1" },
+         new[] { "hMailServerInnoExtension.iss", "PrepareToInstallRefusal", "'The service will not start until an ARM64 one is there (WindowsOnArm.md in the documentation says how to build it).', mbInformation, MB_OK, IDOK);", "#endif", "Result := PrepareProgramFolders(PreviousInstallationFolder());", "1" },
+         new[] { "hMailServerInnoExtension.iss", "PrepareToInstallRefusal", "end;", "#ifdef HM_ARM64", "// The ARM64 installer only (hMailServerARM64.iss).", "1" },
+         new[] { "hMailServerInnoExtension.iss", "RunPostInstallTasks", "ProgressPage.SetProgress(1,6);", "// The database tools below are .NET {#DOTNET_MAJOR} apps; make sure the", "// runtime is in place before they are executed. section_run.iss's [Run]", "1" },
+         new[] { "hMailServerInnoExtension.iss", "RunPostInstallTasks", "ProgressPage.Show();", "ProgressPage.SetText('Installing the .NET {#DOTNET_MAJOR} Desktop Runtime...', '');", "ProgressPage.SetProgress(1,6);", "1" },
+         new[] { "hMailServerInnoExtension.iss", "StepsNotCompleteBeforeDatabase", "if not bRuntimeReady then", "AppendStep(szList, 'the .NET {#DOTNET_MAJOR} Desktop Runtime');", "if not bDatabaseBackendReady then", "1" },
+         new[] { "hMailServerInnoExtension.iss", "[code]", "// Called from RunPostInstallTasks before the database tools are executed - they", "// are .NET {#DOTNET_MAJOR} apps and run from [Code] at ssPostInstall.", "//", "1" },
+         new[] { "hMailServerInnoExtension.iss", "[code]", "// The current download page for the runtime, quoted in the failure message.", "DOTNET_DOWNLOAD_URL = 'https://dotnet.microsoft.com/download/dotnet/{#DOTNET_CHANNEL}';", "function ControlService(hService :HANDLE; dwControl :cardinal;var ServiceStatus :SERVICE_STATUS) : boolean;", "1" },
+         new[] { "hMailServerInnoExtension.iss", "[code]", "end;", "#include \"OriginalHMailServer.iss\"", "// Whether the installation this setup would replace is one of the original", "1" },
+         new[] { "hMailServerInnoExtension.iss", "[code]", "end;", "// Installs the bundled .NET {#DOTNET_MAJOR} Desktop Runtime when it is missing.", "// Called from RunPostInstallTasks before the database tools are executed - they", "1" },
+         new[] { "hMailServerInnoExtension.iss", "[code]", "end;", "// Returns true when the .NET {#DOTNET_MAJOR} Desktop Runtime is not installed, in", "// which case the bundled runtime installer is executed. Also the Check function on", "1" },
+         new[] { "section_files_64.iss", "[files]", "; .NET {#DOTNET_MAJOR} Desktop Runtime, installed silently when missing. The server", "; component needs it too: DBSetup/DBSetupQuick/DBUpdater are .NET {#DOTNET_MAJOR}", "; apps that run during installation, from [Code] at ssPostInstall. The [Run] entry", "1" },
+         new[] { "section_files_64.iss", "[files]", "; OpenSSL", "Source: \"{#OPENSSL_LIBS_PATH}\\libcrypto-4-x64.dll\"; DestDir: \"{app}\\Bin\"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;", "Source: \"{#OPENSSL_LIBS_PATH}\\libssl-4-x64.dll\"; DestDir: \"{app}\\Bin\"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;", "1" },
+         new[] { "section_files_64.iss", "[files]", "; PQSQL (PostgreSQL client)", "Source: \"{#POSTGRESQL_LIBPQ_PATH}\\*.dll\"; DestDir: \"{app}\\Bin\"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;", "", "1" },
+         new[] { "section_files_64.iss", "[files]", "; versions - they already had.", "Source: \"DotNet\\{#DOTNET_RUNTIME_FILE}\"; DestDir: \"{tmp}\"; Flags: deleteafterinstall; Components: server controlpanel;", "Source: \"SQLCE\\SSCERuntime_x64-ENU.msi\"; Flags: deleteafterinstall ; Excludes: \".svn\"; DestDir: \"{tmp}\"; Components: server;", "1" },
+         new[] { "section_files_64.iss", "[files]", "Source: \"..\\source\\Tools\\ControlPanel\\publish\\*\"; DestDir: \"{app}\\ControlPanel\"; Flags: ignoreversion recursesubdirs; Components: controlpanel;", "; .NET {#DOTNET_MAJOR} Desktop Runtime, installed silently when missing. The server", "; component needs it too: DBSetup/DBSetupQuick/DBUpdater are .NET {#DOTNET_MAJOR}", "1" },
+         new[] { "section_files_64.iss", "[files]", "Source: \"{#OPENSSL_LIBS_PATH}\\libcrypto-4-x64.dll\"; DestDir: \"{app}\\Bin\"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;", "Source: \"{#OPENSSL_LIBS_PATH}\\libssl-4-x64.dll\"; DestDir: \"{app}\\Bin\"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;", "; PQSQL (PostgreSQL client)", "1" },
+         new[] { "section_files_arm64.iss", "[files]", "; OpenSSL, ARM64 (VC-WIN64-ARM)", "Source: \"{#OPENSSL_LIBS_PATH}\\libcrypto-4-arm64.dll\"; DestDir: \"{app}\\Bin\"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;", "Source: \"{#OPENSSL_LIBS_PATH}\\libssl-4-arm64.dll\"; DestDir: \"{app}\\Bin\"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;", "1" },
+         new[] { "section_files_arm64.iss", "[files]", "; PQSQL (PostgreSQL client), ARM64", "Source: \"{#POSTGRESQL_LIBPQ_PATH}\\*.dll\"; DestDir: \"{app}\\Bin\"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;", "", "1" },
+         new[] { "section_files_arm64.iss", "[files]", "; exactly as section_files_64.iss's x64 one.", "Source: \"ARM64\\DotNet\\{#DOTNET_RUNTIME_FILE}\"; DestDir: \"{tmp}\"; Flags: deleteafterinstall; Components: server controlpanel;", "; No SQL Server Compact runtime: Microsoft never built one for ARM64, and the x64", "1" },
+         new[] { "section_files_arm64.iss", "[files]", "Source: \"..\\source\\Tools\\ControlPanel\\publish-arm64\\*\"; DestDir: \"{app}\\ControlPanel\"; Flags: ignoreversion recursesubdirs; Components: controlpanel;", "; The ARM64 .NET {#DOTNET_MAJOR} Desktop Runtime, installed silently when missing,", "; exactly as section_files_64.iss's x64 one.", "1" },
+         new[] { "section_files_arm64.iss", "[files]", "Source: \"{#OPENSSL_LIBS_PATH}\\libcrypto-4-arm64.dll\"; DestDir: \"{app}\\Bin\"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;", "Source: \"{#OPENSSL_LIBS_PATH}\\libssl-4-arm64.dll\"; DestDir: \"{app}\\Bin\"; Flags: ignoreversion uninsrestartdelete; Components: server admintools;", "; PQSQL (PostgreSQL client), ARM64", "1" },
+         new[] { "section_files_common.iss", "[files]", "#endif", "#ifndef HM_ARM64", "; Two files 6.2.3 to 6.3.6 put in Bin\\plugin beside the client's plugins, which this", "1" },
+         new[] { "section_files_common.iss", "[files]", "; hMailServer64.iss these lines are what they always were.", "#ifndef HM_ARM64", "Source: \".\\Extras\\7za.exe\"; DestDir: \"{app}\\Bin\"; Flags: ignoreversion; Components: server;", "1" },
+         new[] { "section_files_common.iss", "[files]", "Source: \".\\Extras\\7za.exe\"; DestDir: \"{app}\\Bin\"; Flags: ignoreversion; Components: server;", "#endif", "; Database scripts", "1" },
+         new[] { "section_files_common.iss", "[files]", "Source: \".\\Extras\\dh2048.pem\"; DestDir: \"{app}\\Bin\";  Flags: ignoreversion; Components: server;", "#ifndef HM_ARM64", "; MySQL/MariaDB client library (x64) - MariaDB Connector/C 3.4.11, loaded at runtime as", "1" },
+         new[] { "section_files_common.iss", "[files]", "Source: \".\\Extras\\plugin\\sha256_password.dll\"; DestDir: \"{app}\\Bin\\plugin\"; Flags: ignoreversion uninsrestartdelete; Components: server;", "#endif", "#ifndef HM_ARM64", "1" },
+         new[] { "section_files_common.iss", "[installdelete]", "Type: files; Name: \"{app}\\Bin\\plugin\\authentication_windows_client.dll\"", "#endif", "", "1" },
+         new[] { "section_run.iss", "[run]", "; never go false.", "Filename: \"{tmp}\\{#DOTNET_RUNTIME_FILE}\"; Parameters: \"/install /quiet /norestart\"; StatusMsg: \"Installing .NET {#DOTNET_MAJOR} Desktop Runtime...\"; Check: DotNetDesktopMissing; Components: server controlpanel;", "; The Control Panel on the last page runs only when the folders setup prepared were as", "1" },
+         new[] { "section_run.iss", "[run]", "[Run]", "; Install the bundled .NET {#DOTNET_MAJOR} Desktop Runtime, but only when it is", "; missing. This entry is the FIRST attempt, for every component: Inno processes a", "1" },
+         new[] { "section_setup_arm64.iss", "[setup]", "; server, and hMailServer64.iss is the installer for it.", "OutputBaseFilename=hMailServer-{#HM_APP_VERSION}-arm64", "AppVerName=hMailServer {#HM_APP_VERSION}-ARM64", "1" },
+         new[] { "section_setup_arm64.iss", "[setup]", "AppVersion={#HM_APP_VERSION}", "VersionInfoVersion={#HM_VERSION_INFO}", "; As section_setup_64.iss: the architecture the Control Panel's install checks.", "1" },
+         new[] { "section_setup_arm64.iss", "[setup]", "ArchitecturesAllowed=arm64", "AppVersion={#HM_APP_VERSION}", "VersionInfoVersion={#HM_VERSION_INFO}", "1" },
+         new[] { "section_setup_arm64.iss", "[setup]", "OutputBaseFilename=hMailServer-{#HM_APP_VERSION}-arm64", "AppVerName=hMailServer {#HM_APP_VERSION}-ARM64", "ArchitecturesInstallIn64BitMode=arm64", "1" },
+      };
 
       [Test]
       [Description("Work item 78, R2 and R3 (check 4 of R1 to R4, 27 October 2026): a folder of the program that is there and that another account could change before this installation - its permissions or its owner, or what is in one that holds something - keeps that right in a handle such an account opened then, whatever setup does to the permissions after. Setup hardens it before the service is stopped, records in a volatile key that it is not to install there until Windows has restarted, and refuses; a refusal whose remedy ends in a restart is recorded the same way. Nothing is removed after the files, and before them an empty folder is removed only through a handle read as that folder; a folder setup hardened in place keeps a file of setup's until the files are in. In the third repair the folder was hardened and installed into, and after the files setup removed links and empty folders by their paths, through a junction too.")]
