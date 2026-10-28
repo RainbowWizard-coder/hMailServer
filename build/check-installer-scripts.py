@@ -2153,6 +2153,36 @@ INSTALL_TIME_FUNCTIONS = ('DotNetDesktopMissing', 'FoldersWereAsPrepared', 'Fold
 RELEASE_CALLERS = (('ReleaseHeldFolders', ('CheckProgramFolders', 'DeinitializeSetup')),
                    ('ReleasePlaceholders', ('CurStepChanged', 'DeinitializeSetup')),
                    ('LetGoOfHeld', ('RemakeEmptyFolder', 'RemoveMadeFolder')))
+# The event functions Inno Setup calls between PrepareToInstall and ssPostInstall besides
+# CurStepChanged, which may not be defined: CurInstallProgressChanged during the copy,
+# NeedRestart after the files, icons, INI and registry entries (ProcessNeedRestartEvent),
+# and RegisterPreviousData as the uninstall information is saved (RegisterUninstallInfo) -
+# Inno Setup 6.7.3's Setup.Install.pas and Setup.MainForm.pas; check 7 of R1 to R4, 28
+# October 2026.
+INSTALL_EVENTS_REFUSED = ('CurInstallProgressChanged', 'NeedRestart', 'RegisterPreviousData')
+# The event functions of the pages up to the install, which run before the folders are
+# looked at or as the install begins, and the functions the sections' entries name for Inno
+# Setup to call during the install (INSTALL_TIME_FUNCTIONS): none runs a program or lets
+# what setup holds go, itself or through any routine it calls (check 7 of R1 to R4).
+PAGE_EVENTS_HELD = ('CurPageChanged', 'ShouldSkipPage', 'UpdateReadyMemo')
+PROGRAM_RUNNERS = ('Exec', 'ShellExec', 'ExecAsOriginalUser', 'ShellExecAsOriginalUser')
+
+
+def routine_reach(bodies, name):
+    """The routines of the [Code] that name calls, itself or through any routine it calls,
+    and the PROGRAM_RUNNERS among them, each in lower case: read from the code of each,
+    its comments and strings left out (code_words)."""
+    runners = set(runner.lower() for runner in PROGRAM_RUNNERS)
+    seen = set()
+    todo = [name.lower()]
+    while todo:
+        body = bodies.get(todo.pop(), (None, ''))[1]
+        for word in code_words(body):
+            if word not in seen and word != name.lower() and (word in bodies or word in runners):
+                seen.add(word)
+                if word in bodies:
+                    todo.append(word)
+    return seen
 
 
 def check_install_sections(texts, problems):
@@ -2166,8 +2196,11 @@ def check_install_sections(texts, problems):
     run before or after it (BeforeInstall, AfterInstall), and the functions entries name
     for Inno Setup to call during the install (Check:, {code:...}) are INSTALL_TIME_FUNCTIONS;
     ReleaseHeldFolders, ReleasePlaceholders and LetGoOfHeld are called where they are now
-    alone (RELEASE_CALLERS); CurInstallProgressChanged is not defined, and CurPageChanged
-    runs no program and lets nothing go (check 5 of R1 to R4); no file under {app} is
+    alone (RELEASE_CALLERS); CurInstallProgressChanged, NeedRestart and RegisterPreviousData,
+    which Inno Setup calls between PrepareToInstall and ssPostInstall, are not defined
+    (INSTALL_EVENTS_REFUSED), and CurPageChanged, ShouldSkipPage, UpdateReadyMemo and the
+    functions the entries name run no program and let nothing go, by any routine they call
+    (check 5 of R1 to R4; check 7, 28 October 2026); no file under {app} is
     registered during the copy (regserver, regtypelib); no folder but the eleven setup made
     is given to the uninstaller whatever is in it (uninsalwaysuninstall); and nothing runs
     at ssInstall but what reads the state and moves the settings file. And whether the
@@ -2213,8 +2246,10 @@ def check_install_sections(texts, problems):
     # before ssPostInstall, runs anything but the .NET runtime from {tmp}, with nothing of
     # {app} or of a {code:} among its parameters; the holds and the files setup keeps are
     # let go only where they are let go now; and no event function Inno Setup calls during
-    # the install - CurInstallProgressChanged, CurPageChanged - runs a program or lets
-    # them go.
+    # the install but CurStepChanged is defined - CurInstallProgressChanged, NeedRestart,
+    # RegisterPreviousData - and none of the pages' (CurPageChanged, ShouldSkipPage,
+    # UpdateReadyMemo), nor a function an entry names, runs a program or lets them go,
+    # itself or through a routine it calls (check 7 of R1 to R4, 28 October 2026).
     called = set()
     for name, text in sorted(texts.items()):
         if not name.lower().endswith('.iss') or '/' in name:
@@ -2247,13 +2282,17 @@ def check_install_sections(texts, problems):
         if found != sorted(callers):
             problems.append('%s: %s is called from %s, where work item 78 holds it to %s: what setup holds, or keeps in the folders it prepared, would be let go '
                             'before the look after the files' % (EXTENSION, routine, ', '.join(found) or 'nowhere', ', '.join(callers)))
-    if 'curinstallprogresschanged' in bodies:
-        problems.append('%s: CurInstallProgressChanged, which Inno Setup calls during the copy, is defined: nothing of the [Code] runs then but CurStepChanged\'s steps' % EXTENSION)
-    for event in ('CurPageChanged',):
-        body = CODE_TOKEN.sub(' ', bodies.get(event.lower(), (event, ''))[1])
-        for call in ('Exec', 'ShellExec', 'ExecAsOriginalUser', 'ShellExecAsOriginalUser', 'ProtectFolders') + tuple(routine for routine, _ in RELEASE_CALLERS):
-            if re.search(r'\b%s\s*\(' % call, body):
-                problems.append('%s: %s, which Inno Setup calls as the install begins, runs %s' % (EXTENSION, event, call))
+    for event in INSTALL_EVENTS_REFUSED:
+        if event.lower() in bodies:
+            problems.append('%s: %s, which Inno Setup calls between PrepareToInstall and ssPostInstall, is defined: nothing of the [Code] runs then but '
+                            'CurStepChanged\'s steps' % (EXTENSION, event))
+    held = dict((call.lower(), call) for call in PROGRAM_RUNNERS + ('ProtectFolders',) + tuple(routine for routine, _ in RELEASE_CALLERS))
+    for event in PAGE_EVENTS_HELD + INSTALL_TIME_FUNCTIONS:
+        if event.lower() not in bodies:
+            continue
+        for call in sorted(routine_reach(bodies, event) & set(held)):
+            problems.append('%s: %s, which Inno Setup calls before the folders are looked at, as the install begins or during it, runs %s, itself or through a '
+                            'routine it calls' % (EXTENSION, event, held[call]))
     writers = {}
     for key, (routine, body) in routine_bodies(ext).items():
         for value in re.findall(r'g_bFoldersChecked\s*:=\s*(\w+)', body):
@@ -2502,6 +2541,9 @@ def check_preprocessor(texts, problems):
 
 
 def check(texts):
+    # Each text as read() makes it: a carriage return, alone or before a line feed, ends
+    # the line, as it does for ISCC (check 7 of R1 to R4, 28 October 2026).
+    texts = dict((name, text.replace('\r\n', '\n').replace('\r', '\n')) for name, text in texts.items())
     problems = []
     entries = check_run_once(texts, problems)
     check_wait(texts, problems)
@@ -3412,6 +3454,39 @@ def negative_controls(texts):
         ('CurInstallProgressChanged defined at all, doing nothing of R1 to R4',
          altered(texts, EXTENSION, 'procedure DeinitializeSetup();\nbegin',
                  'procedure CurInstallProgressChanged(CurProgress, MaxProgress: Integer);\nbegin\n\tLog(IntToStr(CurProgress));\nend;\n\nprocedure DeinitializeSetup();\nbegin')),
+        # Repair 7 of R1 to R4 (check 7, 28 October 2026): Inno Setup's other event functions, and a lone carriage return.
+        ('7.01 NeedRestart, which Inno Setup calls after the files, running /ProtectFolders before the folders are read again (check 7 of R1 to R4)',
+         altered(texts, EXTENSION, 'procedure DeinitializeSetup();\nbegin',
+                 'function NeedRestart(): Boolean;\nbegin\n   ProtectFolders();\n   Result := false;\nend;\n\nprocedure DeinitializeSetup();\nbegin')),
+        ('7.02 NeedRestart running {app}\\Bin\\hMailServer.exe itself (Exec) (check 7 of R1 to R4)',
+         altered(texts, EXTENSION, 'procedure DeinitializeSetup();\nbegin',
+                 "function NeedRestart(): Boolean;\nvar\n   ResultCode: Integer;\nbegin\n   Exec(ExpandConstant('{app}\\Bin\\hMailServer.exe'), '/RegisterTypeLib', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);\n"
+                 "   Result := false;\nend;\n\nprocedure DeinitializeSetup();\nbegin")),
+        ('7.03 RegisterPreviousData, which Inno Setup calls as it saves the uninstall information, running /RegisterTypeLib (check 7 of R1 to R4)',
+         altered(texts, EXTENSION, 'procedure DeinitializeSetup();\nbegin',
+                 'procedure RegisterPreviousData(PreviousDataKey: Integer);\nbegin\n   RegisterTypeLib();\nend;\n\nprocedure DeinitializeSetup();\nbegin')),
+        ('NeedRestart defined at all, doing nothing of R1 to R4 (check 7 of R1 to R4)',
+         altered(texts, EXTENSION, 'procedure DeinitializeSetup();\nbegin',
+                 'function NeedRestart(): Boolean;\nbegin\n   Result := false;\nend;\n\nprocedure DeinitializeSetup();\nbegin')),
+        ('CurPageChanged running /RegisterTypeLib through the routine that runs it, as the install begins (check 7 of R1 to R4)',
+         altered(texts, EXTENSION, '   if (g_pageServiceAccount = nil) or g_bMssqlSentenceAdded then\n      Exit;',
+                 '   RegisterTypeLib();\n   if (g_pageServiceAccount = nil) or g_bMssqlSentenceAdded then\n      Exit;')),
+        ('UpdateReadyMemo defined and running /ProtectFolders before the folders are looked at (check 7 of R1 to R4)',
+         altered(texts, EXTENSION, 'procedure DeinitializeSetup();\nbegin',
+                 "function UpdateReadyMemo(Space, NewLine, MemoUserInfoInfo, MemoDirInfo, MemoTypeInfo, MemoComponentsInfo, MemoGroupInfo, MemoTasksInfo: String): String;\nbegin\n"
+                 "   ProtectFolders();\n   Result := MemoDirInfo;\nend;\n\nprocedure DeinitializeSetup();\nbegin")),
+        ('ShouldSkipPage letting the holds go through a routine it calls (check 7 of R1 to R4)',
+         altered(texts, EXTENSION, 'function ShouldSkipPage(PageID: Integer): Boolean;\nbegin\n   Result := false;\n',
+                 'procedure LetEverythingGo();\nbegin\n   ReleaseHeldFolders();\nend;\n\nfunction ShouldSkipPage(PageID: Integer): Boolean;\nbegin\n   LetEverythingGo();\n   Result := false;\n')),
+        ('7.06 a lone carriage return in a // comment of LinkIsAdministratorsAlone, then "Result := true; Exit;" (check 7 of R1 to R4)',
+         altered(texts, EXTENSION, 'function LinkIsAdministratorsAlone(hLink: Integer; hParent: Integer; var Why: String): Boolean;\nvar\n   pOwner: cardinal;\n   pDacl: cardinal;\n   pDescriptor: cardinal;\n   readResult: cardinal;\n   szWho: String;\nbegin\n',
+                 'function LinkIsAdministratorsAlone(hLink: Integer; hParent: Integer; var Why: String): Boolean;\nvar\n   pOwner: cardinal;\n   pDacl: cardinal;\n   pDescriptor: cardinal;\n   readResult: cardinal;\n   szWho: String;\nbegin\n'
+                 '   // what follows is a comment\rResult := true; Exit;\n')),
+        ('7.07 a lone carriage return after a comment line of section_dirs.iss, then #if 0 around the {app} entry (check 7 of R1 to R4)',
+         altered(texts, DIRS, 'Name: "{app}"; Flags: uninsalwaysuninstall; Check: SetupMadeProgramFolder\n',
+                 '; the program folder\r#if 0\nName: "{app}"; Flags: uninsalwaysuninstall; Check: SetupMadeProgramFolder\n; end\r#endif\n')),
+        ('7.08 a lone carriage return after a comment line of section_dirs.iss, then a [Dirs] entry giving Bin Users Modify (check 7 of R1 to R4)',
+         altered(texts, DIRS, 'Name: "{app}\\Temp"; Components: server;', 'Name: "{app}\\Temp"; Components: server;\n; Bin\rName: "{app}\\Bin"; Permissions: users-modify')),
         ('a [Run] entry without postinstall starting Bin\\hMailServer.exe through {cmd} before ssPostInstall',
          altered(texts, 'section_run.iss', 'Filename: "{app}\\ControlPanel\\hMailCP.exe";',
                  'Filename: "{cmd}"; Parameters: "/c ""{app}\\Bin\\hMailServer.exe"" /RegisterTypeLib"; Flags: runhidden; Components: server;\nFilename: "{app}\\ControlPanel\\hMailCP.exe";')),

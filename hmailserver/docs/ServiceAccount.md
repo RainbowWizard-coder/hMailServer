@@ -1852,7 +1852,10 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   `BeforeInstall` or `AfterInstall` on an entry of any section; the functions entries
   name for Inno Setup to call during the install (`Check:`, `{code:...}`) the seven they
   are; what lets go of setup's holds and of the files it keeps called where it is now
-  alone; no `CurInstallProgressChanged`, and a `CurPageChanged` that runs no program; no
+  alone; no `CurInstallProgressChanged`, `NeedRestart` or `RegisterPreviousData`, which
+  Inno Setup calls between `PrepareToInstall` and `ssPostInstall`, and a
+  `CurPageChanged`, a `ShouldSkipPage`, an `UpdateReadyMemo` and functions of the
+  entries that run no program and let nothing go, by any routine they call; no
   registration during the copy; nothing at `ssInstall` but the state's reads and the
   settings file's move. `API/UpdateApply.cs` holds `hMailServer.Updater` to putting
   nothing back on 12, nor on a 7 whose log says the folders were found changed. Each decision is
@@ -1870,7 +1873,9 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   and every inline directive, `{#...}`, which it expands in a comment or a string too -
   is held to where it is now, by its script, the routine or the section it is in, the
   lines that are not blank before and after it, and how many times (`--preprocessor`
-  prints the table), and a digest reads an inline directive as code.
+  prints the table), and a digest reads an inline directive as code. Both read a
+  script as ISCC does, a carriage return alone ending a line as one before a line
+  feed does.
   `build/check-installer-scripts.py` holds
   the same, with a negative control each, and the installer smoke test's watch and cases
   ([ContinuousIntegration.md](ContinuousIntegration.md), "The installer smoke test")

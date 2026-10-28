@@ -77,7 +77,21 @@ namespace RegressionTests.Installation
 
       private static string ReadInstallerScript(string fileName)
       {
-         return ReadRepositoryFile(Paths.Combine(@"hmailserver\installation", fileName));
+         return ScriptText(ReadRepositoryFile(Paths.Combine(@"hmailserver\installation", fileName)));
+      }
+
+      /// <summary>
+      ///    An installer script's text as ISCC and build/check-installer-scripts.py read it:
+      ///    a carriage return, alone or before a line feed, ends the line (a UTF-8 BOM is
+      ///    dropped by File.ReadAllText). Read with the line feed alone, what followed a lone
+      ///    carriage return was part of a // comment or of the line before to these tests,
+      ///    where ISCC compiles it as code, a preprocessor line or a section's entry (check 7
+      ///    of R1 to R4, 28 October 2026: three one-line changes that switched a rule off
+      ///    passed these tests that way).
+      /// </summary>
+      private static string ScriptText(string text)
+      {
+         return text.Replace("\r\n", "\n").Replace('\r', '\n');
       }
 
       private static IEnumerable<FileInfo> InstallerScripts()
@@ -609,7 +623,7 @@ namespace RegressionTests.Installation
 
          foreach (FileInfo script in InstallerScripts())
          {
-            string text = File.ReadAllText(script.FullName);
+            string text = ScriptText(File.ReadAllText(script.FullName));
 
             int sectionStart = text.IndexOf("[UninstallDelete]", StringComparison.OrdinalIgnoreCase);
             if (sectionStart < 0)
@@ -2190,7 +2204,7 @@ namespace RegressionTests.Installation
       {
          var entries = new List<KeyValuePair<int, string>>();
          bool inside = false;
-         string[] lines = script.Replace("\r\n", "\n").Split('\n');
+         string[] lines = ScriptText(script).Split('\n');
          for (int index = 0; index < lines.Length; index++)
          {
             string line = lines[index].Trim();
@@ -2216,14 +2230,14 @@ namespace RegressionTests.Installation
       }
 
       [Test]
-      [Description("Work item 78 (check 4 of R1 to R4, 27 October 2026): what Inno Setup does outside the [Code] between PrepareToInstall and the look after the files keeps what setup prepared - no [Dirs] or [Files] entry under {app} gives permissions, which Inno Setup applies as it makes the folder or copies the file; no [Run] entry without postinstall, which Inno Setup runs before ssPostInstall, runs anything but the .NET runtime from {tmp}, with nothing of {app} or of a {code:} in it; no entry names a procedure to run before or after it (BeforeInstall, AfterInstall), and the functions entries name for Inno Setup to call during the install are those held; ReleaseHeldFolders, ReleasePlaceholders and LetGoOfHeld are called where they are now alone, CurInstallProgressChanged is not defined and CurPageChanged runs no program (check 5 of R1 to R4, 27 October 2026: nine one-line changes of that kind passed); no file under {app} is registered during the copy; no folder but those setup made is given to the uninstaller whatever is in it; nothing but the state's reads and the settings file's move runs at ssInstall; whether the folders were checked is set and cleared by CheckProgramFolders and PrepareProgramFolders alone; and /ProtectFolders runs after the files. Each passed the checker and these tests before.")]
+      [Description("Work item 78 (check 4 of R1 to R4, 27 October 2026): what Inno Setup does outside the [Code] between PrepareToInstall and the look after the files keeps what setup prepared - no [Dirs] or [Files] entry under {app} gives permissions, which Inno Setup applies as it makes the folder or copies the file; no [Run] entry without postinstall, which Inno Setup runs before ssPostInstall, runs anything but the .NET runtime from {tmp}, with nothing of {app} or of a {code:} in it; no entry names a procedure to run before or after it (BeforeInstall, AfterInstall), and the functions entries name for Inno Setup to call during the install are those held; ReleaseHeldFolders, ReleasePlaceholders and LetGoOfHeld are called where they are now alone, CurInstallProgressChanged is not defined and CurPageChanged runs no program (check 5 of R1 to R4, 27 October 2026: nine one-line changes of that kind passed), and neither are NeedRestart and RegisterPreviousData, which Inno Setup calls after the files and as it saves the uninstall information, nor do ShouldSkipPage, UpdateReadyMemo and the functions the entries name run a program or let anything go, by any routine they call (check 7 of R1 to R4, 28 October 2026: three such changes passed); no file under {app} is registered during the copy; no folder but those setup made is given to the uninstaller whatever is in it; nothing but the state's reads and the settings file's move runs at ssInstall; whether the folders were checked is set and cleared by CheckProgramFolders and PrepareProgramFolders alone; and /ProtectFolders runs after the files. Each passed the checker and these tests before.")]
       public void WhatInnoSetupDoesOutsideTheCodeKeepsWhatSetupPrepared()
       {
          var failed = new List<string>();
          var called = new HashSet<string>();
          foreach (FileInfo script in InstallerScripts())
          {
-            string text = File.ReadAllText(script.FullName);
+            string text = ScriptText(File.ReadAllText(script.FullName));
             foreach (string[] section in new[] { new[] { "Dirs", "Name" }, new[] { "Files", "DestDir" } })
                foreach (KeyValuePair<int, string> entry in SectionEntries(text, section[0]))
                {
@@ -2283,8 +2297,11 @@ namespace RegressionTests.Installation
          StringAssert.Contains("ProtectFolders();", CodeBody(extension, "RunPostInstallTasks"), "RunPostInstallTasks no longer runs /ProtectFolders after the files.");
 
          // What lets go of what setup holds, or keeps in the folders it prepared, is called
-         // where it is now alone; CurInstallProgressChanged, which Inno Setup calls during the
-         // copy, is not defined; and CurPageChanged runs no program and lets nothing go.
+         // where it is now alone; CurInstallProgressChanged, NeedRestart and
+         // RegisterPreviousData, which Inno Setup calls between PrepareToInstall and
+         // ssPostInstall, are not defined; and CurPageChanged, ShouldSkipPage, UpdateReadyMemo
+         // and the functions the entries name run no program and let nothing go, by any
+         // routine they call (check 7 of R1 to R4, 28 October 2026).
          var releases = new Dictionary<string, string[]>
          {
             { "ReleaseHeldFolders", new[] { "CheckProgramFolders", "DeinitializeSetup" } },
@@ -2297,10 +2314,48 @@ namespace RegressionTests.Installation
                routines.Where(pair => pair.Key != release.Key.ToLowerInvariant() && Regex.IsMatch(Regex.Replace(pair.Value[1], @"//[^\n]*|\{(?!#)[^}]*\}|'(?:[^'\n]|'')*'", " "), @"\b" + release.Key + @"\s*\("))
                        .Select(pair => pair.Value[0]).ToArray(),
                release.Key + " is called from elsewhere than " + string.Join(" and ", release.Value) + ", so that what setup holds is let go before the look after the files.");
-         Assert.IsFalse(routines.ContainsKey("curinstallprogresschanged"), "CurInstallProgressChanged, which Inno Setup calls during the copy, is defined.");
-         string page = Regex.Replace(CodeBody(extension, "CurPageChanged"), @"//[^\n]*|'(?:[^'\n]|'')*'", " ");
-         foreach (string call in new[] { "Exec", "ShellExec", "ExecAsOriginalUser", "ShellExecAsOriginalUser", "ProtectFolders", "ReleaseHeldFolders", "ReleasePlaceholders", "LetGoOfHeld" })
-            Assert.IsFalse(Regex.IsMatch(page, @"\b" + call + @"\s*\("), "CurPageChanged, which Inno Setup calls as the install begins, runs " + call + ".");
+         foreach (string refused in new[] { "CurInstallProgressChanged", "NeedRestart", "RegisterPreviousData" })
+            Assert.IsFalse(routines.ContainsKey(refused.ToLowerInvariant()), refused + ", which Inno Setup calls between PrepareToInstall and ssPostInstall, is defined.");
+         var runs = new List<string>();
+         var held = new[] { "exec", "shellexec", "execasoriginaluser", "shellexecasoriginaluser", "protectfolders", "releaseheldfolders", "releaseplaceholders", "letgoofheld" };
+         foreach (string name in new[] { "CurPageChanged", "ShouldSkipPage", "UpdateReadyMemo", "DotNetDesktopMissing", "FoldersWereAsPrepared", "FolderMadeBySetup", "SetupMadeFolder",
+                                         "SetupMadeProgramFolder", "SetupMadeBin", "SetupMadeControlPanel" })
+            if (routines.ContainsKey(name.ToLowerInvariant()))
+               runs.AddRange(RoutineReach(routines, name).Intersect(held).OrderBy(call => call, StringComparer.Ordinal).Select(call => name + " runs " + call));
+         Assert.IsEmpty(runs, "What Inno Setup calls before the folders are looked at, as the install begins or during it runs a program or lets what setup holds go: " + string.Join("; ", runs) + ".");
+      }
+
+      /// <summary>
+      ///    The routines of the [Code] that Name calls, itself or through any routine it
+      ///    calls, and the functions that run a program among them (Exec, ShellExec,
+      ///    ExecAsOriginalUser, ShellExecAsOriginalUser), each in lower case, read from the
+      ///    code of each with its comments and strings left out - as
+      ///    build/check-installer-scripts.py's routine_reach reads them (check 7 of R1 to R4,
+      ///    28 October 2026).
+      /// </summary>
+      private static HashSet<string> RoutineReach(Dictionary<string, string[]> routines, string name)
+      {
+         var runners = new HashSet<string> { "exec", "shellexec", "execasoriginaluser", "shellexecasoriginaluser" };
+         var seen = new HashSet<string>();
+         var todo = new Stack<string>();
+         todo.Push(name.ToLowerInvariant());
+         while (todo.Count > 0)
+         {
+            string[] body;
+            if (!routines.TryGetValue(todo.Pop(), out body))
+               continue;
+            string code = CodeToken.Replace(body[1], match => match.Value.StartsWith("'", StringComparison.Ordinal) ? "''" : " ");
+            foreach (Match word in Regex.Matches(code, @"\w+"))
+            {
+               string key = word.Value.ToLowerInvariant();
+               if (key == name.ToLowerInvariant() || seen.Contains(key) || !(routines.ContainsKey(key) || runners.Contains(key)))
+                  continue;
+               seen.Add(key);
+               if (routines.ContainsKey(key))
+                  todo.Push(key);
+            }
+         }
+         return seen;
       }
 
       [Test]
@@ -2315,7 +2370,7 @@ namespace RegressionTests.Installation
          foreach (string path in Directory.GetFiles(InstallationRoot).Where(file => file.EndsWith(".iss", StringComparison.OrdinalIgnoreCase)).OrderBy(file => file, StringComparer.Ordinal))
          {
             string name = Path.GetFileName(path);
-            foreach (string[] line in IsppLines(File.ReadAllText(path)))
+            foreach (string[] line in IsppLines(ScriptText(File.ReadAllText(path))))
             {
                string key = string.Join("\u0001", new[] { name, line[0], line[1], line[2], line[3] });
                found[key] = found.TryGetValue(key, out int count) ? count + 1 : 1;
@@ -2348,7 +2403,7 @@ namespace RegressionTests.Installation
       /// </summary>
       private static List<string[]> IsppLines(string text)
       {
-         text = text.Replace("\r\n", "\n");
+         text = ScriptText(text);
          string[] lines = text.Split('\n');
          var routine = new string[lines.Length];
          var starts = new List<int> { 0 };
