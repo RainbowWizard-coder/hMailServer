@@ -224,8 +224,10 @@ ban in force ends sooner is banned again, under a range of its own.
 
 The name of a range written on the IP ranges page, over COM or the REST API is
 held to the same 100 characters: a longer one is stored as its first 100, and
-the range reads back with the name it was stored under; a name holding a NUL is
-stored as the part before it.
+the range reads back with the name it was stored under. Over COM a name holding
+a NUL is stored as the part before it; over the REST API a body that carries
+one, as an escaped U+0000, is answered 400 before the route reads it, and no
+range is made or changed.
 
 `AccountLogon::RangeName`, `ChooseRangeName` and `UniqueRangeName` make the
 names, and `PersistentSecurityRange::StoredName` the cut, which `SaveObject`,

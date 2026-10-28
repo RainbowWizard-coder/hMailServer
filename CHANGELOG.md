@@ -170,9 +170,10 @@ with `--check`).
   from one address that were open before it was banned, and that each cross the threshold, write no second range
   while the ban in force lasts at least as long as a new one would. A ban for a long user name is named with the
   user name cut, and the Auto-ban page shows it so; a range name over 100 characters given over COM or the REST API
-  is stored as its first 100, as before, and now reads back as stored, and one holding a NUL as the part before it;
-  and `POST /api/v1/ipranges` reads the name in UTF-8, as `PUT` does, where it stored a name with characters outside
-  ASCII as other characters, one for each of its bytes.
+  is stored as its first 100, as before, and now reads back as stored, and one holding a NUL given over COM as the
+  part before it, while over the REST API a body that carries one, as an escaped U+0000, is answered 400 before the
+  route reads it; and `POST /api/v1/ipranges` reads the name in UTF-8, as `PUT` does, where it stored a name with
+  characters outside ASCII as other characters, one for each of its bytes.
   `AccountLogonRangeNameTester` holds the names (inside the server on Windows, with a half against the database, and
   in `autoban-widen-tests` on Linux), and the regression fixtures `Security.AutoBanRangeName` and
   `Infrastructure.DatabaseFailureHandling` the bans ([AutoBan.md](hmailserver/docs/AutoBan.md)). Found by the
@@ -301,9 +302,9 @@ with `--check`).
   a name with an account's address - in lower case, with the alias and the default domain applied and the white space
   at either end taken off - so every spelling that names a mailbox shares its one limit, with no lookup made for the
   count; a request under the address itself is counted as before; the address is lowered once, and what is looked up
-  is what was counted; and an address that holds a NUL character, which names no mailbox, is counted against the
-  per-client limits alone and looks nothing up, while a body that carries one, as an escaped U+0000, is now answered
-  400 before the route reads it, as every REST body that carries one is. The regression fixtures
+  is what was counted; and an address that holds a NUL character, which names no mailbox, is counted against nothing
+  and looks nothing up, because a body that carries one, as an escaped U+0000, is now answered 400 before the route
+  reads it, as every REST body that carries one is. The regression fixtures
   `Security.LogonNameVariants.APasswordResetForAnAddressHoldingANulSendsNoMoreThanOneForTheAddress` and
   `Security.LogonNameVariants.APasswordResetUnderADomainAliasOrTheDefaultDomainSharesTheAddressBudget` hold it
   ([AccountRecovery.md](hmailserver/docs/AccountRecovery.md)). Found by the hMailServer project (Progressive Robot
@@ -2043,7 +2044,7 @@ with `--check`).
   over the original's tags as fetched, and its `--holders` over `reuse lint --json`, which refuses a record of one of
   the original's files, but the third parties', that does not name Martin Knafve, and one of the ten the fork made
   at their paths that does; then the new `build/ci/reuse-debian.py`, which holds every file the Debian source package
-  carries - all of reuse's record but what `Files-Excluded` leaves out, 3,867 files - to having the same licences in
+  carries - all of reuse's record but what `Files-Excluded` leaves out, 3,868 files - to having the same licences in
   the last paragraph of `debian/copyright` that matches it as in `reuse lint --json`, a Debian short name standing for
   its SPDX identifier (it finds `rfc7208-tests.CHANGES` alone in the record as it was); and then eight negative
   controls must each be refused by name - five files put in the checkout, a new C++ source without the header, a new
