@@ -33,7 +33,8 @@
 #                           READ UNCOMMITTED, as the server's sessions run)
 #   up-dst <db>             postgresql, mariadb or mysql in a zone with daylight
 #                           saving (Europe/London), whose clock libfaketime moves:
-#                           container <prefix>-<db>-dst, no volume
+#                           container <prefix>-<db>-dst, no named volume (the
+#                           anonymous one its image declares goes with it)
 #   dst <db> autumn|spring  that database's clock put a minute before the change,
 #                           then sqlcheck's dst check: a lease on its local clock
 #                           and one on its UTC clock across the change
@@ -67,7 +68,8 @@
 #                           POP3, as before AA-23) it is the negative control
 #   status                  what runs, and its memory
 #   down [all]              stop the nodes, the sink, the balancer and the load
-#                           (all: the databases and the store too; the volumes stay)
+#                           (all: the databases and the store too; the named
+#                           volumes stay)
 #
 # The databases are reached only on the lab's back network, the nodes, the sink and
 # the balancer on the front one; a node is on both. No port is published on the host.
@@ -418,8 +420,10 @@ faketime_library() {
 # times are left alone. Run as the database's own user (999 in all three images)
 # from the first process: libfaketime's shared memory, which the first process
 # makes, could not otherwise be opened by the user the entrypoints change to, and
-# every server process would end at its first look at the clock. No volume: it is
-# made for the check and removed by down all.
+# every server process would end at its first look at the clock. No named volume: it
+# is made for the check, and the next up-dst and down all remove it with -v, so
+# that the anonymous volume its image declares over the data directory goes with it:
+# docker rm -f of a running --rm container leaves that volume behind.
 cmd_up_dst() {
   load_secrets
   networks
@@ -432,7 +436,7 @@ cmd_up_dst() {
   printf '+0\n' > "$dir/$db.rc"
   chmod 755 "$dir"
   chmod 644 "$dir/libfaketimeMT.so.1" "$dir/$db.rc"
-  docker rm -f "$container" > /dev/null 2>&1 || true
+  docker rm -fv "$container" > /dev/null 2>&1 || true
   local fake=(--user 999:999 -e TZ=Europe/London -e LD_PRELOAD=/faketime/libfaketimeMT.so.1
               -e "FAKETIME_TIMESTAMP_FILE=/faketime/$db.rc" -e FAKETIME_CACHE_DURATION=1 -e DONT_FAKE_MONOTONIC=1
               -e NO_FAKE_STAT=1 -v "$dir:/faketime:ro")
@@ -825,7 +829,7 @@ cmd_down() {
   if [ "${1:-}" = all ]; then
     local c
     for c in $(docker ps -a --format '{{.Names}}' --filter "name=^$P-(postgresql|mariadb|mysql|mssql|minio|postgresql-dst|mariadb-dst|mysql-dst)\$"); do
-      docker rm -f "$c" > /dev/null 2>&1 || true
+      docker rm -fv "$c" > /dev/null 2>&1 || true
     done
     docker network rm "$FRONT" "$BACK" > /dev/null 2>&1 || true
   fi

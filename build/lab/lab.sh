@@ -15,8 +15,9 @@
 #   up <profile>...          start services: core, mysql, mariadb, postgresql, mssql,
 #                            idp, peers, numbers. A database also gets its application user
 #                            (hmlab); idp gets its test users' passwords
-#   down <profile>...        stop and remove those services' containers; their volumes
-#                            stay (the core is never taken down by this)
+#   down <profile>...        stop and remove those services' containers and their
+#                            anonymous volumes; their named volumes stay (the core is
+#                            never taken down by this)
 #   status                   what runs, and the memory each container uses now
 #   kuma-setup               Uptime Kuma's administrator and monitors (kuma/setup.js)
 #   build                    the Linux server of this tree, once, with clang, in the CI
@@ -247,10 +248,13 @@ cmd_down() {
   for profile in "$@"; do
     [ "$profile" != core ] || { say "core stays up: stop it with docker compose -p hmlab stop kuma, deliberately"; continue; }
     services=$(services_of "$profile")
-    say "== down $profile ($services); volumes kept"
+    say "== down $profile ($services); named volumes kept"
+    # rm -v takes the anonymous volumes with the containers - boky/postfix declares
+    # /etc/opendkim/keys, /etc/postfix and /var/spool/postfix, which the compose file
+    # names only in part - and leaves every named one, which the next up uses again.
     # $services is the profile's service names from the compose file, split on purpose.
     # shellcheck disable=SC2086
-    compose --profile "$profile" stop $services && compose --profile "$profile" rm -f $services > /dev/null # nosemgrep
+    compose --profile "$profile" stop $services && compose --profile "$profile" rm -f -v $services > /dev/null # nosemgrep
   done
 }
 

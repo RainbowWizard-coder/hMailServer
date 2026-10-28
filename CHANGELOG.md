@@ -1357,12 +1357,18 @@ with `--check`).
 
 ### Build and tests
 
-- **Fixed: `build/ci/container-image-start-test.sh --docker` removes its containers' volumes with them.** It removed
-  its four containers with `docker rm -f`, which leaves their anonymous volumes - the three the image declares and
-  each database's one, eight a run - on the machine; it now uses `docker rm -fv`, and `--keep` says so. No other
-  script under `build/` that starts a container left one: each runs with `--rm`, mounts a named volume over every
-  path its image declares, or starts an image that declares none. `build/ci/linux-coverage.sh`'s instructions for a
-  run by hand now say how to remove the PostgreSQL container they start, with its volume.
+- **Fixed: `build/ci/container-image-start-test.sh --docker` and two lab scripts remove their containers' volumes with
+  them.** The start test removed its four containers with `docker rm -f`, which leaves their anonymous volumes - the
+  three the image declares and each database's one, eight a run - on the machine; it now uses `docker rm -fv`, and
+  `--keep` says so. Two lab scripts left them too, and now remove them: `build/lab/active-active/aa-lab.sh`'s `up-dst`
+  runs its database with `--rm` and no volume over the data directory its image declares, and the next `up-dst` and
+  `down all` removed the running container with `docker rm -f`, which leaves that volume, one a run, where they now use
+  `docker rm -fv`; and `build/lab/lab.sh down` ran `docker compose rm -f`, which left the three volumes boky/postfix
+  declares (`/etc/opendkim/keys`, `/etc/postfix`, `/var/spool/postfix`) of the peers' Postfix and the two the compose
+  file does not name of the published numbers' one, where it now runs `rm -f -v`; the named volumes stay, as before.
+  Every other script under `build/` that starts a container runs it with `--rm` to its end, mounts a named volume over
+  every path its image declares, or starts an image that declares none. `build/ci/linux-coverage.sh`'s instructions for
+  a run by hand now say how to remove the PostgreSQL container they start, with its volume.
 
 - **New: the container image's start test asks whether the image secured itself, whether its first start's error
   log holds anything it need not, and whether the status's OpenSSL answers are what the server does.** The image is
