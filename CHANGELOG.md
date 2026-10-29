@@ -324,6 +324,35 @@ with `--check`).
 
 ### Correctness
 
+- **Fixed: on Alpine, every log line and other formatted text holding a character outside ASCII was empty.**
+  `String::Format` on Linux made its text with the C library's `vswprintf`, and musl's writes each wide character
+  through the C locale's multibyte form, which the server runs in and which carries nothing above U+007F but the
+  characters `0xDF80` to `0xDFFF`, so a format holding any other such character - in its text or in a `%s` or `%c`
+  argument - failed whole and gave nothing; glibc's copies wide characters as they are. Every line of the default log
+  is made by `Format`: on Alpine no line held a character outside ASCII and a line that would have was not written -
+  an IMAP `LOGIN` with such a name lost its `RECEIVED` line, and the auto-ban's
+  `Auto-ban: logon failure ... for <name>`, which fail2ban reads, was never written for such a name, though the server
+  counted the failure - and protocol replies, REST messages and the other formatted text holding such a character were
+  empty too. `platform/hm_platform.h` now makes the text itself, as glibc's `vswprintf` makes it, for every value a
+  `wchar_t` holds - the format's text, `%s` and `%c` copied with their flags, width and precision, a narrow string
+  through the C library's own conversion as before, the numbers by its `snprintf`, which writes ASCII - and changes no
+  locale; a locale of the call's own would not have done, since musl's `C.UTF-8` refuses `0xDF80` to `0xDFFF`, of
+  which a Boost.Filesystem path's `wstring()` is made there for a name holding a byte above `0x7F`. musl's `vswprintf`
+  has no `%p` either, which no format of the Linux build uses, and ends the process on a null `%s`, where glibc's
+  writes `(null)`; the layer does as glibc's does. On glibc the text is what `vswprintf` made, but for one thing: a
+  text longer than 65,535 characters, which the old measure in a buffer that doubled up to 64 KB gave as nothing, is
+  now made whole, as on Windows. A new tester program, `string-format-tests`, which `linux-build`, the package builds,
+  the APKBUILD's `check()`, `debian/rules` and the RPM spec's `%check` run, asks for U+00E0, U+0130, U+20AC, U+1F600,
+  `0xDF80` to `0xDFFF`, the other surrogates, U+FFFE, U+10FFFF and the values above it through `%s`, `%c` and the
+  format's own text, holds the formatter to the C library's own `vswprintf` over a table of formats, and logs lines
+  holding those characters through the default format, the event log and the backup log and reads them back.
+  `Alpine.md`, "What musl changed", says so. And
+  `LogonNameVariants.OverHttpBasicAVariantSpellingFailsAndIsCountedAsAFailure` expects of the dotted capital I what
+  the server's C library does, as `LogonName.h` states the rule: on a musl server that spelling is the account's own
+  name and signs in, and elsewhere it fails as a name that does not exist fails. And both of the layer's format
+  rewriters stop at a format's end: one that ended inside a conversion - a `%` at its end, or flags, a width or a
+  length with nothing after them - made them step past its terminating NUL and read on into what lay after it, on
+  glibc and musl alike, which AddressSanitizer reported of the new tester.
 - **Fixed: the snap's first start reads the configuration it is made from.** `hmailserver-start`, which the service and
   `sudo hmailserver` run as `snap_daemon`, makes `/var/snap/hmailserver/common/etc/hMailServer.ini` from the snap's
   `etc/hmailserver/hMailServer.ini`, which the snap took from the `.deb` as it is: 0640 and root's since the `.deb`

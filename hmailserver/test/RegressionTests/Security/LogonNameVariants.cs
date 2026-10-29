@@ -34,7 +34,11 @@ namespace RegressionTests.Security
    ///    name as UTF-8, so a dotted capital I for an i - which PostgreSQL's lower()
    ///    took for the i, as MySQL and MariaDB did - and a NUL reach the sign-in there:
    ///    those tests hold the rule on every engine, and that a name holding a NUL is
-   ///    sent to no database statement. SCRAM-SHA-256 finds its account by a lookup
+   ///    sent to no database statement. The rule folds a name's case as the server's
+   ///    C library lowers it (LogonName.h), and musl's lowers the dotted capital I to
+   ///    i: on a musl server (Alpine) that spelling names the account and signs in
+   ///    with its password, as the in-process LogonNameTester allows, and elsewhere it
+   ///    fails as a name that does not exist fails. SCRAM-SHA-256 finds its account by a lookup
    ///    of its own on each of SMTP, IMAP and POP3, and the address with a space after
    ///    it signed in there too. IMAP LOGIN on Linux keeps a NUL in a name, as HTTP
    ///    Basic does, and that is held too. The REST API's request for a password reset,
@@ -524,7 +528,11 @@ namespace RegressionTests.Security
       ///    The spellings of address that the databases took for it over HTTP Basic, which
       ///    carries a name as UTF-8: a dotted capital I for its first i (PostgreSQL, MySQL,
       ///    MariaDB), an i grave for it (MySQL, MariaDB) and a space after it (MySQL,
-      ///    MariaDB, SQL Server, SQL Server Compact). address must hold an "i".
+      ///    MariaDB, SQL Server, SQL Server Compact). address must hold an "i". The
+      ///    first is the account's own name on a musl server, whose C library lowers
+      ///    the dotted capital I to i, as the rule folds a name (LogonName.h): there it
+      ///    signs in with the account's password, and elsewhere it fails
+      ///    (ServerLowersTheDottedCapitalI).
       /// </summary>
       public static List<string> Utf8Variants(string address)
       {
@@ -564,7 +572,7 @@ namespace RegressionTests.Security
       }
 
       [Test]
-      [Description("Over HTTP Basic, each spelling the databases took for the account fails with its right password as a name that does not exist fails, and is counted as a failure: three of the address followed by a space lock the account's name")]
+      [Description("Over HTTP Basic, each spelling the databases took for the account fails with its right password as a name that does not exist fails, and is counted as a failure: three of the address followed by a space lock the account's name. On a musl server, whose C library lowers the dotted capital I to i as the rule folds a name, that spelling is the account's own name and signs in")]
       public void OverHttpBasicAVariantSpellingFailsAndIsCountedAsAFailure()
       {
          StartWebServices("3");
@@ -577,6 +585,13 @@ namespace RegressionTests.Security
 
             foreach (string variant in Utf8Variants(_account.Address))
             {
+               if (variant.IndexOf((char) 0x130) >= 0 && ServerLowersTheDottedCapitalI())
+               {
+                  ClassicAssert.AreEqual(200, DavOptions(variant, Password),
+                     "On a musl server the spelling '" + Escape(variant) + "' is the account's own name, as its C library lowers it, and signs in with the account's password over HTTP Basic.");
+                  continue;
+               }
+
                ClassicAssert.AreEqual(wrongName, DavOptions(variant, Password),
                   "The spelling '" + Escape(variant) + "' with the account's right password must fail over HTTP Basic as a name that does not exist fails.");
             }
@@ -1104,6 +1119,38 @@ namespace RegressionTests.Security
          }
 
          return chars.Length > 0 ? chars.ToString() : null;
+      }
+
+      /// <summary>
+      ///    Whether the server's C library lowers the dotted capital I to i, as the rule
+      ///    folds a name's case (Common/Util/LogonName.h): musl's does, glibc's and the
+      ///    Windows C runtime's do not. The suite reads the server's logs by their path,
+      ///    so it runs where the server runs, on the same C library - on Alpine, .NET is
+      ///    built against musl too - and this process's own C library, which the
+      ///    kernel's map of it names, is the server's: musl's dynamic loader is
+      ///    ld-musl-&lt;arch&gt;.so.1, which is its C library as well.
+      /// </summary>
+      private static bool ServerLowersTheDottedCapitalI()
+      {
+         if (Environment.OSVersion.Platform != PlatformID.Unix)
+            return false;
+
+         try
+         {
+            foreach (string line in File.ReadLines("/proc/self/maps"))
+            {
+               if (line.IndexOf("/ld-musl-", StringComparison.Ordinal) >= 0)
+                  return true;
+            }
+         }
+         catch (IOException)
+         {
+         }
+         catch (UnauthorizedAccessException)
+         {
+         }
+
+         return false;
       }
 
       private static string Escape(string text)

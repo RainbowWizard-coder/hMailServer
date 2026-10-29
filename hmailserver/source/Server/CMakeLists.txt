@@ -1116,6 +1116,21 @@ add_executable(live-log-tests ${SERVER_DIR}/platform/live_log_tests_main.cpp)
 target_link_libraries(live-log-tests PRIVATE hmailserver_core)
 set_target_properties(live-log-tests PROPERTIES OUTPUT_NAME live-log-tests)
 
+# ---------------------------------------------------------------- String::Format
+#
+# String::Format over text outside ASCII (platform/hm_platform.h,
+# HMPlatform::FormatWideForGlibc): every value a wchar_t holds, through %s, %c and
+# a format's own text, held to the text glibc's vswprintf makes and to the C
+# library's own vswprintf over a table of formats, and lines holding such
+# characters logged through the Logger's default format, its event log and its
+# backup log and read back. Up to 6.3.7 musl's vswprintf made nothing of such a
+# format, and on Alpine every such log line was empty. Linux only: on Windows the
+# C runtime formats. A scratch directory of its own; no database or network.
+# Under a second. Not installed; a bench tool.
+add_executable(string-format-tests ${SERVER_DIR}/platform/string_format_tests_main.cpp)
+target_link_libraries(string-format-tests PRIVATE hmailserver_core)
+set_target_properties(string-format-tests PROPERTIES OUTPUT_NAME string-format-tests)
+
 # ---------------------------------------------------------------- COM's languages
 #
 # LanguageTester (Common/Util/Language.h) as a program of its own, for the reason

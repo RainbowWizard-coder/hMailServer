@@ -36,7 +36,9 @@
 #include <cwchar>
 #include <ctime>
 #include <cerrno>
+#include <climits>
 #include <string>
+#include <sys/types.h>
 // ---------------------------------------------------------------- printf widths
 //
 // MSVC's wide printf reads %s as a WIDE string and %S or %hs as a narrow one;
@@ -52,7 +54,11 @@ namespace HMPlatform
    // The wide format, rewritten for glibc: %s -> %ls, %S and %hs -> %s, %I64 ->
    // %ll, %I -> %z. %% and every other conversion pass through unchanged; flags,
    // width and precision between the % and the conversion are kept. The same
-   // rewrite is what musl needs (Alpine).
+   // rewrite is what musl needs (Alpine). A format that ends inside a conversion
+   // - a % at its end, or flags, a width or a length with nothing after them - is
+   // rewritten up to its end and no further: up to 6.3.7 both rewriters stepped
+   // past the terminating NUL there and went on reading what lay after it, which
+   // AddressSanitizer reports of string-format-tests' format ending in %.
    inline std::wstring WideFormatForGlibc(const wchar_t *format)
    {
       std::wstring out;
@@ -91,7 +97,8 @@ namespace HMPlatform
             {
                out.append(L"ll");       // MSVC's %I64d is glibc's %lld
                p += 3;
-               if (*p) out.push_back(*p);
+               if (!*p) break;
+               out.push_back(*p);
                continue;
             }
             // MSVC's %I alone - %Iu, the tree's size_t - is the width of a size_t
@@ -111,7 +118,8 @@ namespace HMPlatform
             }
             out.push_back(*p++);
             if (*p == L'l') out.push_back(*p++);
-            if (*p) out.push_back(*p);
+            if (!*p) break;
+            out.push_back(*p);
             continue;
          }
          if (*p == L's')
@@ -129,13 +137,15 @@ namespace HMPlatform
             out.append(L"lc");         // %c in a wide format is a wide char on MSVC
             continue;
          }
-         if (*p) out.push_back(*p);
+         if (!*p)
+            break;                     // a format ending in its %, flags or width
+         out.push_back(*p);
       }
       return out;
    }
 
    // The narrow format, rewritten for glibc: %S -> %ls, %hs -> %s, %I64 -> %ll,
-   // %I -> %z.
+   // %I -> %z; and, as the wide one, no further than the format's end.
    inline std::string NarrowFormatForGlibc(const char *format)
    {
       std::string out;
@@ -169,7 +179,8 @@ namespace HMPlatform
          {
             out.append("ll");
             p += 3;
-            if (*p) out.push_back(*p);
+            if (!*p) break;
+            out.push_back(*p);
             continue;
          }
          // %Iu -> %zu, as in the wide format above.
@@ -186,9 +197,306 @@ namespace HMPlatform
             out.append("ls");
             continue;
          }
-         if (*p) out.push_back(*p);
+         if (!*p)
+            break;
+         out.push_back(*p);
       }
       return out;
+   }
+
+   // ------------------------------------------------------------ wide formatting
+   //
+   // The text glibc's vswprintf makes of a wide format WideFormatForGlibc has
+   // rewritten, made without the C library's multibyte form. glibc's vswprintf
+   // copies every wide character - of the format and of a %ls or %lc argument -
+   // into its output as it is. musl's writes each through the current locale's
+   // multibyte form and reads it back, and the server runs in the C locale (it
+   // never calls setlocale or uselocale), where musl's form is byte-transparent:
+   // it carries U+0000 to U+007F and 0xDF80 to 0xDFFF, the wide characters
+   // musl's C locale makes of the bytes 0x80 to 0xFF, and no other character. Any
+   // other character made the whole call fail, and String::Format returned with
+   // nothing: on Alpine every log line, protocol reply and message holding a
+   // character outside ASCII was empty (hmailserver/docs/Alpine.md, "What musl
+   // changed"). A locale of the call's own (newlocale and uselocale, for the
+   // calling thread alone) would not do: musl's C.UTF-8 refuses 0xDF80 to 0xDFFF
+   // as it refuses every other surrogate and every value above 0x10FFFF, and on
+   // musl a Boost.Filesystem path's wstring() of a name holding a byte above
+   // 0x7F is made of those - so a log line naming such a file would still be
+   // empty, where glibc's has it.
+   //
+   // So each conversion is made here on its own: text, %ls, %S, %lc and %C by
+   // copying the wide characters, as glibc does, with its flags, width and
+   // precision (a field is padded with spaces, on the left unless the - flag or a
+   // negative * width asks for the right; a precision cuts a string; a null
+   // string is "(null)", or nothing under a precision below 6, where musl's
+   // vswprintf read a null %ls and ended the process); a narrow %s or %c through
+   // the C library's own mbrtowc and btowc, as both C libraries convert one, which
+   // in the C locale gives for a byte above 0x7F 0xDF80 + the byte on musl and on
+   // glibc a failure of the whole call (%s) or WEOF (%c), as before; and the
+   // numeric conversions and %p by the C library's snprintf, whose text in the C
+   // locale is ASCII (musl's vswprintf has no %p at all). %% is a percent
+   // sign. Anything else - %n, %m, a positional argument, a length the
+   // conversion does not take, a format ending in % - is not read here: the
+   // whole call goes to the C library's vswprintf as before. Unlike that path,
+   // which measured in a buffer that doubled up to 64 KB and answered -1 above
+   // it, the text here has no ceiling but the int it is counted in, as on
+   // Windows.
+   //
+   // -1 where glibc's vswprintf answers -1 for the same arguments; otherwise the
+   // number of characters in out, which may hold a NUL, as %lc writes one.
+   inline int FormatWideForGlibc(std::wstring &out, const wchar_t *format, va_list arguments)
+   {
+      out.clear();
+      if (!format)
+         return -1;
+
+      va_list whole;
+      va_copy(whole, arguments);
+
+      // A field: text of length characters, padded to width.
+      auto field = [&out](const wchar_t *text, size_t length, long long width, bool left)
+      {
+         const size_t padding = width > 0 && (unsigned long long) width > length ? (size_t) width - length : 0;
+         if (!left)
+            out.append(padding, L' ');
+         out.append(text, length);
+         if (left)
+            out.append(padding, L' ');
+      };
+
+      bool mine = true;
+      bool failed = false;
+      for (const wchar_t *p = format; *p && mine && !failed; ++p)
+      {
+         if (*p != L'%')
+         {
+            out.push_back(*p);
+            continue;
+         }
+         ++p;
+         if (*p == L'%')
+         {
+            out.push_back(L'%');
+            continue;
+         }
+
+         std::string flags;
+         bool left = false;
+         while (*p && ::wcschr(L"-+ #0'", *p))
+         {
+            if (*p == L'-')
+               left = true;
+            flags.push_back((char) *p);
+            ++p;
+         }
+
+         long long width = -1;
+         if (*p == L'*')
+         {
+            const int given = va_arg(arguments, int);
+            if (given < 0)
+            {
+               left = true;
+               flags.push_back('-');
+               width = -(long long) given;
+            }
+            else
+               width = given;
+            ++p;
+         }
+         else if (*p >= L'0' && *p <= L'9')
+         {
+            width = 0;
+            while (*p >= L'0' && *p <= L'9' && width <= INT_MAX)
+               width = width * 10 + (*p++ - L'0');
+            if (*p == L'$')
+               mine = false;           // a positional argument
+         }
+         if (width > INT_MAX)
+            mine = false;
+
+         long long precision = -1;
+         if (mine && *p == L'.')
+         {
+            ++p;
+            if (*p == L'*')
+            {
+               const int given = va_arg(arguments, int);
+               precision = given < 0 ? -1 : given;
+               ++p;
+            }
+            else
+            {
+               precision = 0;
+               while (*p >= L'0' && *p <= L'9' && precision <= INT_MAX)
+                  precision = precision * 10 + (*p++ - L'0');
+               if (precision > INT_MAX)
+                  mine = false;
+            }
+         }
+
+         std::string length;
+         while (mine && *p && ::wcschr(L"hlLqjzZt", *p) && length.size() < 2)
+            length.push_back((char) *p++);
+         if (!mine || !*p)
+         {
+            mine = false;
+            break;
+         }
+
+         const wchar_t conversion = *p;
+         const bool none = length.empty();
+         if ((conversion == L's' && length == "l") || (conversion == L'S' && none))
+         {
+            const wchar_t *text = va_arg(arguments, const wchar_t *);
+            if (!text)
+               text = precision < 0 || precision >= 6 ? L"(null)" : L"";
+            const size_t count = precision >= 0 ? ::wcsnlen(text, (size_t) precision) : ::wcslen(text);
+            field(text, count, width, left);
+         }
+         else if (conversion == L's' && none)
+         {
+            const char *text = va_arg(arguments, const char *);
+            if (!text)
+            {
+               const wchar_t *null = precision < 0 || precision >= 6 ? L"(null)" : L"";
+               field(null, ::wcslen(null), width, left);
+               continue;
+            }
+            // In the C locale a byte is a character; the count is glibc's, a
+            // precision being a number of bytes.
+            const size_t count = precision >= 0 ? ::strnlen(text, (size_t) precision) : ::strlen(text);
+            std::wstring wide;
+            std::mbstate_t state{};
+            const char *next = text;
+            while (wide.size() < count)
+            {
+               wchar_t character = 0;
+               const size_t used = ::mbrtowc(&character, next, MB_LEN_MAX, &state);
+               if (used == (size_t) -1 || used == (size_t) -2)
+               {
+                  failed = true;
+                  break;
+               }
+               if (used == 0)
+                  break;
+               wide.push_back(character);
+               next += used;
+            }
+            if (!failed)
+               field(wide.data(), wide.size(), width, left);
+         }
+         else if ((conversion == L'c' && length == "l") || (conversion == L'C' && none))
+         {
+            const wchar_t character = (wchar_t) va_arg(arguments, wint_t);
+            field(&character, 1, width, left);
+         }
+         else if (conversion == L'c' && none)
+         {
+            const wchar_t character = (wchar_t) ::btowc((unsigned char) va_arg(arguments, int));
+            field(&character, 1, width, left);
+         }
+         else if (::wcschr(L"diouxXeEfFgGaAp", conversion))
+         {
+            // The narrow form of the same conversion, with a * width or precision
+            // written out: L with an integer and q are glibc's ll, Z its z.
+            const bool integer = ::wcschr(L"diouxX", conversion) != nullptr;
+            const bool real = ::wcschr(L"eEfFgGaA", conversion) != nullptr;
+            std::string size = length;
+            if (integer && (size == "L" || size == "q"))
+               size = "ll";
+            if (integer && size == "Z")
+               size = "z";
+            if (real && size == "l")
+               size = "";
+            const bool sized = integer ? (size.empty() || size == "h" || size == "hh" || size == "l" || size == "ll" ||
+                                          size == "j" || size == "z" || size == "t")
+                                       : real ? (size.empty() || size == "L") : size.empty();
+            if (!sized)
+            {
+               mine = false;
+               break;
+            }
+
+            std::string spec = "%" + flags;
+            if (width >= 0)
+               spec += std::to_string(width);
+            if (precision >= 0)
+               spec += "." + std::to_string(precision);
+            spec += size;
+            spec.push_back((char) conversion);
+
+            const bool isSigned = conversion == L'd' || conversion == L'i';
+            std::string text;
+            auto print = [&text, &spec](auto value) -> bool
+            {
+               const int needed = ::snprintf(nullptr, 0, spec.c_str(), value);
+               if (needed < 0)
+                  return false;
+               text.assign((size_t) needed + 1, '\0');
+               ::snprintf(&text[0], text.size(), spec.c_str(), value);
+               text.resize((size_t) needed);
+               return true;
+            };
+
+            bool printed = false;
+            if (conversion == L'p')
+               printed = print(va_arg(arguments, void *));
+            else if (real)
+               printed = size == "L" ? print(va_arg(arguments, long double)) : print(va_arg(arguments, double));
+            else if (size.empty() || size == "h" || size == "hh")
+               printed = isSigned ? print(va_arg(arguments, int)) : print(va_arg(arguments, unsigned int));
+            else if (size == "l")
+               printed = isSigned ? print(va_arg(arguments, long)) : print(va_arg(arguments, unsigned long));
+            else if (size == "ll")
+               printed = isSigned ? print(va_arg(arguments, long long)) : print(va_arg(arguments, unsigned long long));
+            else if (size == "j")
+               printed = isSigned ? print(va_arg(arguments, intmax_t)) : print(va_arg(arguments, uintmax_t));
+            else if (size == "z")
+               printed = isSigned ? print(va_arg(arguments, ssize_t)) : print(va_arg(arguments, size_t));
+            else
+               printed = isSigned ? print(va_arg(arguments, ptrdiff_t)) : print(va_arg(arguments, size_t));
+
+            if (!printed)
+               failed = true;
+            else
+               for (char c : text)
+                  out.push_back((wchar_t) (unsigned char) c);
+         }
+         else
+            mine = false;              // %n, %m and the rest: the C library's
+      }
+
+      if (mine)
+      {
+         va_end(whole);
+         if (failed || out.size() > (size_t) INT_MAX)
+         {
+            out.clear();
+            return -1;
+         }
+         return (int) out.size();
+      }
+
+      // Not read here: the C library's vswprintf, in a buffer that doubles up to
+      // 64 KB, as every wide format went before.
+      out.clear();
+      for (size_t size = 256; size <= 65536; size *= 2)
+      {
+         std::wstring buffer(size, L'\0');
+         va_list copy;
+         va_copy(copy, whole);
+         const int written = ::vswprintf(&buffer[0], size, format, copy);
+         va_end(copy);
+         if (written >= 0)
+         {
+            out.assign(buffer.data(), (size_t) written);
+            va_end(whole);
+            return written;
+         }
+      }
+      va_end(whole);
+      return -1;
    }
 }
 
@@ -761,32 +1069,32 @@ inline int _vscprintf(const char *format, va_list arguments)
    return needed;
 }
 
-// vswprintf cannot be asked for a length the way vsnprintf can - passing a null
-// buffer is undefined for the wide form - so the length is found by writing into
-// a buffer that doubles until it fits. The 64 KB ceiling is far above any format
-// this program uses and stops a malformed one looping.
+// The wide forms make their text with HMPlatform::FormatWideForGlibc, which gives
+// on musl the text glibc's vswprintf gives (above). _vscwprintf is the length the
+// text needs, -1 where it cannot be made; _vstprintf writes it and its NUL, or,
+// as vswprintf does, answers -1 when it does not fit, with the buffer emptied.
 inline int _vscwprintf(const wchar_t *format, va_list arguments)
 {
-   size_t size = 256;
-   while (size <= 65536)
-   {
-      std::wstring buffer(size, L'\0');
-      va_list copy;
-      va_copy(copy, arguments);
-      const int written = ::vswprintf(&buffer[0], size, HMPlatform::WideFormatForGlibc(format).c_str(), copy);
-      va_end(copy);
-      if (written >= 0)
-         return written;
-      size *= 2;
-   }
-   return -1;
+   std::wstring text;
+   va_list copy;
+   va_copy(copy, arguments);
+   const int written = HMPlatform::FormatWideForGlibc(text, HMPlatform::WideFormatForGlibc(format).c_str(), copy);
+   va_end(copy);
+   return written;
 }
 
 inline int _vstprintf(wchar_t *buffer, size_t size, const wchar_t *format, va_list arguments)
 {
-   const int written = ::vswprintf(buffer, size, HMPlatform::WideFormatForGlibc(format).c_str(), arguments);
-   if (written < 0 && size > 0)
-      buffer[0] = L'\0';
+   std::wstring text;
+   const int written = HMPlatform::FormatWideForGlibc(text, HMPlatform::WideFormatForGlibc(format).c_str(), arguments);
+   if (written < 0 || (size_t) written >= size)
+   {
+      if (size > 0)
+         buffer[0] = L'\0';
+      return -1;
+   }
+   ::wmemcpy(buffer, text.data(), (size_t) written);
+   buffer[written] = L'\0';
    return written;
 }
 

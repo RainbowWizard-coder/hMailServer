@@ -179,7 +179,8 @@ What musl changed
 The server had never been built on musl. Built on Alpine 3.24 (musl 1.2.6, GCC 15.2,
 Boost 1.84, OpenSSL 3.5, libpq 18, OpenLDAP 2.6) on 29 September 2026, every one of
 its 796 objects but one compiled, every tester program passed, and the Linux suite
-and a probe of musl's iconv found the rest. Four things, each fixed where it was:
+and a probe of musl's iconv found the rest. Four things, each fixed where it was, and
+a fifth that the suite found a month later (5):
 
 1. **`strerror_r`** (`Common/Util/File.cpp`, the one object that did not compile).
    glibc's is the GNU one, which returns the message; musl's is the POSIX one, which
@@ -220,6 +221,43 @@ and a probe of musl's iconv found the rest. Four things, each fixed where it was
    rewrites `%I` alone as C's `%z`, for glibc and musl alike. A test program of the
    two translators passed on both; the committed ones had written nothing on musl,
    and 705032704 for 5000000000 on glibc.
+5. **Text outside ASCII in a wide format** (`platform/hm_platform.h`). `String::Format`
+   made its text with the C library's `vswprintf`. glibc's copies every wide
+   character of the format and of a `%s` or `%c` argument into its output as it is;
+   musl's writes each through the current locale's multibyte form and reads it back,
+   and the server runs in the C locale (it never calls `setlocale` or `uselocale`),
+   where musl's carries U+0000 to U+007F and `0xDF80` to `0xDFFF` - the characters
+   its C locale makes of the bytes `0x80` to `0xFF` - and no other. A format that
+   held any other character failed whole, and `Format` gave nothing. Every line of
+   the default log is made by `Format`, so on Alpine no line of the log held a
+   character outside ASCII, and a line that would have was not written: an IMAP
+   `LOGIN` with a name outside ASCII had no `RECEIVED` line, the auto-ban's
+   `Auto-ban: logon failure ... for <name>` was never written for such a name (the
+   server's own count was kept), and every protocol reply, REST message or other
+   formatted text holding such a character was empty. The defect was as old as the
+   Alpine package; `LogonNameVariants.ASpellingTheSignInRefusesMeetsItsDomainsCountryPolicy`
+   was the first test to read such a line there (29 October 2026). The layer now
+   makes the text itself, as glibc's `vswprintf` makes it, for every value a
+   `wchar_t` holds: the format's text, `%s` and `%c` copied with their flags, width
+   and precision, a narrow `%hs` through the C library's own conversion as before,
+   and the numbers by the C library's `snprintf`, whose text is ASCII; anything
+   else it does not read goes to `vswprintf` as before. No locale is changed. A
+   locale of the call's own (`newlocale` and `uselocale`, the calling thread's
+   alone) would not have done: musl's `C.UTF-8` refuses `0xDF80` to `0xDFFF` as it
+   refuses every other surrogate and every value above U+10FFFF, and on musl a
+   Boost.Filesystem path's `wstring()` of a name holding a byte above `0x7F` is made
+   of those, so a line naming such a file would still have been empty. musl's
+   `vswprintf` has no `%p` either, which no format of the Linux build uses, and
+   ends the process on a null `%s`, where glibc's writes `(null)`; the layer does
+   as glibc's does.
+   `string-format-tests` asks for U+00E0, U+0130, U+20AC, U+1F600, `0xDF80` to
+   `0xDFFF`, the other surrogates, U+FFFE, U+10FFFF and values above it, holds the
+   formatter to the C library's `vswprintf` over a table of formats - every case
+   with glibc, and each that musl's can format - and logs lines holding those
+   characters through the Logger and reads them back; `check()` runs it. Elsewhere
+   nothing changes but one thing: the layer measured the text in a buffer that
+   doubled up to 64 KB, so on glibc too a formatted text longer than 65,535
+   characters was empty; it now has no such ceiling, as on Windows.
 
 And one thing that was the test machine's, not musl's: the backup tests need
 7-Zip, which the CI image has and a bare Alpine container has not, so the suite's
