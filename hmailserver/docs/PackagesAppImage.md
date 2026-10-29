@@ -176,7 +176,7 @@ minutes.
 | `appimage-runtime-x86_64` | `alpine:3.24` amd64 | `appimage/runtime-x86_64` and `.txt` (what it was built from and links, the licences, and where the source is), after `build/ci/packages/appimage-runtime.sh` proves it on a small AppImage of its own; and `runtime-x86_64-linked.txt`, every file the link took with its Alpine package, version, aports commit and licence ([Licences](#licences)) |
 | `appimage-runtime-aarch64` | `alpine:3.24` arm64, under qemu-user | `appimage/runtime-aarch64`, `.txt` and `-linked.txt`, proved the same way |
 | `appimage-runtime-sources` | `alpine:3.24` amd64 | `appimage-runtime-sources/hmailserver-<v>-appimage-runtime-sources.tar.gz`, the source of every library the two runtimes link as Alpine built it, made twice and compared, with `SHA256SUMS.txt`; and `licenses-<arch>/`, each library's licence files for that architecture's AppImage (`build/ci/packages/appimage-runtime-sources.sh`) |
-| `appimage-x86_64` | `ubuntu:24.04` amd64 | Builds the server with GCC 13 and makes `hMailServer-<v>-x86_64.AppImage`, with the runtime's libraries' licence files, the copyright files of the libraries it bundles, their list and hMailServer's own licence, packs the same server again from a copy of the tree with other modes under another umask, which must give the same bytes, then runs it (`appimage-build.sh`, then `appimage-test.sh`); and `built-against-x86_64/`, what its SBOM and the bundled libraries' sources are made from |
+| `appimage-x86_64` | `ubuntu:24.04` amd64 | Builds the server with GCC 13 and makes `hMailServer-<v>-x86_64.AppImage`, with the runtime's libraries' licence files, the copyright files of the libraries it bundles, their list and hMailServer's own licence, packs the same server again from a copy of the tree with other modes, under another umask and in a set-group-ID build directory, which must give the same bytes, then runs it (`appimage-build.sh`, then `appimage-test.sh`); and `built-against-x86_64/`, what its SBOM and the bundled libraries' sources are made from |
 | `appimage-aarch64-compile` | `ubuntu:24.04` amd64 | `appimage/hmailserver-aarch64`, cross-compiled against Ubuntu 24.04's own arm64 libraries from ports.ubuntu.com (`appimage-cross.sh`) |
 | `appimage-aarch64` | `ubuntu:24.04` arm64, under qemu-user | `hMailServer-<v>-aarch64.AppImage` from that binary (`appimage-build.sh` with `HM_PREBUILT`), packed twice to the same bytes as on x86_64, then runs it |
 | `appimage-bundled-sources` | `ubuntu:24.04` amd64 | `appimage-bundled-sources/hmailserver-<v>-appimage-bundled-sources.tar.gz`, the source of every library the two images carry in `usr/lib`, as Ubuntu built it, made twice and compared, with `SHA256SUMS.txt` (`build/ci/packages/appimage-bundled-sources.sh`; [Licences](#licences)) |
@@ -412,26 +412,35 @@ digest, one container at a time. What it found and changed:
 
 ### The image's modes
 
-`build-appimage.sh` gives every entry of the AppDir 0644, or 0755 for a
-directory or an executable, before mksquashfs packs it, which records each
-entry's mode as it is on disk: until 29 October 2026 the directories it made
-with `mkdir -p` took the caller's umask, and `DBScripts` the checkout's modes.
-`appimage-build.sh` packs the server a second time, from a copy of the tree
-with the modes a clone made under umask 0027 gives it, under umask 0002, and
-fails if the two images differ. Run on 29 October 2026 in the
-`appimage-x86_64` job's image by its digest, with one server built there as
-the job builds it, the runtime the `appimage-runtime-x86_64` job's script made
-and the licence files of its libraries as 6.3.7's image carries them
-(`gitlab.alpinelinux.org`, which `appimage-runtime-sources` fetches aports
-from, did not answer that night), all with one `SOURCE_DATE_EPOCH`:
+`build-appimage.sh` gives `DBScripts`' files 0644 where it copies them, and
+then every entry of the AppDir 0644, or 0755 for a directory or an
+executable, with no set-user-ID, set-group-ID or sticky bit, before
+mksquashfs packs it, which records each entry's mode as it is on disk: until
+29 October 2026 the directories it made with `mkdir -p` took the caller's
+umask, they and those `install -D` made the set-group-ID bit of a build
+directory inside a set-group-ID directory, and `DBScripts` the checkout's
+modes, every file executable from a filesystem that keeps no modes (a Windows
+drive under WSL, an SMB share). `appimage-build.sh` packs the server a second
+time, from a copy of the tree whose files and directories are all 0750, under
+umask 0002, in a set-group-ID build directory, and fails if the two images
+differ. `--appimage-extract` gives an extracted file the image's mode; a
+directory it makes with the image's mode masked by the extractor's umask. Run
+on 29 October 2026 in the `appimage-x86_64` job's image by its digest, with
+one server built there by the job's whole script, the runtime the
+`appimage-runtime-x86_64` job's script made and the licence files of its
+libraries as 6.3.7's image carries them (`gitlab.alpinelinux.org`, which
+`appimage-runtime-sources` fetches aports from, did not answer that night),
+all with one `SOURCE_DATE_EPOCH`:
 
 | What | Result |
 |---|---|
 | 6.3.7's two AppImages, listed with `unsquashfs -lls` | **0644, 0755 and links alone:** each has 684 files `-rw-r--r--`, 3 `-rwxr-xr-x`, 48 directories `drwxr-xr-x` and 3 links, nothing group- or world-writable. |
-| The script as it was and as it is, each from a checkout made under umask 0000 as the runner's helper makes one, run under 0022 | **The same bytes:** `3d9f5daa…`, 21,723,752 bytes, 739 entries. |
-| The script as it was, from a clone made under umask 0027, run under 0002 | **Other bytes,** `382850e2…`: 599 entries with other modes - seven directories the script made `drwxrwxr-x`, `DBScripts`' three directories `drwxr-x---` and its 589 files `-rw-r-----`. |
-| The script as it is, the same way | **The same bytes** as from the runner's checkout, `3d9f5daa…`. |
-| The `appimage-x86_64` job's whole script, then the `appimage-test-x86_64` job's on Fedora 44 | **Passed:** `3d9f5daa…`, packed again to the same bytes. With the script as it was in the tree, **refused**: its second pack was `382850e2…`, and it listed the entries. |
+| The script as it was and as it is, each from a checkout made under umask 0000 as the runner's helper makes one, run under 0022 | **The same bytes:** `6a539e37…`, 21,727,848 bytes, 738 entries. |
+| The script as it was, from a clone made under umask 0027, run under 0002 | **Other bytes,** `0d0bee38…`: 599 entries with other modes - seven directories the script made `drwxrwxr-x`, `DBScripts`' three directories `drwxr-x---` and its 589 files `-rw-r-----`. |
+| The script as it was, from a checkout whose files and directories are all 0777, run under 0022 | **Other bytes,** `bb207156…`: `DBScripts`' 589 files `-rwxr-xr-x`. |
+| The script as it was, from the runner's checkout, in a build directory inside a 2775 directory | **Other bytes,** `89dbc2aa…`: 47 of the 48 directories `drwxr-sr-x`. |
+| The script as it is, each of those three ways, and from the 0777 checkout under 0002 in the 2775 directory | **The same bytes** as from the runner's checkout, `6a539e37…`. |
+| The `appimage-x86_64` job's whole script, then the `appimage-test-x86_64` job's on Fedora 44 | **Passed:** packed again to the same bytes. With the script as it was in the tree, **refused**, listing the entries. |
 
 Licences
 --------

@@ -75,10 +75,11 @@ namespace HM
 
       // For a command that runs on as root (AsRoot): what it makes from here on
       // - a folder for a new account, a temporary file, a copy of a message -
-      // is root's alone too, whatever umask it was started under (a docker
-      // exec or a CI job may give 0000): the umask takes away at least every
-      // other account's write (022). A default access control list, which the
-      // umask does not reach, is refused by the walk instead.
+      // is root's alone too, whatever umask it was started under (a shell, a
+      // unit or a container may give any, 0000 among them): the umask takes
+      // away at least every other account's write (022). A default access
+      // control list, which the umask does not reach, is refused by the walk
+      // instead.
       void KeepWhatItMakesRoots();
 
       enum Outcome

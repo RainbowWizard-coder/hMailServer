@@ -7,8 +7,8 @@
 # the server built on Ubuntu 24.04 (x86_64), or cross-compiled there by
 # appimage-cross.sh and handed over (aarch64, HM_PREBUILT below), packed as an
 # AppImage with the runtime the appimage-runtime-* job made, packed a second time
-# from a copy of the tree with other modes and under another umask, which must give
-# the same bytes, then run.
+# from a copy of the tree with other modes, under another umask and in a
+# set-group-ID build directory, which must give the same bytes, then run.
 #
 # Why Ubuntu 24.04: an AppImage runs where the glibc it was linked against, or a
 # later one, is installed, so it is built on the oldest release that can build the
@@ -198,21 +198,25 @@ version=$("$build_dir/hmailserver" --version | awk '{ print $2 }')
   || { echo "$(basename "$image") is not the name the update checker looks for, hMailServer-$version-$arch.AppImage."; exit 1; }
 
 echo ""
-echo "== packed again, from a copy of the tree with other modes and under another umask"
+echo "== packed again, from a copy of the tree with other modes, under another umask, in a set-group-ID build directory"
 # The image must not depend on who packs it. This job packs under its image's umask,
 # 0022, from the runner's checkout, whose files are 0666 and directories and
 # executables 0777 (GitLab Runner's helper makes it under umask 0000); somebody
 # packing by hand has another umask (0002 is Ubuntu's for a user) and a clone with
-# other modes. build-appimage.sh gives every entry of the image a mode of its own
-# (its "The modes"), and this holds it to that: the same server packed again by the
-# same script, from a copy of the tree without .git whose files have the modes a
-# clone made under umask 0027 gives them (0640, and 0750 for a directory or an
-# executable), under umask 0002, in another build directory, must be the same bytes.
-# The second image is not kept, and nothing of it goes into the artifacts.
+# other modes, or a filesystem that keeps none and shows every file executable (a
+# Windows drive under WSL, an SMB share), and may build inside a group's shared,
+# set-group-ID directory. build-appimage.sh gives every entry of the image a mode of
+# its own (its "The modes"), and this holds it to that: the same server packed again
+# by the same script, from a copy of the tree without .git whose files and
+# directories are all 0750 (every file executable, and narrowed as a clone made
+# under umask 0027 narrows them), under umask 0002, in another build directory,
+# which is set-group-ID, must be the same bytes. The second image is not kept, and
+# nothing of it goes into the artifacts.
 again=$(mktemp -d)
 mkdir "$again/source" "$again/build" "$again/out"
+chmod g+s "$again/build"
 tar -C . --exclude=./.git --exclude="./${out#./}" -cf - . | tar -C "$again/source" -xf -
-chmod -R g-w,o-rwx "$again/source"
+chmod -R a+x,g-w,o-rwx "$again/source"
 install -m 0755 "$build_dir/hmailserver" "$again/build/hmailserver"
 [ ! -f "$build_dir/CMakeCache.txt" ] || cp "$build_dir/CMakeCache.txt" "$again/build/CMakeCache.txt"
 here=$(pwd)
@@ -229,7 +233,7 @@ second="$again/out/$(basename "$image")"
 first_sum=$(sha256sum "$image" | cut -d' ' -f1)
 second_sum=$(sha256sum "$second" | cut -d' ' -f1)
 echo "first  $first_sum  under umask $(umask), from this checkout"
-echo "second $second_sum  under umask 0002, from a copy with the modes of a clone made under 0027"
+echo "second $second_sum  under umask 0002, from a copy whose files are all 0750, in a set-group-ID build directory"
 if [ "$first_sum" != "$second_sum" ]; then
   # The filesystem starts where the runtime ends: each image's entries, with their
   # modes, as unsquashfs lists them, and where the two lists differ.
@@ -238,7 +242,8 @@ if [ "$first_sum" != "$second_sum" ]; then
   unsquashfs -o "$offset" -lls "$second" > "$again/second.txt" 2>&1 || true
   diff "$again/first.txt" "$again/second.txt" | sed -n '1,80p' || true
   echo "The same server packed twice made two different AppImages: an entry of the image takes a mode, or"
-  echo "something else, from the caller's umask or the checkout's modes (build-appimage.sh, \"The modes\")."
+  echo "something else, from the caller's umask, the checkout's modes or the build directory's set-group-ID bit"
+  echo "(build-appimage.sh, \"The modes\")."
   exit 1
 fi
 rm -rf "$again"
