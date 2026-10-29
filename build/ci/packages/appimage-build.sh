@@ -21,6 +21,10 @@
 #
 #   bash build/ci/packages/appimage-build.sh
 #
+# SOURCE_DATE_EPOCH, which dates every entry of the image, is the commit's time,
+# from CI_COMMIT_TIMESTAMP in the job or from git; by hand where neither gives it
+# (the job's image has no git), the caller's, or else the time now.
+#
 # It reads appimage/runtime-<arch> and runtime-<arch>-linked.txt, what the runtime
 # links (the runtime job's artifacts), and appimage-runtime-sources/licenses-<arch>/,
 # the licence files of the libraries linked into that runtime (the
@@ -138,8 +142,15 @@ if [ -n "${CI_COMMIT_TIMESTAMP:-}" ]; then
 elif command -v git > /dev/null 2>&1 && git rev-parse --git-dir > /dev/null 2>&1; then
   SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
   export SOURCE_DATE_EPOCH
+elif [ -z "${SOURCE_DATE_EPOCH:-}" ]; then
+  # By hand in the job's image, which has no git, with no CI variables: the time
+  # now, so that the two packs below are dated alike. Without one mksquashfs dates
+  # each pack with the time it runs, and the second could never be the same bytes.
+  SOURCE_DATE_EPOCH=$(date +%s)
+  export SOURCE_DATE_EPOCH
+  echo "Neither CI_COMMIT_TIMESTAMP nor git gives the commit's time: SOURCE_DATE_EPOCH is the time now."
 fi
-echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-unset}"
+echo "SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH"
 
 if [ -n "$prebuilt" ]; then
   echo ""
@@ -203,9 +214,10 @@ echo "== packed again, from a copy of the tree with other modes, under another u
 # 0022, from the runner's checkout, whose files are 0666 and directories and
 # executables 0777 (GitLab Runner's helper makes it under umask 0000); somebody
 # packing by hand has another umask (0002 is Ubuntu's for a user) and a clone with
-# other modes, or a filesystem that keeps none and shows every file executable (a
-# Windows drive under WSL, an SMB share), and may build inside a group's shared,
-# set-group-ID directory. build-appimage.sh gives every entry of the image a mode of
+# other modes, or one on a filesystem that keeps none and shows every file
+# executable (a Windows drive under WSL, 0777; an SMB share, 0755), and may build
+# inside a group's shared, set-group-ID directory. (A build directory on such a
+# filesystem build-appimage.sh refuses: chmod changes nothing there.) build-appimage.sh gives every entry of the image a mode of
 # its own (its "The modes"), and this holds it to that: the same server packed again
 # by the same script, from a copy of the tree without .git whose files and
 # directories are all 0750 (every file executable, and narrowed as a clone made
@@ -236,14 +248,16 @@ echo "first  $first_sum  under umask $(umask), from this checkout"
 echo "second $second_sum  under umask 0002, from a copy whose files are all 0750, in a set-group-ID build directory"
 if [ "$first_sum" != "$second_sum" ]; then
   # The filesystem starts where the runtime ends: each image's entries, with their
-  # modes, as unsquashfs lists them, and where the two lists differ.
+  # modes and their times to the second (-full-precision; without it unsquashfs
+  # gives a time to the minute), as unsquashfs lists them, and where the two lists
+  # differ.
   offset=$(stat -c %s "$runtime")
-  unsquashfs -o "$offset" -lls "$image" > "$again/first.txt" 2>&1 || true
-  unsquashfs -o "$offset" -lls "$second" > "$again/second.txt" 2>&1 || true
+  unsquashfs -o "$offset" -lls -full-precision "$image" > "$again/first.txt" 2>&1 || true
+  unsquashfs -o "$offset" -lls -full-precision "$second" > "$again/second.txt" 2>&1 || true
   diff "$again/first.txt" "$again/second.txt" | sed -n '1,80p' || true
   echo "The same server packed twice made two different AppImages: an entry of the image takes a mode, or"
   echo "something else, from the caller's umask, the checkout's modes or the build directory's set-group-ID bit"
-  echo "(build-appimage.sh, \"The modes\")."
+  echo "(build-appimage.sh, \"The modes\"), or a time from when it was packed (SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH)."
   exit 1
 fi
 rm -rf "$again"

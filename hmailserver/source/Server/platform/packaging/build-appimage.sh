@@ -817,8 +817,9 @@ rm -f "${OUTPUT}" "${SQUASHFS}"
 # directory made inside a set-group-ID directory (a group's shared one); and
 # DBScripts, copied with cp -r, takes the modes the checkout gave its files and
 # directories, masked by that umask, every file executable from a checkout on a
-# filesystem that keeps no modes (a Windows drive under WSL, an SMB share), which
-# shows each file 0777. (install -m, -Dm and -d, and the chmods above, set the
+# filesystem that keeps no modes, which shows each file 0777 (a Windows drive under
+# WSL, mounted without its metadata option, as it is by default) or 0755 (an SMB
+# share, by default). (install -m, -Dm and -d, and the chmods above, set the
 # permission bits of their own: coreutils' install makes the directories above a
 # file 0755 whatever the umask.) The CI's jobs run this under their image's umask,
 # 0022, in a build directory of their own, from the runner's checkout, whose files
@@ -826,21 +827,38 @@ rm -f "${OUTPUT}" "${SQUASHFS}"
 # by hand under Ubuntu's umask for a user, 0002, the image's directories were
 # group-writable, and from a clone made under 0027 its schema scripts were 0640 -
 # an image other than the CI's from the same tree, whose files --appimage-extract
-# gives those modes in every copy it makes (a directory it makes with the image's
-# mode masked by the extractor's umask). So the schema scripts are made 0644 where
-# they are copied, and then every entry is given 0644, or 0755 for a directory or
-# an executable, with no set-user-ID, set-group-ID or sticky bit (GNU chmod keeps a
-# directory's set-group-ID bit unless told to clear it), as the two sources scripts
-# fix their tarballs' modes (appimage-runtime-sources.sh, appimage-bundled-sources.sh):
-# one chmod over the whole tree, where a umask set here would leave DBScripts the
-# checkout's modes, and a mode given to each mkdir would miss an entry a later change
-# makes without one. Its X keeps a file executable that is, which is why DBScripts'
-# files are given theirs first. It changes no entry of a pack the CI makes, every
-# mode above being one of the two already; chmod -R passes the symbolic links by,
-# which have no mode of their own. appimage-build.sh packs the server a second time,
-# from a copy of the tree with other modes, under another umask and in a
-# set-group-ID build directory, and fails if the two differ.
+# gives those permission bits in every copy it makes. So the schema scripts are
+# made 0644 where they are copied, and then every entry is given 0644, or 0755 for
+# a directory or an executable, with no set-user-ID, set-group-ID or sticky bit
+# (GNU chmod keeps a directory's set-group-ID bit unless told to clear it), as the
+# two sources scripts fix their tarballs' modes (appimage-runtime-sources.sh,
+# appimage-bundled-sources.sh): one chmod over the whole tree, where a umask set
+# here would leave DBScripts the checkout's modes, and a mode given to each mkdir
+# would miss an entry a later change makes without one. Its X keeps a file
+# executable that is, which is why DBScripts' files are given theirs first. It
+# changes no entry of a pack the CI makes, every mode above being one of the two
+# already; chmod -R passes the symbolic links by, which have no mode of their own.
+# appimage-build.sh packs the server a second time, from a copy of the tree with
+# other modes, under another umask and in a set-group-ID build directory, and fails
+# if the two differ.
 chmod -R a+rX,u+w,go-w,a-st "${APPDIR}"
+# And the modes took. On a filesystem that keeps no modes chmod changes nothing stat
+# shows, and mksquashfs packs what stat shows: a build directory there - by default
+# build/linux, inside the checkout, so a checkout on a Windows drive under WSL or
+# on an SMB share - would pack that filesystem's modes, every file 0777 or 0755,
+# whatever this script gives them. So the AppDir is refused unless every directory
+# is 0755, every file 0644 or 0755 and every schema script 0644, which is what the
+# chmods above leave on any filesystem that keeps modes, the CI's among them.
+mode_wrong=$(find "${APPDIR}" ! -type l \( -type d ! -perm 0755 -o ! -type d ! -perm 0644 ! -perm 0755 \) -print -quit)
+[ -n "${mode_wrong}" ] \
+   || mode_wrong=$(find "${APPDIR}/usr/share/hmailserver/DBScripts" -type f ! -perm 0644 -print -quit)
+if [ -n "${mode_wrong}" ]; then
+   echo "${mode_wrong} is $(stat -c %A "${mode_wrong}") after the chmods that make it 0644 or 0755: the filesystem" \
+      "of ${BUILD_DIR} ($(stat -f -c %T "${BUILD_DIR}")) does not keep the modes given to it, and mksquashfs would" \
+      "pack the modes it shows. Pass a --build-dir on a filesystem that keeps modes (not a Windows drive under WSL" \
+      "or an SMB share)." >&2
+   exit 1
+fi
 
 # -root-owned: every file root's, as in a package, not the builder's uid.
 # zstd: what the runtime reads fastest; the runtime is linked with every

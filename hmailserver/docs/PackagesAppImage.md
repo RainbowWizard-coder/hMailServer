@@ -419,28 +419,42 @@ mksquashfs packs it, which records each entry's mode as it is on disk: until
 29 October 2026 the directories it made with `mkdir -p` took the caller's
 umask, they and those `install -D` made the set-group-ID bit of a build
 directory inside a set-group-ID directory, and `DBScripts` the checkout's
-modes, every file executable from a filesystem that keeps no modes (a Windows
-drive under WSL, an SMB share). `appimage-build.sh` packs the server a second
-time, from a copy of the tree whose files and directories are all 0750, under
-umask 0002, in a set-group-ID build directory, and fails if the two images
-differ. `--appimage-extract` gives an extracted file the image's mode; a
-directory it makes with the image's mode masked by the extractor's umask. Run
+modes, every file executable from a filesystem that keeps no modes (0777 on a
+Windows drive under WSL, mounted without its metadata option as it is by
+default; 0755 on an SMB share, by default). On such a filesystem chmod changes
+nothing `stat` shows, so the build directory, where the AppDir is made, must
+be on one that keeps modes: by default it is `build/linux` inside the
+checkout, and after its chmod the script refuses an AppDir in which a
+directory is not 0755, a file not 0644 or 0755 or a schema script not 0644,
+naming the build directory and its filesystem's type; pass a `--build-dir`
+elsewhere. `appimage-build.sh` packs the server a second time, from a copy of
+the tree whose files and directories are all 0750, under umask 0002, in a
+set-group-ID build directory, and fails if the two images differ, listing
+their entries where they do with `unsquashfs -lls -full-precision`, times to
+the second. Both packs are dated with `SOURCE_DATE_EPOCH`: the commit's time
+in the job, and by hand in the job's image, which has no git, the caller's or
+else the time the script starts. `--appimage-extract` gives an extracted file
+the image's permission bits, whatever the extractor's umask. Run
 on 29 October 2026 in the `appimage-x86_64` job's image by its digest, with
 one server built there by the job's whole script, the runtime the
-`appimage-runtime-x86_64` job's script made and the licence files of its
-libraries as 6.3.7's image carries them (`gitlab.alpinelinux.org`, which
-`appimage-runtime-sources` fetches aports from, did not answer that night),
-all with one `SOURCE_DATE_EPOCH`:
+`appimage-runtime-x86_64` job's script made, with its two records, and the
+licence files of its libraries as 6.3.7's image carries them
+(`gitlab.alpinelinux.org`, which `appimage-runtime-sources` fetches aports
+from, did not answer that day); the packs compared in a row had one
+`SOURCE_DATE_EPOCH`, the first two rows' the job's:
 
 | What | Result |
 |---|---|
 | 6.3.7's two AppImages, listed with `unsquashfs -lls` | **0644, 0755 and links alone:** each has 684 files `-rw-r--r--`, 3 `-rwxr-xr-x`, 48 directories `drwxr-xr-x` and 3 links, nothing group- or world-writable. |
-| The script as it was and as it is, each from a checkout made under umask 0000 as the runner's helper makes one, run under 0022 | **The same bytes:** `6a539e37…`, 21,727,848 bytes, 738 entries. |
-| The script as it was, from a clone made under umask 0027, run under 0002 | **Other bytes,** `0d0bee38…`: 599 entries with other modes - seven directories the script made `drwxrwxr-x`, `DBScripts`' three directories `drwxr-x---` and its 589 files `-rw-r-----`. |
-| The script as it was, from a checkout whose files and directories are all 0777, run under 0022 | **Other bytes,** `bb207156…`: `DBScripts`' 589 files `-rwxr-xr-x`. |
-| The script as it was, from the runner's checkout, in a build directory inside a 2775 directory | **Other bytes,** `89dbc2aa…`: 47 of the 48 directories `drwxr-sr-x`. |
-| The script as it is, each of those three ways, and from the 0777 checkout under 0002 in the 2775 directory | **The same bytes** as from the runner's checkout, `6a539e37…`. |
-| The `appimage-x86_64` job's whole script, then the `appimage-test-x86_64` job's on Fedora 44 | **Passed:** packed again to the same bytes. With the script as it was in the tree, **refused**, listing the entries. |
+| The script as it was and as it is, each from a checkout made under umask 0000 as the runner's helper makes one, run under 0022 | **The job's own bytes:** `f7870c6a…`, 21,731,944 bytes, 739 entries: 685 files `-rw-r--r--`, 3 `-rwxr-xr-x`, 48 directories and 3 links, Feather's notice the one more than 6.3.7's. |
+| The script as it was, from a clone made under umask 0027, run under 0002 | **Other bytes,** `3a0b28fe…`: 599 entries with other modes - seven directories the script made `drwxrwxr-x`, `DBScripts`' three directories `drwxr-x---` and its 589 files `-rw-r-----`. The script as it is: **the job's bytes.** |
+| The script as it was, from a checkout whose files and directories are all 0777, run under 0022 | **Other bytes:** `DBScripts`' 589 files `-rwxr-xr-x`. |
+| The script as it was, from the runner's checkout, in a build directory inside a 2775 directory | **Other bytes:** 47 of the 48 directories `drwxr-sr-x`. |
+| The script as it is, each of those two ways | **The same bytes** as from the runner's checkout. |
+| With a `chmod` that changes nothing, as on a filesystem that keeps no modes: the script as it was, then as it is, from the checkout all 0777 and from one all 0755 | **Other bytes,** the 589 schema scripts `-rwxr-xr-x`; then **refused**, naming a schema script `-rwxr-xr-x`, the build directory and its filesystem's type. From the runner's checkout, whose modes need no chmod, the script as it is made the same bytes as with it. |
+| Two packs with `SOURCE_DATE_EPOCH` a second apart | 0 lines of `unsquashfs -lls` differ, and all 739 of `-lls -full-precision`. |
+| The `appimage-x86_64` job's whole script, then the `appimage-test-x86_64` job's on Fedora 44 | **Passed:** packed again to the same bytes. With the script as it was in the tree, **refused**, listing the entries with their times to the second. |
+| The `appimage-x86_64` job's script by hand in its image, with no CI variables | Before the change to `SOURCE_DATE_EPOCH`, **failed:** two images, the listings the same. Now **passed:** `SOURCE_DATE_EPOCH` the time it started, packed twice to the same bytes. |
 
 Licences
 --------
