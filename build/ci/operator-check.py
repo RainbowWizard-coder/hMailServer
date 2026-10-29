@@ -55,9 +55,15 @@ the chart's own checks, in its Alpine image with Alpine's helm and PyYAML.
     not being held whole;
   * and, when the job runs it without --self-test, operator-context.sh writes the
     image's context with the chart as the tree's and stamped for a version, and
-    with git's modes, 0755 and 0644, from a checkout written and run under umask
-    0000 as well, and operator-bundle.sh a bundle whose CSV has that version and the image by digest
-    everywhere, and the fork's icon, platform/packaging/hmailserver.png, inlined.
+    with git's modes, 0755 for each directory and 0644 for each file, from a copy
+    of its inputs with every file and directory 0777, in a set-group-ID directory
+    and run under umask 0000 as well, and operator-bundle.sh a bundle whose CSV has
+    that version and the image by digest everywhere, and the fork's icon,
+    platform/packaging/hmailserver.png, inlined;
+  * no file the context takes, watches.yaml and the chart's, is executable in git
+    (git ls-files -s, or where git is not installed, as in the job's image, the
+    checkout's execute bit, which in a job's checkout is the one git wrote), since
+    operator-context.sh gives every file of the context 0644.
 
   python3 build/ci/operator-check.py [--self-test]
 
@@ -97,6 +103,9 @@ PUSH_SCRIPT = 'build/ci/operator-image-push.sh'
 FILES = (CRD, CSV, ANNOTATIONS, SCORECARD, WATCHES, DOCKERFILE, VALUES, OPERATOR_CI, SIGN_SCRIPT, PUSH_SCRIPT)
 # The other CI files, under this key of texts: path -> text.
 OTHER_CI = 'other CI files'
+# The files operator-context.sh puts into the image, under this key of texts: path ->
+# whether git records it executable (context_inputs_executable).
+EXECUTABLE = 'the context files executable in git'
 
 FORK = "Progressive Robot's fork of hMailServer"
 ORIGINAL = 'Martin Knafve'
@@ -186,7 +195,31 @@ def load_texts():
         if path != OPERATOR_CI and path.endswith(('.yml', '.yaml')):
             others[path] = read(path)
     texts[OTHER_CI] = others
+    texts[EXECUTABLE] = context_inputs_executable()
     return texts
+
+
+def context_inputs_executable():
+    """{path: whether git records it executable} for watches.yaml and each file of the
+    chart, the files operator-context.sh puts into the image's context and gives 0644.
+    git's index where git reads the checkout; where it cannot - the chart-and-compose
+    job's image has no git - the owner's execute bit of the checkout, which in a job's
+    checkout is git's, the runner's helper having written each file from it."""
+    paths = [WATCHES] + sorted(os.path.relpath(os.path.join(top, name), ROOT).replace(os.sep, '/')
+                               for top, _, names in os.walk(os.path.join(ROOT, CHART)) for name in names)
+    try:
+        done = subprocess.run(['git', '-C', ROOT, 'ls-files', '-s', '-z', '--', WATCHES, CHART],
+                              capture_output=True, text=True)
+    except OSError:
+        done = None
+    if done is not None and done.returncode == 0 and done.stdout:
+        recorded = {}
+        for entry in done.stdout.split('\0'):
+            if entry:
+                fields, path = entry.split('\t', 1)
+                recorded[path] = fields.split(' ')[0] == '100755'
+        return {path: recorded.get(path, False) for path in paths}
+    return {path: bool(os.stat(os.path.join(ROOT, path)).st_mode & 0o100) for path in paths}
 
 
 class CiLoader(yaml.SafeLoader):
@@ -479,6 +512,10 @@ def check(texts, rendered):
                 problems.append('the scorecard test %s is not scorecard-test by tag and digest' % test.get('labels', {}).get('test'))
             elif release and match.group(1) != release:
                 problems.append('the scorecard test %s is operator-sdk %s\'s, not %s' % (test.get('labels', {}).get('test'), match.group(1), release))
+    # The context's files: operator-context.sh gives every one 0644, git's mode for it.
+    for path, executable in sorted(texts.get(EXECUTABLE, {}).items()):
+        if executable:
+            problems.append('%s is executable in git, and operator-context.sh gives every file of the context 0644' % path)
     return problems + ci_problems(texts)
 
 
@@ -496,13 +533,14 @@ def render_kinds(spec_values):
 
 
 def context_modes(work):
-    """operator-context.sh from a copy of its inputs written as GitLab Runner's helper
-    writes a checkout, under umask 0000 - files 0666, executables and directories 0777 -
-    and run under umask 0000 too: the context it makes, whose modes the image's COPY
-    keeps, must still have git's, 0755 for a directory or a file whose owner may
-    execute it and 0644 for the rest."""
+    """operator-context.sh from a copy of its inputs with every file and directory
+    0777 - what GitLab Runner's helper, writing a checkout under umask 0000, gives an
+    executable and a directory, and what a working tree chmodded by hand or copied from
+    a filesystem without modes gives every file - run under umask 0000 too, with OUT
+    in a set-group-ID directory: the context it makes, whose modes the image's COPY
+    keeps, must still have git's, 0755 for each directory and 0644 for each file."""
     tree = os.path.join(work, 'loose-checkout')
-    sources = {}
+    sources = set()
     for rel in ('build/ci/operator-context.sh', DOCKERFILE, WATCHES, CHART):
         source, copied = os.path.join(ROOT, rel), os.path.join(tree, rel)
         if os.path.isdir(source):
@@ -513,31 +551,34 @@ def context_modes(work):
     for top, _, names in os.walk(tree):
         os.chmod(top, 0o777)
         for name in names:
-            copied = os.path.join(top, name)
-            executable = os.stat(os.path.join(ROOT, os.path.relpath(copied, tree))).st_mode & 0o100
-            os.chmod(copied, 0o777 if executable else 0o666)
-            sources[os.path.relpath(copied, tree)] = 0o755 if executable else 0o644
-    out = os.path.join(work, 'loose')
+            os.chmod(os.path.join(top, name), 0o777)
+            sources.add(os.path.relpath(os.path.join(top, name), tree).replace(os.sep, '/'))
+    shared = os.path.join(work, 'shared')
+    os.mkdir(shared)
+    os.chmod(shared, 0o2777)
+    out = os.path.join(shared, 'loose')
     umask = os.umask(0)
     try:
         done = subprocess.run(['sh', 'build/ci/operator-context.sh', out], cwd=tree, capture_output=True, text=True)
     finally:
         os.umask(umask)
     if done.returncode != 0:
-        return ['operator-context.sh from a checkout written under umask 0000 failed: %s' % done.stdout.strip().splitlines()[-1:]]
+        return ['operator-context.sh from a checkout of mode 0777 and under umask 0000 failed: %s' % done.stdout.strip().splitlines()[-1:]]
     problems = []
     for top, _, names in os.walk(out):
         if os.stat(top).st_mode & 0o7777 != 0o755:
-            problems.append('operator-context.sh under umask 0000 left %s with mode %o, not 0755' % (os.path.relpath(top, out), os.stat(top).st_mode & 0o7777))
+            problems.append('operator-context.sh from a checkout of mode 0777 left %s with mode %o, not 0755' % (os.path.relpath(top, out), os.stat(top).st_mode & 0o7777))
         for name in names:
             made = os.path.relpath(os.path.join(top, name), out).replace(os.sep, '/')
             source = (CHART + made[len('helm-charts/hmailserver'):] if made.startswith('helm-charts/hmailserver/')
                       else OPERATOR + '/' + made)
             mode = os.lstat(os.path.join(top, name)).st_mode & 0o7777
-            if sources.get(source) is None or mode != sources[source]:
-                problems.append('operator-context.sh under umask 0000 left %s with mode %o, not git\'s %s' % (made, mode, '%o' % sources[source] if source in sources else '(no source)'))
+            if source not in sources:
+                problems.append('operator-context.sh made %s, which is no file of its inputs' % made)
+            elif mode != 0o644:
+                problems.append('operator-context.sh from a checkout of mode 0777 left %s with mode %o, not 0644' % (made, mode))
     if not problems:
-        print('the context made from a checkout written under umask 0000, and under that umask: %d files, each with git\'s mode' % sum(len(names) for _, _, names in os.walk(out)))
+        print('the context made from a checkout of mode 0777, in a set-group-ID directory and under umask 0000: %d files, each 0644, and its directories 0755' % sum(len(names) for _, _, names in os.walk(out)))
     return problems
 
 
@@ -626,6 +667,8 @@ def self_test():
         # The custom resource definition.
         ('a file that does not parse', mutate(WATCHES, '- group: mail.progressiverobot.com', '- group: [mail'), rendered,
          'a file of the operator does not parse'),
+        ('a chart file executable in git', dict(texts, **{EXECUTABLE: {**texts[EXECUTABLE], VALUES: True}}), rendered,
+         'values.yaml is executable in git'),
         ('a second version served', dict(texts, **{CRD: texts[CRD] + '    - name: v1beta1\n      served: false\n      storage: false\n'}), rendered,
          'the CRD serves 2 versions'),
         ('a chart value without a CRD property', mutate(VALUES, '\nextraEnv: []', '\nextraEnv: []\nnewValue: 1'), rendered,

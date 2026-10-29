@@ -102,8 +102,8 @@ In a `v*` tag's pipeline, after the release's image is signed (`.gitlab/ci/opera
    installs the release's own image, held to the packaged chart the published release
    carries byte for byte but for `Chart.yaml` (taken from the release, not from
    `helm-chart-package`'s artifact, which may have expired when the image jobs run),
-   every directory and file of it given git's mode, 0755 or 0644, whatever the
-   checkout's modes and the umask, since `COPY` keeps them -
+   every file of it given 0644, the mode git records for each, and every directory
+   0755, whatever the checkout's modes and the umask, since `COPY` keeps them -
    built for linux/amd64 and linux/arm64 as two tarballs, labelled with the commit's
    revision and time.
 2. `operator-image-push` (regctl): both joined under one index and pushed as

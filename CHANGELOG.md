@@ -813,11 +813,15 @@ with `--check`).
   copies the chart and `watches.yaml` with `cp`, which gives each copy the checkout's mode less the umask, and the
   Dockerfile's `COPY` keeps the context's modes: the `operator-image` job's 0022 gives 0644 and 0755, but a build by
   hand under Ubuntu's 0002 gave 0664 and 0775, writable by group root, which the base image's user, `helm` (1001), has
-  as its group, and an image of other bytes. The script now gives each directory and file of the context git's mode,
-  0755 for a directory or a file whose owner may execute it and 0644 for the rest, and refuses a context with any
-  other, so the image is the same whatever the checkout's modes and the umask, and the job's is unchanged.
-  `build/ci/operator-check.py`, which `chart-and-compose` runs, makes a context from a copy of its inputs written
-  0666 and 0777 and under umask 0000, and requires git's modes of every entry. The operator's `README.md` says so.
+  as its group, and an image of other bytes. The script now gives each file of the context 0644, the mode git records
+  for every file of the chart and the operator, and not the checkout's execute bit, and each directory 00755, which
+  clears a set-group-ID bit that GNU's `chmod` keeps under 0755 on a workstation, as busybox's in the job's image
+  does; and it refuses a context with any other mode. So the image is the same whatever the checkout's modes and the
+  umask, and the job's is unchanged. `build/ci/operator-check.py`, which `chart-and-compose` runs, refuses a file of
+  the chart or `watches.yaml` that git records executable (where git is not installed, as in that job's image, the
+  checkout's execute bit, which in a job's checkout is git's), and makes a context from a copy of its inputs with
+  every file and directory 0777, under umask 0000 and in a set-group-ID directory, and requires each directory of it
+  0755 and each file 0644. The operator's `README.md` says so.
 - **Fixed: the icons drawn after Feather's are credited to Cole Bemis, under Feather's MIT licence, where every record
   gave them the project's holders and licence alone.** The webmail's sprite in
   `hmailserver/source/Server/Common/Util/Portal.html`, which every icon of the webmail is drawn from, is drawn after
