@@ -83,10 +83,13 @@ cp "$deb" "snap-build/input/hmailserver_$arch.deb"
 # hand or copied from a filesystem without modes may have where git has none; an entry
 # git does not record is refused - a file, a symbolic link or anything else that is
 # not in the index, and a directory that holds none of the index's files, since the
-# dump plugin would copy each into the snap as the checkout has it (a link git records
-# is taken as the link it is, in snap/local alone, and a file the index records as
-# one must be a regular file in the checkout). That is done in the checkout itself, the one place
-# both are read from, the icon when snapcraft packs, after the parts' steps, and git
+# dump plugin would copy each into the snap as the checkout has it - and so is a
+# symbolic link git records (120000): the plugin copies a link as it is, wherever it
+# points, and one that is absolute or leaves snap/local, which becomes the snap's
+# root, points outside the snap, which the Snap Store's review refuses (an external
+# symlink), so the snap takes none; a file the index records must be a regular file
+# in the checkout. The modes are given in the checkout itself, the one place both
+# are read from, the icon when snapcraft packs, after the parts' steps, and git
 # shows no change: git keeps no mode but the execute bit, and where the checkout's
 # differs from the index's while core.fileMode is true - a change of mode that git
 # status shows - the build refuses rather than undo it (with core.fileMode false, as
@@ -126,19 +129,15 @@ if [ "$(in_git rev-parse --show-toplevel 2> /dev/null)" = "$top" ]; then
       [ -n "${holds[$dir]:-}" ] || fail "$dir holds no file git's index records: the snap takes the entries git records, and this directory is the checkout's alone"
    done < snap-build/input/checkout-dirs
    # Every other entry - a file, a symbolic link, anything but a directory - must be
-   # one git records, and of the kind it records: a link (120000) is copied as a link
-   # and has no mode of its own, and is allowed in snap/local alone.
+   # a file git records: a link (120000) would be copied as it is, wherever it points.
    find snap/local snap/hooks "$icon" ! -type d -print0 > snap-build/input/checkout-files
    while IFS= read -r -d '' file; do
       case "${recorded[$file]:-}" in
          100755) mode=0755 ;;
          100644) mode=0644 ;;
-         120000)
-            [[ "$file" == snap/local/* ]] || fail "$file is a symbolic link in git's index: the snap takes a hook and its icon as files"
-            [ -L "$file" ] || fail "$file is a symbolic link in git's index and not one in the checkout"
-            continue ;;
+         120000) fail "$file is a symbolic link in git's index: the snap takes the files of snap/local, snap/hooks and its icon as regular files, since a link would be copied into it as it is, and one that is absolute or leaves snap/local points outside the snap, which the Snap Store's review refuses" ;;
          '') fail "$file is not in git's index: the snap takes the entries git records, with their modes" ;;
-         *) fail "$file is ${recorded[$file]} in git's index, not a file's 100644 or 100755 or a link's 120000" ;;
+         *) fail "$file is ${recorded[$file]} in git's index, not a file's 100644 or 100755" ;;
       esac
       if [ -L "$file" ] || [ ! -f "$file" ]; then
          fail "$file is a file in git's index (${recorded[$file]}) and not a regular file in the checkout"

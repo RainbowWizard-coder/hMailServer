@@ -801,8 +801,10 @@ with `--check`).
   and 0644 for 100644, not the checkout's execute bit, which a working tree chmodded by hand or copied from a
   filesystem without modes may have where git has none. An entry git does not record is refused, since the plugin
   would copy it as the checkout has it: a file, a symbolic link or anything else the index does not hold, and a
-  directory that holds none of the index's files (a link git records is taken as a link, in `snap/local` alone, and a
-  file git records must be a regular file in the checkout). So is a file whose execute bit differs from the index's
+  directory that holds none of the index's files. So is a symbolic link git records: the plugin copies a link as it
+  is, wherever it points, and one that is absolute or leaves `snap/local`, which becomes the snap's root, points
+  outside the snap, which the Snap Store's review refuses as an external symlink, so the snap takes no link; a file git
+  records must be a regular file in the checkout. So is a file whose execute bit differs from the index's
   while `core.fileMode` is true, a change of mode `git status` shows, which the build does not undo; so git shows no
   change after it. Only a tree that is no git checkout takes the owner's execute
   bit for git's. Each directory of theirs is made 00755, which clears a set-group-ID bit that GNU's `chmod` keeps under
