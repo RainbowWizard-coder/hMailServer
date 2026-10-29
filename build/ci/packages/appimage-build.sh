@@ -23,7 +23,8 @@
 #
 # SOURCE_DATE_EPOCH, which dates every entry of the image, is the commit's time,
 # from CI_COMMIT_TIMESTAMP in the job or from git; by hand where neither gives it
-# (the job's image has no git), the caller's, or else the time now.
+# (the job's image has no git), the caller's, or else the time now, once the
+# packages below are installed.
 #
 # It reads appimage/runtime-<arch> and runtime-<arch>-linked.txt, what the runtime
 # links (the runtime job's artifacts), and appimage-runtime-sources/licenses-<arch>/,
@@ -217,13 +218,14 @@ echo "== packed again, from a copy of the tree with other modes, under another u
 # other modes, or one on a filesystem that keeps none and shows every file
 # executable (a Windows drive under WSL, 0777; an SMB share, 0755), and may build
 # inside a group's shared, set-group-ID directory. (A build directory on such a
-# filesystem build-appimage.sh refuses: chmod changes nothing there.) build-appimage.sh gives every entry of the image a mode of
-# its own (its "The modes"), and this holds it to that: the same server packed again
-# by the same script, from a copy of the tree without .git whose files and
-# directories are all 0750 (every file executable, and narrowed as a clone made
-# under umask 0027 narrows them), under umask 0002, in another build directory,
-# which is set-group-ID, must be the same bytes. The second image is not kept, and
-# nothing of it goes into the artifacts.
+# filesystem build-appimage.sh refuses: chmod changes nothing there.)
+# build-appimage.sh gives every entry of the image a mode of its own (its "The
+# modes"), and this holds it to that: the same server packed again by the same
+# script, from a copy of the tree without .git whose files and directories are
+# all 0750 (every file executable, and narrowed as a clone made under umask 0027
+# narrows them), under umask 0002, in another build directory, which is
+# set-group-ID, must be the same bytes. The second image is not kept, and nothing
+# of it goes into the artifacts.
 again=$(mktemp -d)
 mkdir "$again/source" "$again/build" "$again/out"
 chmod g+s "$again/build"
@@ -232,7 +234,12 @@ chmod -R a+x,g-w,o-rwx "$again/source"
 install -m 0755 "$build_dir/hmailserver" "$again/build/hmailserver"
 [ ! -f "$build_dir/CMakeCache.txt" ] || cp "$build_dir/CMakeCache.txt" "$again/build/CMakeCache.txt"
 here=$(pwd)
-abs() { case "$1" in /*) printf '%s\n' "$1" ;; *) printf '%s\n' "$here/$1" ;; esac; }
+abs() {
+  case "$1" in
+    /*) printf '%s\n' "$1" ;;
+    *) printf '%s\n' "$here/$1" ;;
+  esac
+}
 if ! ( cd "$again/source" && umask 0002 && bash hmailserver/source/Server/platform/packaging/build-appimage.sh \
     --build-dir "$again/build" --output-dir "$again/out" --runtime "$(abs "$runtime")" \
     --runtime-licenses "$(abs "$runtime_licenses")" ) > "$again/package.log" 2>&1; then

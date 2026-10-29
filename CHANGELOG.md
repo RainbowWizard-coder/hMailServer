@@ -3591,61 +3591,72 @@ with `--check`).
   masked by that umask, every file executable from a checkout on a filesystem that keeps no modes: a Windows drive
   under WSL, mounted without its metadata option as it is by default, shows each file 0777, and an SMB share, by
   default, 0755 (`install -m`, `-Dm` and `-d` and the script's chmods set the permission bits of their own). The CI's
-  jobs pack under their container's umask, 0022, in a build directory
-  of their own, from the runner's checkout, whose files are 0666 and directories 0777, so 6.3.7's two images have
-  every entry 0644, 0755 or a link and nothing group- or world-writable (684 files `-rw-r--r--`, 3 `-rwxr-xr-x`, 48
-  directories and 3 links each, by `unsquashfs -lls`). Packed by hand, the same server made other images: under 0002,
-  Ubuntu's umask for a user, from a clone made under 0027, one 599 of whose 739 entries had other modes - the AppDir's
-  root, `usr`, `usr/bin`, `usr/share`, `usr/share/applications`, `usr/share/hmailserver` and
-  `usr/share/hmailserver/licenses/bundled` `drwxrwxr-x`, `DBScripts`' three directories `drwxr-x---` and its 589
-  files `-rw-r-----`, the permission bits `--appimage-extract` gives those files in every copy it makes; from a
-  checkout whose every file is 0777, one with the 589 files `-rwxr-xr-x`; and in a build directory inside a 2775
-  directory, one with 47 of its 48 directories `drwxr-sr-x`. The script now gives `DBScripts`' files 0644 where it
-  copies them, and then every entry of the AppDir 0644, or 0755 for a directory or an executable, with no
-  set-user-ID, set-group-ID or sticky bit, with one `chmod -R a+rX,u+w,go-w,a-st` before it packs, as
-  `appimage-runtime-sources.sh` and `appimage-bundled-sources.sh` fix their tarballs' modes: a umask set in the
-  script would have left `DBScripts` the checkout's modes, and a mode given to each `mkdir` would miss an entry a
-  later change makes without one. The chmod's `X` keeps a file executable that is, which is why `DBScripts`' files
-  are given theirs first, and GNU chmod keeps a directory's set-group-ID bit unless told to clear it. On a filesystem
-  that keeps no modes chmod changes nothing `stat` shows, and the AppDir is made in the build directory, by default
-  `build/linux` inside the checkout, so from a checkout on a Windows drive under WSL or on an SMB share the image
-  would still have that filesystem's modes: after the chmod the script refuses the AppDir, naming the build directory
-  and its filesystem's type, unless every directory is 0755, every file 0644 or 0755 and every schema script 0644,
-  and such a checkout packs to the CI's modes with a `--build-dir` on a filesystem that keeps them. The script's
-  comment says what took the caller's modes and why it is fixed. Every mode the CI's packs had is one of the two
-  already, so they are unchanged. `build/ci/packages/appimage-build.sh`, the `appimage-x86_64` and
-  `appimage-aarch64` jobs' script, packs the same server a second time, from a copy of the tree without `.git` whose
-  files and directories are all 0750 (every file executable, and narrowed as a clone made under umask 0027 narrows
-  them), under umask 0002 and in another build directory, which is set-group-ID, and fails if the two images differ,
-  with `unsquashfs -lls -full-precision`'s lists of the two, times to the second, where they do; the second image is
-  not kept, and the jobs' artifacts are as they were. The job gives both packs the commit's time as
-  `SOURCE_DATE_EPOCH`, from `CI_COMMIT_TIMESTAMP`; run by hand in the job's image, which has no git, with neither
-  that nor a `SOURCE_DATE_EPOCH` of the caller's, the script now gives it the time it starts, and says so, where
-  mksquashfs dated each pack with the time it was made, so that the second could never be the same bytes.
-  PackagesAppImage.md's table of the jobs and its section on the image's modes say so. Measured on 29 October 2026, in the `appimage-x86_64` job's image by its digest, with one server built there by
-  the job's whole script (GCC 13.3, 510 s at `-j6`), the runtime the `appimage-runtime-x86_64` job's script made
-  (871,016 bytes) with its two records, as the job's needs give them, and the licence files of its libraries as
-  6.3.7's image carries them (`gitlab.alpinelinux.org`, which the `appimage-runtime-sources` job fetches aports from,
-  did not answer that day; the runtime's libraries are 6.3.7's but for musl's Alpine release, r3 for r2, whose
-  `COPYRIGHT` is the same upstream file), all with the job's `SOURCE_DATE_EPOCH` and paths: the script as it was and
-  as it is, each from a checkout made under umask 0000 as the runner's helper makes one and run under 0022, made the
-  job's own image (`f7870c6a...`, 21,731,944 bytes, 739 entries: 685 files `-rw-r--r--`, 3 `-rwxr-xr-x`, 48
-  directories and 3 links, Feather's notice the one entry more than 6.3.7's); from the clone made under 0027 and run
-  under 0002 the script as it was made `3a0b28fe...`, with the 599 entries above, and the script as it is the job's
-  image. With another `SOURCE_DATE_EPOCH`, the same for every pack, the script as it was made other bytes from the
-  checkout all 0777 (the 589 schema scripts `-rwxr-xr-x`) and in a build directory inside a 2775 directory (47
-  directories `drwxr-sr-x`), and the script as it is the same bytes as from the runner's checkout both ways. With a
-  `chmod` that changes nothing ahead of the system's on `PATH`, as chmod is on a filesystem that keeps no modes, the
-  script as it was packed a checkout all 0777 and one all 0755 with the 589 schema scripts `-rwxr-xr-x`, and the
-  script as it is refused both, naming a schema script `-rwxr-xr-x`, and packed the runner's checkout, whose modes
-  needed no chmod, to the same bytes as with it. Two packs a second apart differ in no line of `unsquashfs -lls`'s
-  list and in all 739 of `-lls -full-precision`'s. The `appimage-x86_64` job's whole script packed its image again
-  to the same bytes, its own `appimage-test.sh` passing, and the `appimage-test-x86_64` job's whole script passed it
-  on Fedora 44; with the script as it was in the tree the job refused, and listed the entries with their times to
-  the second. Run by hand in the job's image with no CI variables, the script before the `SOURCE_DATE_EPOCH` change
-  printed `SOURCE_DATE_EPOCH=unset`, made two images that differ and failed, no line of the listings differing; the
-  script as it is gave `SOURCE_DATE_EPOCH` the time it started, packed the two to the same bytes and passed to its
-  end.
+  jobs pack under their container's umask, 0022, in a build directory of their own, from the runner's checkout, whose
+  files are 0666 and directories 0777, so 6.3.7's two images have every entry 0644, 0755 or a link and nothing group-
+  or world-writable (684 files `-rw-r--r--`, 3 `-rwxr-xr-x`, 48 directories and 3 links each, by `unsquashfs -lls`).
+  Packed by hand, the same server made other images: under 0002, Ubuntu's umask for a user, from a clone made under
+  0027, one 599 of whose 739 entries had other modes - the AppDir's root, `usr`, `usr/bin`, `usr/share`,
+  `usr/share/applications`, `usr/share/hmailserver` and `usr/share/hmailserver/licenses/bundled` `drwxrwxr-x`,
+  `DBScripts`' three directories `drwxr-x---` and its 589 files `-rw-r-----`, the permission bits `--appimage-extract`
+  gives those files in every copy it makes; from a checkout whose every file is 0777, one with the 589 files
+  `-rwxr-xr-x`; and in a build directory inside a 2775 directory, one with 47 of its 48 directories `drwxr-sr-x`. The
+  script now gives `DBScripts`' files 0644 where it copies them, and then every entry of the AppDir 0644, or 0755 for
+  a directory or an executable, with no set-user-ID, set-group-ID or sticky bit, with one
+  `chmod -R a+rX,u+w,go-w,a-st` before it packs, as `appimage-runtime-sources.sh` and `appimage-bundled-sources.sh`
+  fix their tarballs' modes: a umask set in the script would have left `DBScripts` the checkout's modes, and a mode
+  given to each `mkdir` would miss an entry a later change makes without one. The chmod's `X` keeps a file executable
+  that is, which is why `DBScripts`' files are given theirs first, and GNU chmod keeps a directory's set-group-ID bit
+  unless told to clear it. GNU tar's `--mode` keeps the special bits in the same way, so those two scripts'
+  `--mode='a+rX,u+w,go-w'` now ends in `a-st` too: GNU tar 1.35, in the `appimage-runtime-sources` and
+  `appimage-bundled-sources` jobs' images by their digests, with those scripts' flags, archived a stage made under
+  umask 0077 whose top directory was 2755 and held a 4755 file and a 1777 directory, with the top directory and the
+  two made inside it `drwxr-sr-x`, the file `-rwsr-xr-x` and the sticky directory `drwxr-sr-t` or `drwxr-xr-t`, and
+  with `a-st` every directory `drwxr-xr-x`, every file `-rw-r--r--` and the executable `-rwxr-xr-x`, the same bytes in
+  both images; from a stage with no such bit, made under 0022 as the jobs make theirs, the two strings make the same
+  bytes. The `appimage-bundled-sources` job's whole script, with both AppImage jobs' records, made the same tarball
+  with the scripts as they were and as they are (`591a66de...`: 15 directories `drwxr-xr-x` and 54 files
+  `-rw-r--r--`); with `TMPDIR` a 2777 directory, where it makes its stage, the script as it was made `a303a522...`,
+  its 15 directories `drwxr-sr-x`, and the script as it is the same bytes as without. The `appimage-runtime-sources`
+  job, which fetches aports from `gitlab.alpinelinux.org`, could not be run. On a filesystem that keeps no modes chmod
+  changes nothing `stat` shows, and the AppDir is made in the build directory, by default `build/linux` inside the
+  checkout, so from a checkout on a Windows drive under WSL or on an SMB share the image would still have that
+  filesystem's modes: after the chmod the script refuses the AppDir, naming the build directory and its filesystem's
+  type, unless every directory is 0755, every file 0644 or 0755 and every schema script 0644, and such a checkout
+  packs to the CI's modes with a `--build-dir` on a filesystem that keeps them. The script's comment says what took
+  the caller's modes and why it is fixed. Every mode the CI's packs had is one of the two already, so they are
+  unchanged. `build/ci/packages/appimage-build.sh`, the `appimage-x86_64` and `appimage-aarch64` jobs' script, packs
+  the same server a second time, from a copy of the tree without `.git` whose files and directories are all 0750
+  (every file executable, and narrowed as a clone made under umask 0027 narrows them), under umask 0002 and in another
+  build directory, which is set-group-ID, and fails if the two images differ, with `unsquashfs -lls -full-precision`'s
+  lists of the two, times to the second, where they do; the second image is not kept, and the jobs' artifacts are as
+  they were. The job gives both packs the commit's time as `SOURCE_DATE_EPOCH`, from `CI_COMMIT_TIMESTAMP`; run by
+  hand in the job's image, which has no git, with neither that nor a `SOURCE_DATE_EPOCH` of the caller's, the script
+  now gives it the time once its packages are installed, and says so ("the time now"), where mksquashfs dated each
+  pack with the time it was made, so that the second could never be the same bytes. PackagesAppImage.md's table of the
+  jobs and its section on the image's modes say so. Measured on 29 October 2026, in the `appimage-x86_64` job's image
+  by its digest, with one server built there by the job's whole script (GCC 13.3, 510 s at `-j6`), the runtime the
+  `appimage-runtime-x86_64` job's script made (871,016 bytes) with its two records, as the job's needs give them, and
+  the licence files of its libraries as 6.3.7's image carries them (`gitlab.alpinelinux.org`, which the
+  `appimage-runtime-sources` job fetches aports from, did not answer that day; the runtime's libraries are 6.3.7's but
+  for musl's Alpine release, r3 for r2, whose `COPYRIGHT` is the same upstream file), all with the job's
+  `SOURCE_DATE_EPOCH` and paths: the script as it was and as it is, each from a checkout made under umask 0000 as the
+  runner's helper makes one and run under 0022, made the job's own image (`f7870c6a...`, 21,731,944 bytes, 739
+  entries: 685 files `-rw-r--r--`, 3 `-rwxr-xr-x`, 48 directories and 3 links, Feather's notice the one entry more
+  than 6.3.7's); from the clone made under 0027 and run under 0002 the script as it was made `3a0b28fe...`, with the
+  599 entries above, and the script as it is the job's image. With another `SOURCE_DATE_EPOCH`, the same for every
+  pack, the script as it was made other bytes from the checkout all 0777 (the 589 schema scripts `-rwxr-xr-x`) and in
+  a build directory inside a 2775 directory (47 directories `drwxr-sr-x`), and the script as it is the same bytes as
+  from the runner's checkout both ways. With a `chmod` that changes nothing ahead of the system's on `PATH`, as chmod
+  is on a filesystem that keeps no modes, the script as it was packed a checkout all 0777 and one all 0755 with the
+  589 schema scripts `-rwxr-xr-x`, and the script as it is refused both, naming a schema script `-rwxr-xr-x`, and
+  packed the runner's checkout, whose modes needed no chmod, to the same bytes as with it. Two packs a second apart
+  differ in no line of `unsquashfs -lls`'s list and in all 739 of `-lls -full-precision`'s. The `appimage-x86_64`
+  job's whole script packed its image again to the same bytes, its own `appimage-test.sh` passing, and the
+  `appimage-test-x86_64` job's whole script passed it on Fedora 44; with the script as it was in the tree the job
+  refused, and listed the entries with their times to the second. Run by hand in the job's image with no CI variables,
+  the script before the `SOURCE_DATE_EPOCH` change printed `SOURCE_DATE_EPOCH=unset`, made two images that differ and
+  failed, no line of the listings differing; the script as it is gave `SOURCE_DATE_EPOCH` the time once its packages
+  were installed, packed the two to the same bytes and passed to its end.
 
 ### Documentation
 

@@ -433,15 +433,15 @@ set-group-ID build directory, and fails if the two images differ, listing
 their entries where they do with `unsquashfs -lls -full-precision`, times to
 the second. Both packs are dated with `SOURCE_DATE_EPOCH`: the commit's time
 in the job, and by hand in the job's image, which has no git, the caller's or
-else the time the script starts. `--appimage-extract` gives an extracted file
-the image's permission bits, whatever the extractor's umask. Run
-on 29 October 2026 in the `appimage-x86_64` job's image by its digest, with
-one server built there by the job's whole script, the runtime the
-`appimage-runtime-x86_64` job's script made, with its two records, and the
-licence files of its libraries as 6.3.7's image carries them
-(`gitlab.alpinelinux.org`, which `appimage-runtime-sources` fetches aports
-from, did not answer that day); the packs compared in a row had one
-`SOURCE_DATE_EPOCH`, the first two rows' the job's:
+else the time once the script has installed its packages, which its log calls
+the time now. `--appimage-extract` gives an extracted file the image's
+permission bits, whatever the extractor's umask. Run on 29 October 2026 in the
+`appimage-x86_64` job's image by its digest, with one server built there by
+the job's whole script, the runtime the `appimage-runtime-x86_64` job's script
+made, with its two records, and the licence files of its libraries as 6.3.7's
+image carries them (`gitlab.alpinelinux.org`, which `appimage-runtime-sources`
+fetches aports from, did not answer that day); the packs compared in a row had
+one `SOURCE_DATE_EPOCH`, the first two rows' the job's:
 
 | What | Result |
 |---|---|
@@ -454,7 +454,7 @@ from, did not answer that day); the packs compared in a row had one
 | With a `chmod` that changes nothing, as on a filesystem that keeps no modes: the script as it was, then as it is, from the checkout all 0777 and from one all 0755 | **Other bytes,** the 589 schema scripts `-rwxr-xr-x`; then **refused**, naming a schema script `-rwxr-xr-x`, the build directory and its filesystem's type. From the runner's checkout, whose modes need no chmod, the script as it is made the same bytes as with it. |
 | Two packs with `SOURCE_DATE_EPOCH` a second apart | 0 lines of `unsquashfs -lls` differ, and all 739 of `-lls -full-precision`. |
 | The `appimage-x86_64` job's whole script, then the `appimage-test-x86_64` job's on Fedora 44 | **Passed:** packed again to the same bytes. With the script as it was in the tree, **refused**, listing the entries with their times to the second. |
-| The `appimage-x86_64` job's script by hand in its image, with no CI variables | Before the change to `SOURCE_DATE_EPOCH`, **failed:** two images, the listings the same. Now **passed:** `SOURCE_DATE_EPOCH` the time it started, packed twice to the same bytes. |
+| The `appimage-x86_64` job's script by hand in its image, with no CI variables | Before the change to `SOURCE_DATE_EPOCH`, **failed:** two images, the listings the same. Now **passed:** `SOURCE_DATE_EPOCH` the time once its packages were installed, packed twice to the same bytes. |
 
 Licences
 --------

@@ -364,9 +364,11 @@ pack() {
 
   mkdir -p "$out"
   rm -f "${out:?}/$name" "${out:?}/SHA256SUMS.txt"
-  # a+rX,u+w,go-w: 0644 and 0755 whatever umask the files were made under.
+  # a+rX,u+w,go-w: 0644 and 0755 whatever umask the files were made under; a-st: no
+  # set-user-ID, set-group-ID or sticky bit, which GNU tar would otherwise keep, as a
+  # directory made inside a set-group-ID one has its bit.
   LC_ALL=C tar --sort=name --format=gnu --mtime="@$SOURCE_DATE_EPOCH" --owner=0 --group=0 --numeric-owner \
-    --mode='a+rX,u+w,go-w' -C "$work/stage" -cf - "$top" | gzip -n -9 > "$out/$name"
+    --mode='a+rX,u+w,go-w,a-st' -C "$work/stage" -cf - "$top" | gzip -n -9 > "$out/$name"
   ( cd "$out" && sha256sum "$name" > SHA256SUMS.txt )
   echo ""
   echo "$out/$name: $(wc -c < "$out/$name" | tr -d ' ') bytes, SHA-256 $(cut -d' ' -f1 "$out/SHA256SUMS.txt")"
