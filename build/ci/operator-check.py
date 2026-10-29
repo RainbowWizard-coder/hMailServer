@@ -55,7 +55,8 @@ the chart's own checks, in its Alpine image with Alpine's helm and PyYAML.
     not being held whole;
   * and, when the job runs it without --self-test, operator-context.sh writes the
     image's context with the chart as the tree's and stamped for a version, and
-    operator-bundle.sh a bundle whose CSV has that version and the image by digest
+    with git's modes, 0755 and 0644, from a checkout written and run under umask
+    0000 as well, and operator-bundle.sh a bundle whose CSV has that version and the image by digest
     everywhere, and the fork's icon, platform/packaging/hmailserver.png, inlined.
 
   python3 build/ci/operator-check.py [--self-test]
@@ -494,6 +495,52 @@ def render_kinds(spec_values):
     return sorted({doc['kind'] for doc in yaml.safe_load_all(out) if doc})
 
 
+def context_modes(work):
+    """operator-context.sh from a copy of its inputs written as GitLab Runner's helper
+    writes a checkout, under umask 0000 - files 0666, executables and directories 0777 -
+    and run under umask 0000 too: the context it makes, whose modes the image's COPY
+    keeps, must still have git's, 0755 for a directory or a file whose owner may
+    execute it and 0644 for the rest."""
+    tree = os.path.join(work, 'loose-checkout')
+    sources = {}
+    for rel in ('build/ci/operator-context.sh', DOCKERFILE, WATCHES, CHART):
+        source, copied = os.path.join(ROOT, rel), os.path.join(tree, rel)
+        if os.path.isdir(source):
+            shutil.copytree(source, copied)
+        else:
+            os.makedirs(os.path.dirname(copied), exist_ok=True)
+            shutil.copyfile(source, copied)
+    for top, _, names in os.walk(tree):
+        os.chmod(top, 0o777)
+        for name in names:
+            copied = os.path.join(top, name)
+            executable = os.stat(os.path.join(ROOT, os.path.relpath(copied, tree))).st_mode & 0o100
+            os.chmod(copied, 0o777 if executable else 0o666)
+            sources[os.path.relpath(copied, tree)] = 0o755 if executable else 0o644
+    out = os.path.join(work, 'loose')
+    umask = os.umask(0)
+    try:
+        done = subprocess.run(['sh', 'build/ci/operator-context.sh', out], cwd=tree, capture_output=True, text=True)
+    finally:
+        os.umask(umask)
+    if done.returncode != 0:
+        return ['operator-context.sh from a checkout written under umask 0000 failed: %s' % done.stdout.strip().splitlines()[-1:]]
+    problems = []
+    for top, _, names in os.walk(out):
+        if os.stat(top).st_mode & 0o7777 != 0o755:
+            problems.append('operator-context.sh under umask 0000 left %s with mode %o, not 0755' % (os.path.relpath(top, out), os.stat(top).st_mode & 0o7777))
+        for name in names:
+            made = os.path.relpath(os.path.join(top, name), out).replace(os.sep, '/')
+            source = (CHART + made[len('helm-charts/hmailserver'):] if made.startswith('helm-charts/hmailserver/')
+                      else OPERATOR + '/' + made)
+            mode = os.lstat(os.path.join(top, name)).st_mode & 0o7777
+            if sources.get(source) is None or mode != sources[source]:
+                problems.append('operator-context.sh under umask 0000 left %s with mode %o, not git\'s %s' % (made, mode, '%o' % sources[source] if source in sources else '(no source)'))
+    if not problems:
+        print('the context made from a checkout written under umask 0000, and under that umask: %d files, each with git\'s mode' % sum(len(names) for _, _, names in os.walk(out)))
+    return problems
+
+
 def run_scripts():
     """operator-context.sh and operator-bundle.sh, run as the release jobs run them."""
     problems = []
@@ -504,6 +551,7 @@ def run_scripts():
             print(done.stdout.strip())
             if done.returncode != 0:
                 problems.append('operator-context.sh %s failed: %s' % (' '.join(args[1:]) or '(no version)', done.stdout.strip().splitlines()[-1:]))
+        problems += context_modes(work)
         chart_yaml = os.path.join(work, 'stamped', 'helm-charts', 'hmailserver', 'Chart.yaml')
         if os.path.exists(chart_yaml):
             stamped = yaml.safe_load(open(chart_yaml, encoding='utf-8'))

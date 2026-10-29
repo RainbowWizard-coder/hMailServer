@@ -799,6 +799,15 @@ with `--check`).
   and packs under umask 022, so that what snapcraft makes does not take a shell's 0002; and it requires every entry of
   the snap to be root's, each directory 0755 and each file 0644 or 0755. (Its hook was 0755 already: snapcraft gives
   each hook that mode.)
+- **Fixed: the operator image's modes are git's, not the checkout's or the umask's.** `build/ci/operator-context.sh`
+  copies the chart and `watches.yaml` with `cp`, which gives each copy the checkout's mode less the umask, and the
+  Dockerfile's `COPY` keeps the context's modes: the `operator-image` job's 0022 gives 0644 and 0755, but a build by
+  hand under Ubuntu's 0002 gave 0664 and 0775, writable by group root, which the base image's user, `helm` (1001), has
+  as its group, and an image of other bytes. The script now gives each directory and file of the context git's mode,
+  0755 for a directory or a file whose owner may execute it and 0644 for the rest, and refuses a context with any
+  other, so the image is the same whatever the checkout's modes and the umask, and the job's is unchanged.
+  `build/ci/operator-check.py`, which `chart-and-compose` runs, makes a context from a copy of its inputs written
+  0666 and 0777 and under umask 0000, and requires git's modes of every entry. The operator's `README.md` says so.
 - **Fixed: the icons drawn after Feather's are credited to Cole Bemis, under Feather's MIT licence, where every record
   gave them the project's holders and licence alone.** The webmail's sprite in
   `hmailserver/source/Server/Common/Util/Portal.html`, which every icon of the webmail is drawn from, is drawn after

@@ -130,6 +130,20 @@ while IFS= read -r file; do
     cmp -s "$chart/$file" "$copy/$file" || fail "the copy's ${file#./} is not the tree's"
   fi
 done < "$listing"
+
+# The context's modes, set rather than inherited. cp gives each copy the checkout's
+# mode less the umask, and the Dockerfile's COPY keeps the context's modes, so the
+# image would carry the checkout's and the umask's: a job's 0022 over GitLab Runner's
+# checkout, written under umask 0000, gives 0644 and 0755, but a build by hand under
+# Ubuntu's 0002 makes the image's watches.yaml and chart writable by group root, which
+# the base image's user 1001 is in, as an OpenShift container's arbitrary user is, and
+# other bytes. So each is git's mode for it: 0755 for a directory or for a file whose
+# owner may execute it, git's own test, and 0644 for the rest, the modes a job gives.
+find "$out" -type d -exec chmod 0755 {} +
+find "$out" -type f -perm -0100 -exec chmod 0755 {} +
+find "$out" -type f ! -perm -0100 -exec chmod 0644 {} +
+odd=$(find "$out" ! \( -type d -perm 0755 \) ! \( -type f \( -perm 0644 -o -perm 0755 \) \) | head -n 1)
+[ -z "$odd" ] || fail "$odd in the context is not a directory or a file of mode 0755 or 0644"
 count=$(wc -l < "$listing" | tr -d ' ')
 echo "the chart copied in: $count files, each the tree's$( [ -z "$version" ] || printf ', Chart.yaml stamped %s' "$version")"
 
