@@ -52,10 +52,23 @@ namespace
       return 1;
    }
 
+   // The most Write sends of one text: the longest it is given, a case's name,
+   // is 116 bytes.
+   const size_t MostWritten = 1024;
+
+   // Writes text to standard output from the fault handler, and so with nothing
+   // but strnlen and write(2), both of which POSIX lists as async-signal-safe
+   // (strnlen from its 2016 edition): no stdio, no allocation, no lock, no other
+   // call. The length is counted only up to MostWritten bytes, so that a text
+   // whose terminating zero has been lost is read no further than MostWritten
+   // bytes from its start, where strlen would read on to whatever zero follows;
+   // what follows such a text, up to a zero or that bound, is written with it.
    void Write(const char *text)
    {
-      const size_t length = strlen(text);
-      ssize_t ignored = write(1, text, length);
+      if (text == nullptr)
+         return;
+
+      ssize_t ignored = write(1, text, strnlen(text, MostWritten));
       (void) ignored;
    }
 

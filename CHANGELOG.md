@@ -824,12 +824,17 @@ with `--check`).
   does; and it refuses a context with any other mode. So the image is the same whatever the checkout's modes and the
   umask, and the job's is unchanged. `build/ci/operator-check.py`, which `chart-and-compose` runs, refuses a file of
   the chart or `watches.yaml` that git records executable (where git is not installed, as in that job's image, the
-  checkout's execute bit, which in a job's checkout is git's), and makes a context from a copy of its inputs with
-  every file and directory 0777, under umask 0000 and in a set-group-ID directory, and requires each directory of it
-  0755 and each file 0644. busybox's `chmod`, the one in that job's image, clears a directory's set-group-ID bit under
-  0755 as under 00755, so that context there cannot show the directories' `chmod` written 0755 again, which only GNU's
-  shows; the check holds the script's two `chmod` lines by their text as well, the directories' written 00755, and
-  refuses any other. The operator's `README.md` says so.
+  checkout's execute bit, which in a job's checkout is git's), and makes a context from a copy of its inputs written
+  as GitLab Runner's helper writes a checkout under umask 0000, each directory 0777 (02777 inside a set-group-ID
+  directory, as a checkout's there) and each file 0666 as git creates them, runs the script over it under umask 0000
+  with the context in a set-group-ID directory, and requires each directory of the context 0755 and each file 0644.
+  busybox's `chmod`, the one in that job's image, clears a directory's set-group-ID bit under 0755 as under 00755, so
+  that context there cannot show the directories' `chmod` written 0755 again, which only GNU's shows; the check holds
+  the script's two `chmod` lines by their text as well, the directories' written 00755, and refuses any other. Since
+  that copy has no execute bit, it cannot show a file written into the context again after the script's last check
+  of every mode, with a mode taken from a working tree chmodded by hand: the check holds by its text that the last
+  check comes once, after the two `chmod` lines, and that no line after it names the context but the two that read it
+  or say where it is. The operator's `README.md` says what the script does.
 - **Fixed: the icons drawn after Feather's are credited to Cole Bemis, under Feather's MIT licence, where every record
   gave them the project's holders and licence alone.** The webmail's sprite in
   `hmailserver/source/Server/Common/Util/Portal.html`, which every icon of the webmail is drawn from, is drawn after

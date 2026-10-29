@@ -56,16 +56,24 @@ the chart's own checks, in its Alpine image with Alpine's helm and PyYAML.
   * and, when the job runs it without --self-test, operator-context.sh writes the
     image's context with the chart as the tree's and stamped for a version, and
     with git's modes, 0755 for each directory and 0644 for each file, from a copy
-    of its inputs with every file and directory 0777, in a set-group-ID directory
-    and run under umask 0000 as well, and operator-bundle.sh a bundle whose CSV has
-    that version and the image by digest everywhere, and the fork's icon,
+    of its inputs written as a checkout under umask 0000 writes them, each
+    directory 0777 (02777 where the temporary directory is in a set-group-ID one,
+    as a checkout made there is) and each file 0666, in a set-group-ID directory
+    and run under umask 0000 as well, and operator-bundle.sh a bundle whose CSV
+    has that version and the image by digest everywhere, and the fork's icon,
     platform/packaging/hmailserver.png, inlined;
   * operator-context.sh sets the context's modes with its two chmod lines alone
     (CONTEXT_CHMODS), the directories' written 00755: GNU's chmod keeps a
     directory's set-group-ID bit under 0755 and clears it under 00755, but busybox's
     chmod, the job's, clears it under either, so the set-group-ID directory above
     cannot show a return to 0755 where the job runs it, and the line is held by its
-    text;
+    text; and its last check of every mode (CONTEXT_LAST_CHECK) comes once, after
+    those two lines, and no line after it names the context (out, copy or the
+    script's first argument) but those CONTEXT_AFTER_CHECK allows, which only read
+    it or say its name, since the copy above has no execute bit, which a working
+    tree chmodded by hand may have, for a file written again after that check to
+    take from the checkout: a scan of the script's lines, which does not see the
+    context named through another variable;
   * no file the context takes, watches.yaml and the chart's, is executable in git
     (git ls-files -s, or where git is not installed, as in the job's image, the
     checkout's execute bit, which in a job's checkout is the one git wrote), since
@@ -85,6 +93,7 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -179,7 +188,7 @@ JOB_LINE = re.compile(r'''^["']?(operator-image(?:-push|-sign)?)["']?[ \t]*:''',
 # where the operator is signed and checked, and what it does with what it is told -
 # the sign call, the verify and what its failure does, the certificate's project id,
 # which images are signed - so it is held whole rather than by some of its lines.
-SIGN_SCRIPT_SHA256 = '3d46e583c977417016e7173d6dc84e249b81e6d3f58acac97e7423611ea76c08'
+SIGN_SCRIPT_SHA256 = '2eaddd11898378969e3c7874a76cb16e24ba9cc6b19367899661c92b60f82a88'
 # operator-image-push.sh's dotenv report, which operator-image-sign takes.
 PUSH_ENV_BLOCK = ('{\n'
                   '  echo "HM_OPERATOR_IMAGE=$repository@$index"\n'
@@ -192,6 +201,17 @@ PUSH_ENV_LINES = ('} > "$out/operator.env"', 'cat "$out/operator.env"')
 # keeps under 0755; busybox's, in the job's image, clears it under either, so that
 # context_modes() cannot see the difference there - and every file 0644.
 CONTEXT_CHMODS = ('find "$out" -type d -exec chmod 00755 {} +', 'find "$out" -type f -exec chmod 0644 {} +')
+# operator-context.sh's last check of every mode of the context, and the lines after it
+# that may name the context: a cmp that reads the copy against the release's chart
+# package, and the line that says where the context is. A file written into the
+# context after that check would keep the mode cp gave it, the checkout's less the
+# umask, which context_modes() cannot show, its copy having no execute bit a working
+# tree chmodded by hand may have.
+CONTEXT_LAST_CHECK = r'odd=$(find "$out" ! \( -type d -perm 0755 \) ! \( -type f -perm 0644 \) | head -n 1)'
+CONTEXT_AFTER_CHECK = ('cmp -s "$copy/$file" "$unpacked/hmailserver/$file" || fail "$package\'s ${file#./} is not the copy\'s"',
+                       'echo "CONTEXT: $out (Dockerfile, watches.yaml, helm-charts/hmailserver)"')
+# A line that names the context: $out, $copy or the script's first argument, braced or not.
+NAMES_CONTEXT = re.compile(r'\$\{?(?:out|copy|1)(?![A-Za-z0-9_])')
 
 
 def read(path, exact=False):
@@ -534,6 +554,18 @@ def check(texts, rendered):
     if chmods != CONTEXT_CHMODS:
         problems.append("%s's chmod lines are %s, not its two, %s (a directory's mode written 00755, which GNU's chmod "
                         "needs to clear a set-group-ID bit)" % (CONTEXT_SCRIPT, list(chmods), list(CONTEXT_CHMODS)))
+    lines = [line.strip() for line in texts[CONTEXT_SCRIPT].splitlines()]
+    checks = [number for number, line in enumerate(lines) if line == CONTEXT_LAST_CHECK]
+    chmod_lines = [number for number, line in enumerate(lines) if line in CONTEXT_CHMODS]
+    if len(checks) != 1 or not chmod_lines or checks[0] < max(chmod_lines):
+        problems.append("%s has %d of its last check of every mode, %s, where it must have one, after its two chmod lines"
+                        % (CONTEXT_SCRIPT, len(checks), CONTEXT_LAST_CHECK))
+    else:
+        after = [line for line in lines[checks[0] + 1:]
+                 if NAMES_CONTEXT.search(line) and not line.startswith('#') and line not in CONTEXT_AFTER_CHECK]
+        if after:
+            problems.append("%s names the context after its last check of every mode, in %s: a file written there keeps "
+                            "the mode cp gave it, which that check no longer sees" % (CONTEXT_SCRIPT, after))
     return problems + ci_problems(texts)
 
 
@@ -550,46 +582,84 @@ def render_kinds(spec_values):
     return sorted({doc['kind'] for doc in yaml.safe_load_all(out) if doc})
 
 
+def write_as_checkout(source, copied):
+    """source's bytes written to copied as git's checkout writes a file: created
+    afresh with the mode git asks for, 0777 for a file it records executable and
+    0666 for any other, less the process's umask, with no chmod after. In a job's
+    checkout a file's execute bit is the one git wrote, so the source's own bit
+    says what git records."""
+    executable = os.stat(source).st_mode & stat.S_IXUSR
+    handle = os.open(copied, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, 'O_BINARY', 0),
+                     0o777 if executable else 0o666)
+    with os.fdopen(handle, 'wb') as written, open(source, 'rb') as read:
+        shutil.copyfileobj(read, written)
+
+
 def context_modes(work):
-    """operator-context.sh from a copy of its inputs with every file and directory
-    0777 - what GitLab Runner's helper, writing a checkout under umask 0000, gives an
-    executable and a directory, and what a working tree chmodded by hand or copied from
-    a filesystem without modes gives every file - run under umask 0000 too, with OUT
-    in a set-group-ID directory: the context it makes, whose modes the image's COPY
-    keeps, must still have git's, 0755 for each directory and 0644 for each file.
-    Where chmod is busybox's, as in the job's image, a directory's set-group-ID bit
-    goes under 0755 as under 00755, so this cannot see the directories' chmod written
-    0755 again; check() holds that line by its text (CONTEXT_CHMODS), and only a run
-    where chmod is GNU's sees it here."""
-    tree = os.path.join(work, 'loose-checkout')
-    sources = set()
-    for rel in ('build/ci/operator-context.sh', DOCKERFILE, WATCHES, CHART):
-        source, copied = os.path.join(ROOT, rel), os.path.join(tree, rel)
-        if os.path.isdir(source):
-            shutil.copytree(source, copied)
-        else:
-            os.makedirs(os.path.dirname(copied), exist_ok=True)
-            shutil.copyfile(source, copied)
-    for top, _, names in os.walk(tree):
-        os.chmod(top, 0o777)
-        for name in names:
-            os.chmod(os.path.join(top, name), 0o777)
-            sources.add(os.path.relpath(os.path.join(top, name), tree).replace(os.sep, '/'))
+    """operator-context.sh from a copy of its inputs made as GitLab Runner's helper
+    makes a checkout, under umask 0000: the copy is written under that umask, each
+    directory made with mkdir's 0777 and each file created as git creates it
+    (write_as_checkout), so that a directory is 0777, or 02777 where work is in a
+    set-group-ID directory, whose bit a directory made in it takes, as a checkout's
+    does there, and a file 0666, or 0777 where git records it executable, which
+    check() refuses of every file the context takes. It runs under umask 0000 too,
+    with OUT in a set-group-ID directory, one made under that umask with the
+    set-group-ID bit added to the mode it was given:
+    the context it makes, whose modes the image's COPY keeps, must still have git's,
+    0755 for each directory and 0644 for each file. The scratch tree is under work,
+    tempfile.mkdtemp's directory, which only this account can enter. Where chmod is
+    busybox's, as in the job's image, a directory's set-group-ID bit goes under 0755
+    as under 00755, so this cannot see the directories' chmod written 0755 again;
+    check() holds that line by its text (CONTEXT_CHMODS), and only a run where chmod
+    is GNU's sees it here. An execute bit on a file that git does not record, which a
+    working tree chmodded by hand may have, is not made here, so this cannot see a
+    step after operator-context.sh's last check of every mode that writes a context
+    file again with a mode taken from the checkout's (from this copy, under a umask
+    of 022, it would be 0644): check() holds by their text that the last check comes
+    after the two chmod lines and that no line after it names the context but those
+    CONTEXT_AFTER_CHECK allows, which does not see the context named through
+    another variable."""
+    tree = os.path.join(work, 'checkout')
     shared = os.path.join(work, 'shared')
-    os.mkdir(shared)
-    os.chmod(shared, 0o2777)
-    out = os.path.join(shared, 'loose')
+    out = os.path.join(shared, 'context')
+    sources = set()
     umask = os.umask(0)
     try:
+        for rel in ('build/ci/operator-context.sh', DOCKERFILE, WATCHES, CHART):
+            source = os.path.join(ROOT, rel)
+            if os.path.isdir(source):
+                for top, _, names in os.walk(source):
+                    made = os.path.join(tree, rel, os.path.relpath(top, source))
+                    os.makedirs(made, exist_ok=True)
+                    for name in names:
+                        write_as_checkout(os.path.join(top, name), os.path.join(made, name))
+                        sources.add(os.path.relpath(os.path.join(made, name), tree).replace(os.sep, '/'))
+            else:
+                os.makedirs(os.path.dirname(os.path.join(tree, rel)), exist_ok=True)
+                write_as_checkout(source, os.path.join(tree, rel))
+                sources.add(rel)
+        os.mkdir(shared)
+        os.chmod(shared, stat.S_IMODE(os.stat(shared).st_mode) | stat.S_ISGID)
+        given = {'directories': set(), 'files': set()}
+        for top, _, names in os.walk(tree):
+            given['directories'].add(stat.S_IMODE(os.stat(top).st_mode))
+            given['files'].update(stat.S_IMODE(os.stat(os.path.join(top, name)).st_mode) for name in names)
+        # What the copy must be for this to show anything: a checkout's own modes under
+        # umask 0000, every one writable by group and others, its directories carrying
+        # the set-group-ID bit where work is in a set-group-ID directory.
+        if given['directories'] not in ({0o777}, {0o2777}) or not given['files'] or not given['files'] <= {0o666, 0o777}:
+            return ['the copy made under umask 0000 has directories of mode %s and files of mode %s, not what a checkout '
+                    'under umask 0000 makes (0777, or 2777 in a set-group-ID directory, and 0666 or 0777)' % tuple(
+                        ', '.join('%o' % mode for mode in sorted(given[kind])) or 'none' for kind in ('directories', 'files'))]
         done = subprocess.run(['sh', 'build/ci/operator-context.sh', out], cwd=tree, capture_output=True, text=True)
     finally:
         os.umask(umask)
     if done.returncode != 0:
-        return ['operator-context.sh from a checkout of mode 0777 and under umask 0000 failed: %s' % done.stdout.strip().splitlines()[-1:]]
+        return ['operator-context.sh from a checkout made under umask 0000 failed: %s' % done.stdout.strip().splitlines()[-1:]]
     problems = []
     for top, _, names in os.walk(out):
         if os.stat(top).st_mode & 0o7777 != 0o755:
-            problems.append('operator-context.sh from a checkout of mode 0777 left %s with mode %o, not 0755' % (os.path.relpath(top, out), os.stat(top).st_mode & 0o7777))
+            problems.append('operator-context.sh from a checkout made under umask 0000 left %s with mode %o, not 0755' % (os.path.relpath(top, out), os.stat(top).st_mode & 0o7777))
         for name in names:
             made = os.path.relpath(os.path.join(top, name), out).replace(os.sep, '/')
             source = (CHART + made[len('helm-charts/hmailserver'):] if made.startswith('helm-charts/hmailserver/')
@@ -598,9 +668,11 @@ def context_modes(work):
             if source not in sources:
                 problems.append('operator-context.sh made %s, which is no file of its inputs' % made)
             elif mode != 0o644:
-                problems.append('operator-context.sh from a checkout of mode 0777 left %s with mode %o, not 0644' % (made, mode))
+                problems.append('operator-context.sh from a checkout made under umask 0000 left %s with mode %o, not 0644' % (made, mode))
     if not problems:
-        print('the context made from a checkout of mode 0777, in a set-group-ID directory and under umask 0000: %d files, each 0644, and its directories 0755' % sum(len(names) for _, _, names in os.walk(out)))
+        print('the context made from a checkout made under umask 0000 (its directories %s, its files %s), in a set-group-ID directory and under umask 0000: %d files, each 0644, and its directories 0755'
+              % (', '.join('%04o' % mode for mode in sorted(given['directories'])), ', '.join('%04o' % mode for mode in sorted(given['files'])),
+                 sum(len(names) for _, _, names in os.walk(out))))
     return problems
 
 
@@ -684,6 +756,7 @@ def self_test():
     label = 'LABEL org.opencontainers.image.title="hMailServer operator (Progressive Robot\'s fork)" \\\n'
     example_end = '          }\n        }\n      ]\nspec:'
     unheld = 'is not the script this check holds'
+    last_check_failed = '[ -z "$odd" ] || fail "$odd in the context is not a directory of mode 0755 or a file of mode 0644"\n'
     # (what is broken, the files, what the chart renders, what the problem must say)
     cases = [
         # The custom resource definition.
@@ -696,6 +769,18 @@ def self_test():
         ('a chmod added to the context', mutate(CONTEXT_SCRIPT, 'find "$out" -type f -exec chmod 0644 {} +\n',
                                                  'find "$out" -type f -exec chmod 0644 {} +\nchmod -R g+w "$out"\n'), rendered,
          "operator-context.sh's chmod lines are"),
+        ('a context file copied again after the last check of every mode', mutate(CONTEXT_SCRIPT, last_check_failed,
+                                                                                   last_check_failed + 'umask 022\nrm -f "$out/watches.yaml"\ncp "$operator/watches.yaml" "$out/"\n'), rendered,
+         'names the context after its last check of every mode'),
+        ('the context named braced after the last check of every mode', mutate(CONTEXT_SCRIPT, last_check_failed,
+                                                                               last_check_failed + 'cp "$operator/Dockerfile" "${out}/"\n'), rendered,
+         'names the context after its last check of every mode'),
+        ('the last check of every mode taken out', mutate(CONTEXT_SCRIPT, CONTEXT_LAST_CHECK + '\n', ''), rendered,
+         'operator-context.sh has 0 of its last check of every mode'),
+        ('the last check of every mode moved before the chmod lines',
+         dict(texts, **{CONTEXT_SCRIPT: texts[CONTEXT_SCRIPT].replace(CONTEXT_LAST_CHECK + '\n', '', 1).replace(
+             CONTEXT_CHMODS[0], CONTEXT_LAST_CHECK + '\n' + CONTEXT_CHMODS[0], 1)}), rendered,
+         'operator-context.sh has 1 of its last check of every mode'),
         ('a second version served', dict(texts, **{CRD: texts[CRD] + '    - name: v1beta1\n      served: false\n      storage: false\n'}), rendered,
          'the CRD serves 2 versions'),
         ('a chart value without a CRD property', mutate(VALUES, '\nextraEnv: []', '\nextraEnv: []\nnewValue: 1'), rendered,
@@ -846,9 +931,9 @@ def self_test():
          '.gitlab-ci.yml defines operator-image-sign again'),
         # The sign script, held whole: what a scan of some of its lines missed.
         ('another issuer', mutate(SIGN_SCRIPT, 'issuer=https://gitlab.com\n', 'issuer=https://gitlab.example\n'), rendered, unheld),
-        ('a second Rekor on the sign line', mutate(SIGN_SCRIPT, 'cosign sign $sign_flags --output-certificate', 'cosign sign $sign_flags --rekor-url https://rekor.example --output-certificate'), rendered, unheld),
-        ('the transparency log not written', mutate(SIGN_SCRIPT, 'cosign sign $sign_flags --output-certificate', 'cosign sign $sign_flags --tlog-upload=false --output-certificate'), rendered, unheld),
-        ('the verify told to skip the log', mutate(SIGN_SCRIPT, 'verify_flags=""\n', 'verify_flags="--insecure-ignore-tlog=true"\n'), rendered, unheld),
+        ('a second Rekor on the sign line', mutate(SIGN_SCRIPT, 'cosign sign "$@" --output-certificate', 'cosign sign "$@" --rekor-url https://rekor.example --output-certificate'), rendered, unheld),
+        ('the transparency log not written', mutate(SIGN_SCRIPT, 'cosign sign "$@" --output-certificate', 'cosign sign "$@" --tlog-upload=false --output-certificate'), rendered, unheld),
+        ('the verify told to skip the log', mutate(SIGN_SCRIPT, '  set --\n', '  set -- --insecure-ignore-tlog=true\n'), rendered, unheld),
         ('a verify failure ignored', mutate(SIGN_SCRIPT, '    || { cat "$out/verify-$1.log"; fail "$2 ($1) does not verify as signed by $identity"; }\n', '    || true\n'), rendered, unheld),
         ("the certificates' project id not read", mutate(SIGN_SCRIPT, '  certificate_id "$1"\n', ''), rendered, unheld),
         ('the index left unsigned', mutate(SIGN_SCRIPT, 'sign index "$index"\n', ''), rendered, unheld),

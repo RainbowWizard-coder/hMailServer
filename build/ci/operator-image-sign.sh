@@ -87,18 +87,39 @@ trap 'rm -rf "$DOCKER_CONFIG"' EXIT
 printf '%s' "$CI_REGISTRY_PASSWORD" | cosign login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin > /dev/null \
   || fail "cosign could not log in to $CI_REGISTRY with the job's credentials"
 
-sign_flags="--yes --rekor-url https://rekor.sigstore.dev --fulcio-url https://fulcio.sigstore.dev"
+# Which of two flags this cosign's sign and verify know, read from their help: each
+# is given, set false, only where it is known (cosign_sign and cosign_verify, below).
 help=$(cosign sign --help 2>&1 || true)
+sign_has_signing_config=""
 case "$help" in
-  *--use-signing-config*) sign_flags="$sign_flags --use-signing-config=false" ;;
+  *--use-signing-config*) sign_has_signing_config=yes ;;
 esac
+sign_has_bundle_format=""
 case "$help" in
-  *--new-bundle-format*) sign_flags="$sign_flags --new-bundle-format=false" ;;
+  *--new-bundle-format*) sign_has_bundle_format=yes ;;
 esac
-verify_flags=""
+verify_has_bundle_format=""
 case "$(cosign verify --help 2>&1 || true)" in
-  *--new-bundle-format*) verify_flags="--new-bundle-format=false" ;;
+  *--new-bundle-format*) verify_has_bundle_format=yes ;;
 esac
+
+# cosign_sign CERTIFICATE IMAGE and cosign_verify IMAGE: cosign sign and cosign verify
+# with the flags above, each flag a word of its own. cosign's image's shell is
+# busybox's sh, which has no arrays, so each function builds its flags as its own
+# arguments with set --, and no word is split out of a string.
+cosign_sign() {
+  certificate=$1 target=$2
+  set -- --yes --rekor-url https://rekor.sigstore.dev --fulcio-url https://fulcio.sigstore.dev
+  [ -z "$sign_has_signing_config" ] || set -- "$@" --use-signing-config=false
+  [ -z "$sign_has_bundle_format" ] || set -- "$@" --new-bundle-format=false
+  cosign sign "$@" --output-certificate "$certificate" "$target"
+}
+cosign_verify() {
+  target=$1
+  set --
+  [ -z "$verify_has_bundle_format" ] || set -- --new-bundle-format=false
+  cosign verify "$@" --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" "$target"
+}
 
 # certificate_id NAME: the project's id in certificate-NAME.pem, read as
 # container-image-sign.sh reads it.
@@ -126,13 +147,8 @@ certificate_id() {
 sign() {
   echo ""
   echo "== $1: $2"
-  # shellcheck disable=SC2086
-  # nosemgrep
-  cosign sign $sign_flags --output-certificate "$out/certificate-$1.pem" "$2" || fail "cosign did not sign $2 ($1)"
-  # shellcheck disable=SC2086
-  # nosemgrep
-  cosign verify $verify_flags --certificate-identity "$identity" --certificate-oidc-issuer "$issuer" \
-    "$2" > "$out/verify-$1.json" 2> "$out/verify-$1.log" \
+  cosign_sign "$out/certificate-$1.pem" "$2" || fail "cosign did not sign $2 ($1)"
+  cosign_verify "$2" > "$out/verify-$1.json" 2> "$out/verify-$1.log" \
     || { cat "$out/verify-$1.log"; fail "$2 ($1) does not verify as signed by $identity"; }
   grep -q "${2#*@}" "$out/verify-$1.json" || fail "the signature cosign verify found is not over ${2#*@} ($1)"
   certificate_id "$1"
