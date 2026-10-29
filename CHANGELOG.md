@@ -3940,8 +3940,8 @@ with `--check`).
   CHANGELOG.md, RELEASE.md, Roadmap.md, Roadmap3.md, ASSURANCE-CASE.md and CODE_OF_CONDUCT.md, and under
   `hmailserver/docs` README.md, Mirroring.md, EvidencePack.md, UpdateFeed.md, ContainerImage.md,
   ThirdPartyBinaries.md, RegulatoryScope.md and ContinuousIntegration.md. Roadmap3.md's rows for the push mirror
-  and for the internationalised link hosts, which 6.3.7 shipped (item 23 of its *What changes on upgrade without a
-  switch*), are done.
+  and for the internationalised link hosts, which 6.3.7 shipped
+  (6.3.7, What changes on upgrade without a switch, item 23), are done.
 
 - **README.md, CONTRIBUTING.md, Roadmap.md and the Chocolatey package's description say what became of the
   original project, and README.md names the licence as CONTRIBUTING.md does.** The first three and the
