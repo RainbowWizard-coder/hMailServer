@@ -17,7 +17,8 @@
 #      confinement; the files it must carry (snapcraft.yaml's icon among them, as
 #      meta/gui/icon.png) and the ones it must not (the systemd
 #      units, the live update's helper); the server it carries started with the
-#      snap's libraries and answering --version with that version;
+#      snap's libraries and answering --version with that version; and
+#      hmailserver-start, as snap_daemon, making the configuration from the snap's;
 #   5. snap/hmailserver_<version>_<arch>.snap, which snap-upload takes
 #      (build/ci/channels/snap-upload.py's contract), and in snap-build/<arch>/ the
 #      snap's meta/snap.yaml, SHA-256 and SHA3-384, its file list and snapcraft's
@@ -111,6 +112,32 @@ case "$said" in
    *) fail "the snap's server says '$said', not version $version" ;;
 esac
 python3 prime/bin/hmailserver-snap-config --self-test --source "$root"
+
+# The step every start and every sudo hmailserver takes as the server's account:
+# hmailserver-start, run as snap_daemon (uid 584788) with no group and nothing of
+# root's, from the snap's files as a mount shows them - unsquashfs, as root, keeps
+# their owners and modes, which a kernel's squashfs enforces - makes the configuration
+# from the snap's etc/hmailserver/hMailServer.ini and runs the server against it.
+started_as="$(mktemp -d)"
+chmod 0755 "$started_as"
+unsquashfs -q -n -d "$started_as/snap" "$built" > /dev/null
+mkdir -m 0755 "$started_as/common"
+mkdir -m 0700 "$started_as/common/etc"
+mkdir -m 0750 "$started_as/common/data" "$started_as/common/log"
+chown 584788:584788 "$started_as/common/etc" "$started_as/common/data" "$started_as/common/log"
+if ! said="$(cd / && env -i PATH=/usr/bin:/bin SNAP="$started_as/snap" SNAP_COMMON="$started_as/common" SNAP_ARCH="$arch" \
+      setpriv --reuid=584788 --regid=584788 --clear-groups --no-new-privs -- \
+      "$started_as/snap/bin/hmailserver-start" cli --version 2>&1)"; then
+   fail "hmailserver-start, as snap_daemon, did not make the configuration and run the server: $said"
+fi
+case "$said" in
+   *"$version"*) ;;
+   *) fail "hmailserver-start cli --version, as snap_daemon, said '$said', not version $version" ;;
+esac
+[ "$(stat -c '%u %a' "$started_as/common/etc/hMailServer.ini")" = "584788 600" ] \
+   || fail "the configuration hmailserver-start made is $(stat -c '%u %a' "$started_as/common/etc/hMailServer.ini"), not snap_daemon's and 0600"
+rm -rf "$started_as"
+say "hmailserver-start as snap_daemon: the configuration made from the snap's, snap_daemon's and 0600, and the server's --version $version"
 
 mv -f "$built" "snap/$built"
 (

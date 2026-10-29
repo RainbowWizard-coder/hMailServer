@@ -123,6 +123,13 @@ parts:
         exit 1
       fi
       dpkg-deb -x "$deb" "$CRAFT_PART_INSTALL"
+      # etc/hmailserver/hMailServer.ini is 0640 in the .deb, where it is the live
+      # configuration, root:hmailserver, with the database password in it. Here it is
+      # the template alone, root's like every file of the snap: hmailserver-start
+      # copies the snap's own configuration from it as snap_daemon, who could not read
+      # it at 0640, and the configuration it makes is snap_daemon's and 0600. 0644,
+      # as the snap's other files.
+      chmod 0644 "$CRAFT_PART_INSTALL/etc/hmailserver/hMailServer.ini"
       version="$(dpkg-deb -f "$deb" Version)"
       craftctl set version="${version%%-*}"
     # The .deb's Depends that core24 does not carry (libpq5, libldap2 and theirs),

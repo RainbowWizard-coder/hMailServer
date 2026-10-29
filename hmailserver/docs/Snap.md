@@ -268,8 +268,11 @@ job whose `.deb` it takes - in a `batch*` pipeline at once, on `master` once tha
    confinement, the stable grade and `snap_daemon`; it carries the server, the
    commands, the hook, the Control Deck, the licences and its icon,
    `meta/gui/icon.png`, and no systemd unit and no live-update helper; the server it carries finds every library in the snap or core24
-   and answers `--version` with that version; and the configuration helper passes its
-   own self-test.
+   and answers `--version` with that version; `hmailserver-start`, run as
+   `snap_daemon` from the snap's files with their owners and modes, makes the
+   configuration from the snap's `etc/hmailserver/hMailServer.ini`, which is 0644 here
+   (the `.deb`'s 0640 would keep `snap_daemon` out of it), and runs the server; and the
+   configuration helper passes its own self-test.
 4. `snap/hmailserver_<version>_<arch>.snap` for `snap-upload`, and in
    `snap-build/<arch>/` its `meta/snap.yaml`, file list, SHA-256, SHA3-384 and
    snapcraft's log.

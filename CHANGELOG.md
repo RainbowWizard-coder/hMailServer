@@ -324,6 +324,19 @@ with `--check`).
 
 ### Correctness
 
+- **Fixed: the snap's first start reads the configuration it is made from.** `hmailserver-start`, which the service and
+  `sudo hmailserver` run as `snap_daemon`, makes `/var/snap/hmailserver/common/etc/hMailServer.ini` from the snap's
+  `etc/hmailserver/hMailServer.ini`, which the snap took from the `.deb` as it is: 0640 and root's since the `.deb`
+  packs it so, for the live configuration it is there. A kernel's squashfs mount enforces that mode, so `snap_daemon`
+  could not read the template, and the first start and every `sudo hmailserver` verb would have ended with "could not
+  be read". The snap's tests of 2 October 2026, which passed, ran with 6.3.6's `.deb`, which packed the
+  file 0644; 6.3.7's snaps were built, never on the Snap Store. In the snap the file is the template alone - the
+  configuration made from it is `snap_daemon`'s and 0600 - so `snap/snapcraft.yaml` makes it 0644, as the snap's other
+  files are. `build/ci/snap-build.sh` now runs `hmailserver-start` as `snap_daemon`, with no group and nothing of
+  root's, from the snap's files unpacked with their owners and modes, and requires the configuration made,
+  `snap_daemon`'s and 0600, and the server's `--version`: from the 6.3.7 `.deb` of the pipeline before, with the file
+  0640, it fails there (`awk: cannot open "..." (Permission denied)`, then "could not be read"), and with this change
+  it passes. `Snap.md` says so.
 - **Fixed: the Helm chart's server binds the mail ports below 1024 whatever the cluster's container runtime.** The
   chart runs the server as 999:999 with `allowPrivilegeEscalation: false`, which the restricted Pod Security Standard
   requires and which sets `no_new_privs`, and under it the kernel grants no file capability at `execve`, so the
