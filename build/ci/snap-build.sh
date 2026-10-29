@@ -106,6 +106,15 @@ icon="$(sed -n 's/^icon: *//p' snap/snapcraft.yaml)"
 if [ -z "$icon" ] || [ ! -f "$icon" ]; then
    fail "snapcraft.yaml's icon '$icon' is not a file of the checkout"
 fi
+# A name that holds a tab or a newline is refused, in a tree that is no git checkout
+# as well: unsquashfs's listing, which the rules after the pack and the Snap Store's
+# review read a line at a time, cannot carry one.
+find snap/local snap/hooks "$icon" -print0 > snap-build/input/checkout-names
+while IFS= read -r -d '' name; do
+   case "$name" in
+      *$'\t'* | *$'\n'*) fail "$(printf '%q' "$name") holds a tab or a newline: the snap's listing, which this build and the Snap Store's review read a line at a time, cannot carry such a name" ;;
+   esac
+done < snap-build/input/checkout-names
 top="$(pwd -P)"
 in_git() { git -c safe.directory="$top" "$@"; }
 if [ "$(in_git rev-parse --show-toplevel 2> /dev/null)" = "$top" ]; then
@@ -153,15 +162,16 @@ else
    find snap/local snap/hooks "$icon" -type f ! -perm -0100 -exec chmod 0644 {} +
 fi
 find snap/local snap/hooks -type d -exec chmod 00755 {} +
-# What the snap must record for each: snap/local/X as /X, the icon as /meta/gui/icon.png.
+# What the snap must record for each: snap/local/X as /X, the icon as /meta/gui/icon.png,
+# a line each, the mode, a tab and the path, which may hold a space.
 find snap/local "$icon" -type f -print0 > snap-build/input/checkout-files
 while IFS= read -r -d '' file; do
    case "$file" in
       "$icon") entry=/meta/gui/icon.png ;;
       *) entry="${file#snap/local}" ;;
    esac
-   printf '%s %s\n' "$(stat -c %A "$file")" "$entry"
-done < snap-build/input/checkout-files | LC_ALL=C sort -k 2 > snap-build/input/modes
+   printf '%s\t%s\n' "$(stat -c %A "$file")" "$entry"
+done < snap-build/input/checkout-files | LC_ALL=C sort -t "$(printf '\t')" -k 2 > snap-build/input/modes
 say "the modes of snap/local, snap/hooks and the icon given from $modes_from"
 
 say "snapcraft pack, destructive mode, for $arch"
@@ -210,16 +220,16 @@ say "the snap's files: what it must carry is there, the units and the live updat
 # writable by none but root - so that what the snap records is git's modes and the
 # .deb's, not the checkout's or a umask's.
 odd="$(unsquashfs -lls "$built" | awk '
-   { path = substr($0, index($0, "squashfs-root") + length("squashfs-root")); sub(/ -> .*$/, "", path) }
    $1 ~ /^l/ { next }
+   { path = substr($0, index($0, "squashfs-root") + length("squashfs-root")) }
    $2 != "root/root" || ($1 ~ /^d/ && $1 != "drwxr-xr-x") || ($1 !~ /^d/ && $1 != "-rw-r--r--" && $1 != "-rwxr-xr-x") { print $1, $2, (path == "" ? "/" : path) }
 ')"
 [ -z "$odd" ] || fail "the snap has entries that are not root's with mode 0755 (a directory or an executable) or 0644:
 $odd"
 # And what it took from snap/local and the icon has the modes given them above.
 odd="$(unsquashfs -lls "$built" | awk '
-   NR == FNR { want[$2] = $1; next }
-   { path = substr($0, index($0, "squashfs-root") + length("squashfs-root")); sub(/ -> .*$/, "", path) }
+   NR == FNR { tab = index($0, "\t"); want[substr($0, tab + 1)] = substr($0, 1, tab - 1); next }
+   { path = substr($0, index($0, "squashfs-root") + length("squashfs-root")); if ($1 ~ /^l/) sub(/ -> .*$/, "", path) }
    path in want { if ($1 != want[path]) print $1, path, "where", want[path], "was given"; delete want[path] }
    END { for (path in want) print "no", path }
 ' snap-build/input/modes -)"

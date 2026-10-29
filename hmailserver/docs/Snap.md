@@ -283,7 +283,8 @@ job whose `.deb` it takes - in a `batch*` pipeline at once, on `master` once tha
    bit differs from the index's in a change of mode `git status` shows, is refused,
    not undone, and so is a symbolic link git records, which the snap would take as
    it is, wherever it points (one that is absolute or leaves `snap/local`, the snap's
-   root, points outside the snap, which the Snap Store's review refuses) - so
+   root, points outside the snap, which the Snap Store's review refuses), and so is
+   a name that holds a tab or a newline, which the snap's listing cannot carry - so
    that `snap_daemon` reads every file and nobody
    but root may write one; the server it carries finds every library in the snap or core24
    and answers `--version` with that version; `hmailserver-start`, run as

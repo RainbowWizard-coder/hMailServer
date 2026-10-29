@@ -807,7 +807,8 @@ with `--check`).
   records must be a regular file in the checkout. So is a file whose execute bit differs from the index's
   while `core.fileMode` is true, a change of mode `git status` shows, which the build does not undo; so git shows no
   change after it. Only a tree that is no git checkout takes the owner's execute
-  bit for git's. Each directory of theirs is made 00755, which clears a set-group-ID bit that GNU's `chmod` keeps under
+  bit for git's. In either tree a name that holds a tab or a newline is refused, since the snap's listing, which the
+  script and the store's review read a line at a time, cannot carry one; a name with a space is taken. Each directory of theirs is made 00755, which clears a set-group-ID bit that GNU's `chmod` keeps under
   0755, and the script packs under umask 022, so that what snapcraft makes does not take a shell's 0002. It requires
   every entry of the snap to be root's, each directory 0755 and each file 0644 or 0755, and each entry taken from
   `snap/local` and the icon to have the mode given it; a checkout in a set-group-ID directory, whose bit snapcraft's
