@@ -6154,11 +6154,11 @@ def check(texts, chain, feed):
                 or 'grep -qx " *GNU AFFERO GENERAL PUBLIC LICENSE" "$agpl"' not in texts["appimage-test"]:
             problems.append("%s or %s no longer puts hMailServer's own AGPL-3.0 text in the image, or holds it there"
                             % (FILES["appimage-pack"], FILES["appimage-test"]))
-    # Both sources jobs fetch from outside the project - Alpine's GitLab and distfiles
-    # mirror, Ubuntu's archive and snapshot service - by recipes, five of the Alpine
-    # APKBUILDs naming GitHub as their source, and neither script is to follow one
-    # there: .no-github keeps GitHub out of the job itself, on any runner and in any
-    # image, which the runner's hosts entries alone do not.
+    # Both sources jobs fetch from outside the project - Alpine's GitLab (or git.alpinelinux.org,
+    # its mirror) and distfiles mirror, Ubuntu's archive and snapshot service - by recipes, five
+    # of the Alpine APKBUILDs naming GitHub as their source, and neither script is to follow one
+    # there: .no-github keeps GitHub out of the job itself, on any runner and in any image, which
+    # the runner's hosts entries alone do not.
     no_github_jobs = dict(blocks(texts["ci"]))
     no_github_jobs.update(appimage_jobs)
     no_github_jobs.update(blocks(texts["no-github"]))
