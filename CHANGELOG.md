@@ -787,6 +787,18 @@ with `--check`).
 
 ### Downloads and the release
 
+- **Fixed: the snap's modes are git's, not the checkout's.** The wrappers part's `dump` plugin copies `snap/local` with
+  its modes, and snapcraft copies the icon with its own, and the snap's squashfs records each as it is; GitLab Runner's
+  helper writes a job's checkout under umask 0000, so the snap of the pipeline before carried `bin/` and
+  `bin/hmailserver-daemon`, `-run`, `-set-database-password`, `-snap-config`, `-start` and `-cli` as 0777, and
+  `bin/hmailserver-snap-env` and `meta/gui/icon.png` as 0666, and a snap built from a clone made under umask 0022 had
+  0755 and 0644 there, other bytes for the same tree. The squashfs is mounted read-only, so nothing could write them,
+  but they were not the modes meant. `build/ci/snap-build.sh` now gives each directory of `snap/local` and `snap/hooks`
+  and each file of theirs and the icon git's mode in the checkout before it packs - 0755 for a directory or a file whose
+  owner may execute it, 0644 for the rest - which git, keeping no mode but the execute bit, does not show as a change,
+  and packs under umask 022, so that what snapcraft makes does not take a shell's 0002; and it requires every entry of
+  the snap to be root's, each directory 0755 and each file 0644 or 0755. (Its hook was 0755 already: snapcraft gives
+  each hook that mode.)
 - **Fixed: the icons drawn after Feather's are credited to Cole Bemis, under Feather's MIT licence, where every record
   gave them the project's holders and licence alone.** The webmail's sprite in
   `hmailserver/source/Server/Common/Util/Portal.html`, which every icon of the webmail is drawn from, is drawn after

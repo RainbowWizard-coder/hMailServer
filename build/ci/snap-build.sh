@@ -16,7 +16,9 @@
 #      .deb's, without the Debian revision), architecture, base and strict
 #      confinement; the files it must carry (snapcraft.yaml's icon among them, as
 #      meta/gui/icon.png) and the ones it must not (the systemd
-#      units, the live update's helper); the server it carries started with the
+#      units, the live update's helper); its modes git's and the .deb's, every entry
+#      root's, each directory 0755 and each file 0644 or 0755, whatever the
+#      checkout's modes and the umask; the server it carries started with the
 #      snap's libraries and answering --version with that version; and
 #      hmailserver-start, as snap_daemon, making the configuration from the snap's;
 #   5. snap/hmailserver_<version>_<arch>.snap, which snap-upload takes
@@ -36,6 +38,12 @@ fail() { printf 'snap-build: FAIL %s\n' "$*" >&2; exit 1; }
 
 root="$(pwd)"
 [ -f snap/snapcraft.yaml ] || fail "run from the root of a checkout (no snap/snapcraft.yaml here)"
+
+# The snap records each entry's mode as it finds it, so the modes are set here rather
+# than inherited. umask 022 for what snapcraft and the parts make - meta/, the
+# directories of prime, the files they write - whatever umask this runs under: a job's
+# image gives 0022, a shell on Ubuntu 0002, which would make them group-writable.
+umask 022
 
 bash build/ci/snap-tools.sh
 arch="$(dpkg --print-architecture)"
@@ -59,6 +67,26 @@ say "the server from $deb ($deb_version)"
 rm -rf snap-build/input parts stage prime
 mkdir -p snap-build/input "snap-build/$arch"
 cp "$deb" "snap-build/input/hmailserver_$arch.deb"
+
+# What the snap takes from the checkout would keep the checkout's modes: the wrappers
+# part copies snap/local with them (craft-parts' pull and build, then the dump plugin's
+# cp --archive), and snapcraft copies the icon into meta/gui with its mode. A
+# checkout's modes are not git's: GitLab Runner's helper writes a job's checkout under
+# umask 0000, so that its files are 0666 and its executables and directories 0777, and
+# a working copy the runner keeps from job to job keeps for each file the mode of the
+# checkout that last wrote it. So each is given the mode git records for it - 0755 for
+# a directory or for a file whose owner may execute it, which is git's own test, 0644
+# for the rest, the modes of the .deb's files - before the snap is packed. That is done
+# in the checkout itself, the one place both are read from, the icon when snapcraft
+# packs, after the parts' steps: git keeps no mode but the execute bit, which this
+# leaves as it is, so git shows no change. (snapcraft gives each hook 0755 itself.)
+icon="$(sed -n 's/^icon: *//p' snap/snapcraft.yaml)"
+if [ -z "$icon" ] || [ ! -f "$icon" ]; then
+   fail "snapcraft.yaml's icon '$icon' is not a file of the checkout"
+fi
+find snap/local snap/hooks -type d -exec chmod 0755 {} +
+find snap/local snap/hooks "$icon" -type f -perm -0100 -exec chmod 0755 {} +
+find snap/local snap/hooks "$icon" -type f ! -perm -0100 -exec chmod 0644 {} +
 
 say "snapcraft pack, destructive mode, for $arch"
 started=$SECONDS
@@ -100,6 +128,19 @@ for never in /usr/lib/systemd /usr/lib/hmailserver /etc/fail2ban /etc/logrotate.
    fi
 done
 say "the snap's files: what it must carry is there, the units and the live update's helper are not ($(wc -l < "snap-build/$arch/files.txt") entries)"
+
+# Its modes: every entry root's, as snap pack makes them, and each directory 0755 and
+# each file 0644 or 0755 - readable by snap_daemon, whom the commands run as, and
+# writable by none but root - so that what the snap records is git's modes and the
+# .deb's, not the checkout's or a umask's.
+odd="$(unsquashfs -lls "$built" | awk '
+   { path = substr($0, index($0, "squashfs-root") + length("squashfs-root")); sub(/ -> .*$/, "", path) }
+   $1 ~ /^l/ { next }
+   $2 != "root/root" || ($1 ~ /^d/ && $1 != "drwxr-xr-x") || ($1 !~ /^d/ && $1 != "-rw-r--r--" && $1 != "-rwxr-xr-x") { print $1, $2, (path == "" ? "/" : path) }
+')"
+[ -z "$odd" ] || fail "the snap has entries that are not root's with mode 0755 (a directory or an executable) or 0644:
+$odd"
+say "the snap's modes: every entry root's, each directory 0755 and each file 0644 or 0755"
 
 # The server, with the snap's libraries over core24's (this container's are core24's
 # own release): every library found, and --version the snap's.

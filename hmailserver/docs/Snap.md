@@ -267,7 +267,12 @@ job whose `.deb` it takes - in a `batch*` pipeline at once, on `master` once tha
    `.deb`'s version without its Debian revision, the architecture, core24, strict
    confinement, the stable grade and `snap_daemon`; it carries the server, the
    commands, the hook, the Control Deck, the licences and its icon,
-   `meta/gui/icon.png`, and no systemd unit and no live-update helper; the server it carries finds every library in the snap or core24
+   `meta/gui/icon.png`, and no systemd unit and no live-update helper; every entry is
+   root's, each directory 0755 and each file 0644 or 0755 - what it takes from the
+   checkout, `snap/local`, the hook and the icon, is given git's mode before it is
+   packed, since GitLab Runner writes a job's checkout under umask 0000 and the snap
+   would record its 0666 and 0777 - so that `snap_daemon` reads every file and nobody
+   but root may write one; the server it carries finds every library in the snap or core24
    and answers `--version` with that version; `hmailserver-start`, run as
    `snap_daemon` from the snap's files with their owners and modes, makes the
    configuration from the snap's `etc/hmailserver/hMailServer.ini`, which is 0644 here
