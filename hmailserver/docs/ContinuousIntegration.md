@@ -2163,9 +2163,16 @@ once; since 6 October 2026 it names it by digest:
   which `dependency-scan` had reported against the image and the release job would
   have held on), and pushed: the same tag, moved to
   `sha256:952745b5eb6348251e03128f5adc0db14e3101355044d8af686f6ad0598203f5`,
+  the 16 October digest keeping its dated tag, `26.04-68dd5409068c-20261017`, by
+  the script's own copy inside the registry; `.linix` named that digest until 29
+  October 2026, when the image was built again from the same Dockerfile, for
+  Ubuntu's libbrotli1 update (1.2.0-3ubuntu0.1, CVE-2026-111497, which
+  `dependency-scan-verdict` reported against the image and the release job would
+  have held on), and pushed: the same tag, moved to
+  `sha256:f2e0beae226ce2c0bc2aa988d44ffae637310d7e60ec4ff2dc425fd8affe7fa0`,
   which `.linix` has named since, and the runners with the tag, linix, server2
-  and s1-linux, pull it by that digest; the 16 October digest kept its dated tag,
-  `26.04-68dd5409068c-20261017`, by the script's own copy inside the registry. The 6
+  and s1-linux, pull it by that digest; the 17 October digest kept its dated tag,
+  `26.04-68dd5409068c-20261029`, by the script's own copy inside the registry. The 6
   October digest was left with no tag,
   which the registry does not keep: GitLab.com's registry removes an untagged
   manifest that nothing references about 24 hours later (its online garbage
