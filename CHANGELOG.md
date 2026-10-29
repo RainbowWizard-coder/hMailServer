@@ -797,12 +797,18 @@ with `--check`).
   `bin/hmailserver-daemon`, `-run`, `-set-database-password`, `-snap-config`, `-start` and `-cli` as 0777, and
   `bin/hmailserver-snap-env` and `meta/gui/icon.png` as 0666, and a snap built from a clone made under umask 0022 had
   0755 and 0644 there, other bytes for the same tree. The squashfs is mounted read-only, so nothing could write them,
-  but they were not the modes meant. `build/ci/snap-build.sh` now gives each directory of `snap/local` and `snap/hooks`
-  and each file of theirs and the icon git's mode in the checkout before it packs - 0755 for a directory or a file whose
-  owner may execute it, 0644 for the rest - which git, keeping no mode but the execute bit, does not show as a change,
-  and packs under umask 022, so that what snapcraft makes does not take a shell's 0002; and it requires every entry of
-  the snap to be root's, each directory 0755 and each file 0644 or 0755. (Its hook was 0755 already: snapcraft gives
-  each hook that mode.)
+  but they were not the modes meant. `build/ci/snap-build.sh` now gives each file of `snap/local` and `snap/hooks` and
+  the icon, in the checkout before it packs, the mode git's index records for it (`git ls-files -s`): 0755 for 100755
+  and 0644 for 100644, not the checkout's execute bit, which a working tree chmodded by hand or copied from a
+  filesystem without modes may have where git has none. A file git does not record is refused, and so is one whose
+  execute bit differs from the index's while `core.fileMode` is true, a change of mode `git status` shows, which the
+  build does not undo; so git shows no change after it. Only a tree that is no git checkout takes the owner's execute
+  bit for git's. Each directory of theirs is made 00755, which clears a set-group-ID bit that GNU's `chmod` keeps under
+  0755, and the script packs under umask 022, so that what snapcraft makes does not take a shell's 0002. It requires
+  every entry of the snap to be root's, each directory 0755 and each file 0644 or 0755, and each entry taken from
+  `snap/local` and the icon to have the mode given it; a checkout in a set-group-ID directory, whose bit snapcraft's
+  own directories take, is refused there, as the Snap Store's review refuses it. (Its hook was 0755 already:
+  snapcraft gives each hook that mode.)
 - **Fixed: the operator image's modes are git's, not the checkout's or the umask's.** `build/ci/operator-context.sh`
   copies the chart and `watches.yaml` with `cp`, which gives each copy the checkout's mode less the umask, and the
   Dockerfile's `COPY` keeps the context's modes: the `operator-image` job's 0022 gives 0644 and 0755, but a build by

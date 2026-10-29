@@ -17,8 +17,10 @@
 #      confinement; the files it must carry (snapcraft.yaml's icon among them, as
 #      meta/gui/icon.png) and the ones it must not (the systemd
 #      units, the live update's helper); its modes git's and the .deb's, every entry
-#      root's, each directory 0755 and each file 0644 or 0755, whatever the
-#      checkout's modes and the umask; the server it carries started with the
+#      root's, each directory 0755 and each file 0644 or 0755, and each file it takes
+#      from snap/local and the icon the mode git's index records, whatever the umask
+#      and the modes the checkout was written with (a change of mode that git status
+#      shows is refused, not undone); the server it carries started with the
 #      snap's libraries and answering --version with that version; and
 #      hmailserver-start, as snap_daemon, making the configuration from the snap's;
 #   5. snap/hmailserver_<version>_<arch>.snap, which snap-upload takes
@@ -74,19 +76,69 @@ cp "$deb" "snap-build/input/hmailserver_$arch.deb"
 # checkout's modes are not git's: GitLab Runner's helper writes a job's checkout under
 # umask 0000, so that its files are 0666 and its executables and directories 0777, and
 # a working copy the runner keeps from job to job keeps for each file the mode of the
-# checkout that last wrote it. So each is given the mode git records for it - 0755 for
-# a directory or for a file whose owner may execute it, which is git's own test, 0644
-# for the rest, the modes of the .deb's files - before the snap is packed. That is done
-# in the checkout itself, the one place both are read from, the icon when snapcraft
-# packs, after the parts' steps: git keeps no mode but the execute bit, which this
-# leaves as it is, so git shows no change. (snapcraft gives each hook 0755 itself.)
+# checkout that last wrote it. So each file is given the mode git records for it in
+# its index (git ls-files -s) - 0755 for 100755 and 0644 for 100644, the modes of the
+# .deb's files - and each directory 0755, before the snap is packed. The mode is read
+# from the index, not from the checkout's execute bit, which a working tree chmodded by
+# hand or copied from a filesystem without modes may have where git has none; a file
+# git does not record is refused. That is done in the checkout itself, the one place
+# both are read from, the icon when snapcraft packs, after the parts' steps, and git
+# shows no change: git keeps no mode but the execute bit, and where the checkout's
+# differs from the index's while core.fileMode is true - a change of mode that git
+# status shows - the build refuses rather than undo it (with core.fileMode false, as
+# for a tree copied from a filesystem without modes, git shows none, and the file is
+# given the index's mode). Only a tree that is no git checkout, a source tarball, whose
+# modes git archive wrote, takes the owner's execute bit for git's. A directory's
+# 00755 clears a set-group-ID bit, which GNU's chmod keeps under 0755; snapcraft's own
+# directories, prime/ and meta/, still take that bit from a checkout in a
+# set-group-ID directory, and the rule on the snap's modes below refuses such a snap,
+# as the Snap Store's review refuses any mode but r, w and x. (snapcraft gives each
+# hook 0755 itself.) After the pack, the snap's entries from snap/local and the icon
+# are held to the modes given here.
 icon="$(sed -n 's/^icon: *//p' snap/snapcraft.yaml)"
 if [ -z "$icon" ] || [ ! -f "$icon" ]; then
    fail "snapcraft.yaml's icon '$icon' is not a file of the checkout"
 fi
-find snap/local snap/hooks -type d -exec chmod 0755 {} +
-find snap/local snap/hooks "$icon" -type f -perm -0100 -exec chmod 0755 {} +
-find snap/local snap/hooks "$icon" -type f ! -perm -0100 -exec chmod 0644 {} +
+top="$(pwd -P)"
+in_git() { git -c safe.directory="$top" "$@"; }
+if [ "$(in_git rev-parse --show-toplevel 2> /dev/null)" = "$top" ]; then
+   modes_from="git's index"
+   in_git ls-files -s -z -- snap/local snap/hooks "$icon" > snap-build/input/git-modes \
+      || fail "git ls-files could not list snap/local, snap/hooks and the icon"
+   filemode="$(in_git config --bool core.fileMode || echo true)"
+   declare -A recorded=()
+   while IFS= read -r -d '' entry; do
+      recorded["${entry#*$'\t'}"]="${entry%% *}"
+   done < snap-build/input/git-modes
+   find snap/local snap/hooks "$icon" -type f -print0 > snap-build/input/checkout-files
+   while IFS= read -r -d '' file; do
+      case "${recorded[$file]:-}" in
+         100755) mode=0755 ;;
+         100644) mode=0644 ;;
+         '') fail "$file is not in git's index: the snap takes the files git records, with their modes" ;;
+         *) fail "$file is ${recorded[$file]} in git's index, not a file's 100644 or 100755" ;;
+      esac
+      if [ "$filemode" = true ] && [ $((0$(stat -c %a "$file") & 0100)) != $((mode & 0100)) ]; then
+         fail "$file is $(stat -c %a "$file") in the checkout and ${recorded[$file]} in git's index, a change of mode git status shows: the snap takes git's modes, and this build does not undo the change"
+      fi
+      chmod "$mode" "$file"
+   done < snap-build/input/checkout-files
+else
+   modes_from="the owner's execute bit (no git checkout)"
+   find snap/local snap/hooks "$icon" -type f -perm -0100 -exec chmod 0755 {} +
+   find snap/local snap/hooks "$icon" -type f ! -perm -0100 -exec chmod 0644 {} +
+fi
+find snap/local snap/hooks -type d -exec chmod 00755 {} +
+# What the snap must record for each: snap/local/X as /X, the icon as /meta/gui/icon.png.
+find snap/local "$icon" -type f -print0 > snap-build/input/checkout-files
+while IFS= read -r -d '' file; do
+   case "$file" in
+      "$icon") entry=/meta/gui/icon.png ;;
+      *) entry="${file#snap/local}" ;;
+   esac
+   printf '%s %s\n' "$(stat -c %A "$file")" "$entry"
+done < snap-build/input/checkout-files | LC_ALL=C sort -k 2 > snap-build/input/modes
+say "the modes of snap/local, snap/hooks and the icon given from $modes_from"
 
 say "snapcraft pack, destructive mode, for $arch"
 started=$SECONDS
@@ -140,7 +192,16 @@ odd="$(unsquashfs -lls "$built" | awk '
 ')"
 [ -z "$odd" ] || fail "the snap has entries that are not root's with mode 0755 (a directory or an executable) or 0644:
 $odd"
-say "the snap's modes: every entry root's, each directory 0755 and each file 0644 or 0755"
+# And what it took from snap/local and the icon has the modes given them above.
+odd="$(unsquashfs -lls "$built" | awk '
+   NR == FNR { want[$2] = $1; next }
+   { path = substr($0, index($0, "squashfs-root") + length("squashfs-root")); sub(/ -> .*$/, "", path) }
+   path in want { if ($1 != want[path]) print $1, path, "where", want[path], "was given"; delete want[path] }
+   END { for (path in want) print "no", path }
+' snap-build/input/modes -)"
+[ -z "$odd" ] || fail "the snap's entries from snap/local and the icon do not have the modes given them ($modes_from):
+$odd"
+say "the snap's modes: every entry root's, each directory 0755 and each file 0644 or 0755, and the $(wc -l < snap-build/input/modes) files from snap/local and the icon as given, from $modes_from"
 
 # The server, with the snap's libraries over core24's (this container's are core24's
 # own release): every library found, and --version the snap's.

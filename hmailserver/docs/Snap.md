@@ -273,9 +273,13 @@ job whose `.deb` it takes - in a `batch*` pipeline at once, on `master` once tha
    commands, the hook, the Control Deck, the licences and its icon,
    `meta/gui/icon.png`, and no systemd unit and no live-update helper; every entry is
    root's, each directory 0755 and each file 0644 or 0755 - what it takes from the
-   checkout, `snap/local`, the hook and the icon, is given git's mode before it is
-   packed, since GitLab Runner writes a job's checkout under umask 0000 and the snap
-   would record its 0666 and 0777 - so that `snap_daemon` reads every file and nobody
+   checkout, `snap/local`, the hook and the icon, is given the mode git's index
+   records for it (`git ls-files -s`; the owner's execute bit only in a tree that is
+   no git checkout) before it is packed, and the snap's entries are held to those
+   modes after, since GitLab Runner writes a job's checkout under umask 0000 and the
+   snap would record its 0666 and 0777; a file git does not record, or one whose
+   execute bit differs from the index's in a change of mode `git status` shows, is
+   refused, not undone - so that `snap_daemon` reads every file and nobody
    but root may write one; the server it carries finds every library in the snap or core24
    and answers `--version` with that version; `hmailserver-start`, run as
    `snap_daemon` from the snap's files with their owners and modes, makes the
