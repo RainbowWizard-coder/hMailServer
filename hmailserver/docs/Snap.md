@@ -21,9 +21,13 @@ credential: the image had no `git` for the job's check of the release tag, which
 `build/ci/snap-tools.sh` installs since. The job cannot be run again for 6.3.7. It
 uploads only from the pipeline of the release's own commit, and a retry of the old
 job runs the old script. The two builds' artifacts are kept, with no expiry (jobs
-17257943944, amd64, and 17257943945, arm64), so that 6.3.7 can still be uploaded by
-hand (*6.3.7 by hand*, at the end of *The Snap Store*, below); if it is not, the
-next release is the first in the store.
+17257943944, amd64, and 17257943945, arm64), but they are not to be uploaded:
+neither can make its configuration at its first start. Their
+`etc/hmailserver/hMailServer.ini`, the template `hmailserver-start` makes the
+configuration from, is the `.deb`'s, 0640 and root's, which `snap_daemon` cannot
+read, so the service's first start and every `sudo hmailserver` verb would end with
+"could not be read" (*6.3.7's snaps are withdrawn*, at the end of *The Snap Store*,
+below). The next release's snap, which is 0644 there, is the first in the store.
 
 | | |
 |---|---|
@@ -437,28 +441,22 @@ with your own login, never the CI credential, which cannot: `snapcraft login`, t
 `snapcraft release hmailserver <revision> stable`, with the revisions `snap-upload`
 printed, and `snapcraft logout`.
 
-**6.3.7 by hand.** `snap-upload` cannot take 6.3.7 (above), so its snaps go up from
-a Linux shell with snapcraft and the owner's own login, in about half an hour:
-
-1. Download the two snaps, `hmailserver_6.3.7_amd64.snap` and
-   `hmailserver_6.3.7_arm64.snap`, from the artifacts of jobs 17257943944 and
-   17257943945 of pipeline 2958945008, which are kept.
-2. `snapcraft login`.
-3. `snapcraft upload --release=edge,candidate hmailserver_6.3.7_<arch>.snap`, for
-   each of the two files.
-4. Install the candidate on a machine of your own (`sudo snap install hmailserver
-   --candidate`) and try it.
-5. Before the release to `stable`, set the store listing at
-   <https://snapcraft.io/hmailserver/listing>, with the same login: the title
-   "hMailServer (Progressive Robot's fork)", a summary and a description that open
-   with "Progressive Robot's fork of hMailServer, not the original by Martin
-   Knafve", the website <https://gitlab.com/hmailserver/hmailserver>, and as its icon
-   `hmailserver/source/Server/platform/packaging/hmailserver.png`, which the 6.3.7
-   snaps do not carry ("The icon", above). The two
-   snaps were built on 18 October 2026 from `snap/snapcraft.yaml` as it stood then -
-   the title "hMailServer", a summary that does not say fork, and the company's site
-   as the website - so a listing that took their text would read as the original's;
-   `snapcraft.yaml` says the fork from the next release.
-6. `snapcraft release hmailserver <revision> stable`, with each revision the uploads
-   printed, when it is right.
-7. `snapcraft logout`.
+**6.3.7's snaps are withdrawn.** `snap-upload` cannot take 6.3.7 (above), and the
+upload by hand this page described until the release after 6.3.7 is withdrawn: the
+two snaps kept from jobs 17257943944 and 17257943945 of pipeline 2958945008,
+`hmailserver_6.3.7_amd64.snap` (SHA-256 `61059355...`) and
+`hmailserver_6.3.7_arm64.snap` (`1056c262...`), carry
+`etc/hmailserver/hMailServer.ini` as the `.deb` packs it, `-rw-r----- root/root`.
+`hmailserver-start`, which the service and `sudo hmailserver` run as `snap_daemon`,
+makes `/var/snap/hmailserver/common/etc/hMailServer.ini` from that file while there is
+none, and a squashfs mount enforces its mode, so the first start of either snap ends
+with "could not be read" and makes no configuration: unpacked with its owners and
+modes and started as `snap-build.sh` now starts a snap, as `snap_daemon` with no group,
+the amd64 one fails so (29 October 2026). Do not upload them. The next release's snap
+is the first in the store, through `snap-upload`; before its release to `stable`, set
+the store listing at <https://snapcraft.io/hmailserver/listing> with the owner's own
+login, as the snap's `snapcraft.yaml` gives it: the title "hMailServer (Progressive
+Robot's fork)", a summary and a description that open with "Progressive Robot's fork
+of hMailServer, not the original by Martin Knafve", the website
+<https://gitlab.com/hmailserver/hmailserver>, and the icon
+`hmailserver/source/Server/platform/packaging/hmailserver.png`.

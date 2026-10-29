@@ -329,8 +329,12 @@ with `--check`).
   `etc/hmailserver/hMailServer.ini`, which the snap took from the `.deb` as it is: 0640 and root's since the `.deb`
   packs it so, for the live configuration it is there. A kernel's squashfs mount enforces that mode, so `snap_daemon`
   could not read the template, and the first start and every `sudo hmailserver` verb would have ended with "could not
-  be read". The snap's tests of 2 October 2026, which passed, ran with 6.3.6's `.deb`, which packed the
-  file 0644; 6.3.7's snaps were built, never on the Snap Store. In the snap the file is the template alone - the
+  be read". The snap's tests of 2 October 2026, which passed, ran with a `.deb` built that day, before the `.deb` packed
+  the file 0640 (from 3 October 2026); 6.3.6's and 6.3.7's own `.deb`s pack it 0640, so every snap made from a
+  released `.deb` since 6.3.6 has the fault. 6.3.7's two snaps, built on 18 October 2026 and never on the Snap Store,
+  have it: unpacked with their owners and modes and started as below, the amd64 one makes no configuration ("could
+  not be read"). `Snap.md` no longer offers them for an upload by hand and says they are not to be uploaded, so the
+  next release's snap is the first in the store. In the snap the file is the template alone - the
   configuration made from it is `snap_daemon`'s and 0600 - so `snap/snapcraft.yaml` makes it 0644, as the snap's other
   files are. `build/ci/snap-build.sh` now runs `hmailserver-start` as `snap_daemon`, with no group and nothing of
   root's, from the snap's files unpacked with their owners and modes, and requires the configuration made,
