@@ -3658,6 +3658,34 @@ with `--check`).
   failed, no line of the listings differing; the script as it is gave `SOURCE_DATE_EPOCH` the time once its packages
   were installed, packed the two to the same bytes and passed to its end.
 
+- **Fixed: the AppImage runtime's sources are fetched from git.alpinelinux.org when Alpine's GitLab cannot be reached,
+  where an outage of that one host failed every pipeline that builds the AppImages, a tag's among them.**
+  `build/ci/packages/appimage-runtime-sources.sh`, the `appimage-runtime-sources` job's script, which the AppImage jobs
+  need, fetched Alpine's aports at each commit the runtime jobs' records name, by its id, from `gitlab.alpinelinux.org`
+  alone, trying three times over a minute and a half. That host stopped answering on 29 October 2026: each try waited
+  about 133 s for a connection that never came, the job failed after about eight minutes (`aports could not be fetched
+  at <the commits> from https://gitlab.alpinelinux.org/alpine/aports.git`), and the five AppImage jobs after it did not
+  run. When the three tries fail, the script now fetches the same commits by their ids from
+  `https://git.alpinelinux.org/aports`, Alpine's own mirror of that repository (its page says "Mirror of
+  https://gitlab.alpinelinux.org/alpine"), three times as well, and from nowhere else: GitHub stays out of the job. It
+  fetches them into a new repository and without the blob filter, which that host ignores, so that nothing is left for
+  git to fetch later from the host that failed, as the blobs a partial clone leaves out are. The log says which address
+  served ("aports: the commits fetched from ..."), and the refusal names both. What is packed does not depend on which:
+  a commit's id names its tree and so every file in it, git checks each object it is given against its id, and
+  `README.txt` names the repository by its home on Alpine's GitLab, which the mirror copies, with the commit and tree
+  ids, so every word of it stays true and the tarball is the same bytes either way. The job's timeout is 30 minutes,
+  where it was 20: when Alpine's GitLab cannot connect, its three tries take about eight minutes before the mirror is
+  asked, and the job packs twice. Nothing else changes: with Alpine's GitLab answering, the script fetches and packs as
+  before. The script's header, the job's comment and PackagesAppImage.md's "Licences" say so. Run on 29 October 2026 in
+  the job's `alpine:3.24` image by its digest, its whole script (the `.no-github` lines among it) on checkouts made as
+  GitLab Runner's helper makes one, over the records the `appimage-runtime-x86_64` and `appimage-runtime-aarch64` jobs'
+  whole scripts made (Alpine 3.24.2, eight libraries at eight aports commits), Alpine's GitLab answering again by then:
+  the script as it was made the tarball twice to the same bytes in 36 s, 10,741,716 bytes, `cfc228a9...`, and with
+  `gitlab.alpinelinux.org` given an address that drops every packet, as the outage did, it failed after 495 s with the
+  refusal above, each of its three tries failing to connect after 132.5 to 133.8 s; the script as it is made the same
+  bytes in 57 s with the GitLab answering, and, with the GitLab unreachable, fetched the commits from the mirror after
+  the three tries and made the same bytes twice, the job passing in 1,007 s.
+
 ### Documentation
 
 - **The texts that said the project is on GitLab's free tier, or that push protection is not on, say what holds on

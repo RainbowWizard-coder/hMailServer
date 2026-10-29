@@ -152,7 +152,8 @@ appimage-runtime-aarch64:
 
 # From the two runtime jobs' records of what they linked (runtime-<arch>-linked.txt):
 # each library's aports directory at the commit its package records, fetched from
-# Alpine's GitLab by the commit's id, and the upstream archives its APKBUILD lists,
+# Alpine's GitLab by the commit's id (from git.alpinelinux.org, Alpine's mirror of it,
+# when the GitLab cannot be reached), and the upstream archives its APKBUILD lists,
 # fetched from Alpine's distfiles mirror, each held to the SHA-512 the APKBUILD gives
 # it; packed reproducibly, then made again from nothing in another directory, under
 # another umask, and compared byte for byte. .no-github keeps GitHub out of the job
@@ -170,7 +171,9 @@ appimage-runtime-sources:
     pull_policy: [if-not-present, always]
     docker:
       platform: linux/amd64
-  timeout: 20 minutes
+  # When Alpine's GitLab cannot connect, its three tries take about eight minutes before
+  # the script asks git.alpinelinux.org, in each of the two packs.
+  timeout: 30 minutes
   script:
     - sh build/ci/packages/appimage-runtime-sources.sh pack appimage/runtime-x86_64-linked.txt appimage/runtime-aarch64-linked.txt
     - (umask 0077 && HM_OUT_DIR=/tmp/runtime-sources-again sh build/ci/packages/appimage-runtime-sources.sh pack appimage/runtime-x86_64-linked.txt appimage/runtime-aarch64-linked.txt > /tmp/runtime-sources-again.log 2>&1) || { tail -n 40 /tmp/runtime-sources-again.log; exit 1; }
