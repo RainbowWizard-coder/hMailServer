@@ -4332,6 +4332,22 @@ with `--check`).
   says that the project has Ultimate and that external status checks are available to it, none set up, where it
   spoke of Ultimate as still to come. `HelpPagesData.cpp` is regenerated.
 
+- **The texts on the Linux build's second build say that a job's own script runs under umask 0022, and only its
+  checkout under 0000.** `build/ci/linux-repro.sh`'s header and ReproducibleBuilds.md's section on the `linux-repro`
+  job said that the GitLab docker executor runs a job under umask 0000, and that a job's own umask is 0000 in a docker
+  executor's job and 0022 in a plain `docker run`. GitLab Runner's code says otherwise: at v19.4.1, the version of the
+  project's runners, `helpers/container/helperimage/linux_info.go` runs the helper image's commands through
+  `gitlab-runner-build`, which sets the umask to 0000 so that the build may write what the helper made (the script, in
+  the helper's base images at v0.0.50, is `umask 0000` and `exec /bin/bash`), and `executors/docker/docker_command.go`
+  starts the helper's container with that command, unless `FF_DISABLE_UMASK_FOR_DOCKER_EXECUTOR` is on, and the
+  build's container with the build shell's own (`shells/bash.go`), which sets none. The checkout, the needs' artifacts
+  and the cache are the helper's work (`common/build.go`'s predefined stages), so the checkout's files are 0666 and
+  its directories and executables 0777, as the tree's other texts say; `before_script`, `script` and `after_script`
+  run in the job's own image's container, under the container runtime's 0022, which 6.3.7's AppImages show for the
+  AppImage jobs and a `docker run` and a `docker exec` in the AppImage job's image printed on 29 October 2026. The two
+  texts now say so; no other text of the tree says that a job's script runs under 0000 (the released sections of this
+  file are left as they are). Words only. `HelpPagesData.cpp` is regenerated.
+
 ---
 
 ## [6.3.7](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.7) - 2026-10-17

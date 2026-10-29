@@ -234,15 +234,18 @@ that must not matter changed:
   without `.git`;
 - the copy's files have the modes a checkout made under umask 0027 gives them
   (0640, and 0750 for a directory or an executable), where the job's own
-  checkout has 0666 and 0777 - the GitLab docker executor runs a job under
-  umask 0000 - and a clone by hand usually 0644 and 0755, so a mode a package
-  takes from the source shows. The `.deb`'s maintainer scripts did, until the
-  setting above: runs 1 to 4 below, whose two builds shared the source's
-  modes, could not see it, and run 5 did;
+  checkout has 0666 and 0777 - the GitLab docker executor's helper container,
+  which makes the checkout, runs under umask 0000 - and a clone by hand usually
+  0644 and 0755, so a mode a package takes from the source shows. The `.deb`'s
+  maintainer scripts did, until the setting above: runs 1 to 4 below, whose two
+  builds shared the source's modes, could not see it, and run 5 did;
 - the build directory is another, of another length (`/tmp/hm-repro-second-build`,
   where `linux-build` uses `/tmp/hm-build`);
-- it is started under umask 0002 rather than the job's own (0000 in a GitLab
-  docker executor's job, 0022 in a plain `docker run`); `linux-build.sh` sets
+- it is started under umask 0002 rather than the job's own, which is 0022 in
+  the job as in a plain `docker run`: the docker executor runs the job's script
+  in a container of the job's image, which starts under the container
+  runtime's 0022, and sets no umask there; only its helper's work - the
+  checkout, the artifacts, the cache - runs under 0000. `linux-build.sh` sets
   its own, and this shows that the caller's does not reach the packages;
 - the time zone is fourteen hours east of UTC;
 - it is later, and in another container.

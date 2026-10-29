@@ -26,13 +26,17 @@
 #     without .git and without the first build's output;
 #   - its files have the modes a checkout made under umask 0027 gives them (0640, and
 #     0750 for a directory or an executable), where the job's own checkout has 0666
-#     and 0777 (the GitLab docker executor runs a job under umask 0000) and a clone
-#     by hand usually 0644 and 0755, so a mode a package takes from the source shows,
-#     as the .deb's maintainer scripts' did until 26 September 2026;
+#     and 0777 (the GitLab docker executor's helper container, which makes the
+#     checkout, runs under umask 0000) and a clone by hand usually 0644 and 0755, so a
+#     mode a package takes from the source shows, as the .deb's maintainer scripts'
+#     did until 26 September 2026;
 #   - the build directory is another, of another length (HM_REPRO_BUILD_DIR,
 #     /tmp/hm-repro-second-build, where linux-build uses /tmp/hm-build);
-#   - it is started under umask 0002 rather than the job's own (0000 in a GitLab job,
-#     0022 in a plain docker run); linux-build.sh sets its own, so this shows that the
+#   - it is started under umask 0002 rather than the job's own, which is 0022 in the
+#     job as in a plain docker run: the docker executor runs the job's script in a
+#     container of the job's image, which starts under the container runtime's 0022,
+#     and sets no umask there; only its helper's work - the checkout, the artifacts,
+#     the cache - runs under 0000. linux-build.sh sets its own, so this shows that the
 #     caller's does not reach the packages;
 #   - the time zone is fourteen hours east of UTC (TZ=REPRO-14);
 #   - it runs later, and in the job in another container than linux-build's.
