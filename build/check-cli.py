@@ -2096,8 +2096,11 @@ def run_powershell_reasons(url, tmp):
     untrusted, stop_listener, seen, certificate = untrusted_tls_listener(tmp)
     try:
         # The listener itself, for a client that trusts its certificate: so that what
-        # the module is refused below is the certificate's trust and nothing else.
+        # the module is refused below is the certificate's trust and nothing else. At
+        # TLS 1.2 or later, as a client of the server's should be: the default
+        # context's own minimum, said where the context is made.
         trusting = ssl.create_default_context(cafile=certificate)
+        trusting.minimum_version = ssl.TLSVersion.TLSv1_2
         with socket.create_connection(("127.0.0.1", int(untrusted.rsplit(":", 1)[1])), timeout=30) as plain:
             with trusting.wrap_socket(plain, server_hostname="127.0.0.1"):
                 # Held open until the listener has finished its side, which in TLS

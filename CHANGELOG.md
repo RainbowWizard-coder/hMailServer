@@ -1715,6 +1715,13 @@ with `--check`).
 
 ### Build and tests
 
+- **`build/check-cli.py`'s client that trusts the untrusted-certificate listener asks for TLS 1.2 or later.** The
+  PowerShell half's check that the module refuses a certificate this machine does not trust first connects with a
+  client that trusts it, so that what the module is refused is the certificate's trust and nothing else. That client
+  was Python's `ssl.create_default_context()`, whose minimum is TLS 1.2 on every Python the checks run under, but
+  which CodeQL's insecure-protocol rule reads as allowing TLS 1.0 and 1.1; it now sets `minimum_version` to TLS 1.2
+  itself, so the code says what it asks for. The listener and every case are as they were.
+
 - **Fixed: `build/ci/container-image-start-test.sh --docker` and two lab scripts remove their containers' volumes with
   them.** The start test removed its four containers with `docker rm -f`, which leaves their anonymous volumes - the
   three the image declares and each database's one, eight a run - on the machine; it now uses `docker rm -fv`, and
