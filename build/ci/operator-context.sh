@@ -143,7 +143,9 @@ done < "$listing"
 # git records executable - and not the checkout's execute bit, which a working tree
 # chmodded by hand or copied from a filesystem without modes may have where git has
 # none; and 0755 for a directory, written 00755 so that GNU's chmod, on a workstation
-# whose OUT is in a set-group-ID directory, clears that bit as busybox's does.
+# whose OUT is in a set-group-ID directory, clears that bit as busybox's does (and
+# busybox's clears it under 0755 too, so build/ci/operator-check.py, which runs where
+# chmod is busybox's, holds these two lines by their text).
 find "$out" -type d -exec chmod 00755 {} +
 find "$out" -type f -exec chmod 0644 {} +
 odd=$(find "$out" ! \( -type d -perm 0755 \) ! \( -type f -perm 0644 \) | head -n 1)

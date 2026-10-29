@@ -60,6 +60,12 @@ the chart's own checks, in its Alpine image with Alpine's helm and PyYAML.
     and run under umask 0000 as well, and operator-bundle.sh a bundle whose CSV has
     that version and the image by digest everywhere, and the fork's icon,
     platform/packaging/hmailserver.png, inlined;
+  * operator-context.sh sets the context's modes with its two chmod lines alone
+    (CONTEXT_CHMODS), the directories' written 00755: GNU's chmod keeps a
+    directory's set-group-ID bit under 0755 and clears it under 00755, but busybox's
+    chmod, the job's, clears it under either, so the set-group-ID directory above
+    cannot show a return to 0755 where the job runs it, and the line is held by its
+    text;
   * no file the context takes, watches.yaml and the chart's, is executable in git
     (git ls-files -s, or where git is not installed, as in the job's image, the
     checkout's execute bit, which in a job's checkout is the one git wrote), since
@@ -100,7 +106,9 @@ ICON = PACKAGING + '/hmailserver.png'
 OPERATOR_CI = '.gitlab/ci/operator.yml'
 SIGN_SCRIPT = 'build/ci/operator-image-sign.sh'
 PUSH_SCRIPT = 'build/ci/operator-image-push.sh'
-FILES = (CRD, CSV, ANNOTATIONS, SCORECARD, WATCHES, DOCKERFILE, VALUES, OPERATOR_CI, SIGN_SCRIPT, PUSH_SCRIPT)
+CONTEXT_SCRIPT = 'build/ci/operator-context.sh'
+FILES = (CRD, CSV, ANNOTATIONS, SCORECARD, WATCHES, DOCKERFILE, VALUES, OPERATOR_CI, SIGN_SCRIPT, PUSH_SCRIPT,
+         CONTEXT_SCRIPT)
 # The other CI files, under this key of texts: path -> text.
 OTHER_CI = 'other CI files'
 # The files operator-context.sh puts into the image, under this key of texts: path ->
@@ -179,6 +187,11 @@ PUSH_ENV_BLOCK = ('{\n'
                   '  echo "HM_OPERATOR_IMAGE_ARM64=$repository@$arm64"\n'
                   '} > "$out/operator.env"\n')
 PUSH_ENV_LINES = ('} > "$out/operator.env"', 'cat "$out/operator.env"')
+# operator-context.sh's lines that run chmod, its only ones: every directory of the
+# context 00755 - five digits, so that GNU's chmod clears a set-group-ID bit, which it
+# keeps under 0755; busybox's, in the job's image, clears it under either, so that
+# context_modes() cannot see the difference there - and every file 0644.
+CONTEXT_CHMODS = ('find "$out" -type d -exec chmod 00755 {} +', 'find "$out" -type f -exec chmod 0644 {} +')
 
 
 def read(path, exact=False):
@@ -516,6 +529,11 @@ def check(texts, rendered):
     for path, executable in sorted(texts.get(EXECUTABLE, {}).items()):
         if executable:
             problems.append('%s is executable in git, and operator-context.sh gives every file of the context 0644' % path)
+    chmods = tuple(line.strip() for line in texts[CONTEXT_SCRIPT].splitlines()
+                   if re.search(r'\bchmod\b', line) and not line.lstrip().startswith('#'))
+    if chmods != CONTEXT_CHMODS:
+        problems.append("%s's chmod lines are %s, not its two, %s (a directory's mode written 00755, which GNU's chmod "
+                        "needs to clear a set-group-ID bit)" % (CONTEXT_SCRIPT, list(chmods), list(CONTEXT_CHMODS)))
     return problems + ci_problems(texts)
 
 
@@ -538,7 +556,11 @@ def context_modes(work):
     executable and a directory, and what a working tree chmodded by hand or copied from
     a filesystem without modes gives every file - run under umask 0000 too, with OUT
     in a set-group-ID directory: the context it makes, whose modes the image's COPY
-    keeps, must still have git's, 0755 for each directory and 0644 for each file."""
+    keeps, must still have git's, 0755 for each directory and 0644 for each file.
+    Where chmod is busybox's, as in the job's image, a directory's set-group-ID bit
+    goes under 0755 as under 00755, so this cannot see the directories' chmod written
+    0755 again; check() holds that line by its text (CONTEXT_CHMODS), and only a run
+    where chmod is GNU's sees it here."""
     tree = os.path.join(work, 'loose-checkout')
     sources = set()
     for rel in ('build/ci/operator-context.sh', DOCKERFILE, WATCHES, CHART):
@@ -669,6 +691,11 @@ def self_test():
          'a file of the operator does not parse'),
         ('a chart file executable in git', dict(texts, **{EXECUTABLE: {**texts[EXECUTABLE], VALUES: True}}), rendered,
          'values.yaml is executable in git'),
+        ("the context's directories chmod 0755 again", mutate(CONTEXT_SCRIPT, '-type d -exec chmod 00755 {} +', '-type d -exec chmod 0755 {} +'), rendered,
+         "operator-context.sh's chmod lines are"),
+        ('a chmod added to the context', mutate(CONTEXT_SCRIPT, 'find "$out" -type f -exec chmod 0644 {} +\n',
+                                                 'find "$out" -type f -exec chmod 0644 {} +\nchmod -R g+w "$out"\n'), rendered,
+         "operator-context.sh's chmod lines are"),
         ('a second version served', dict(texts, **{CRD: texts[CRD] + '    - name: v1beta1\n      served: false\n      storage: false\n'}), rendered,
          'the CRD serves 2 versions'),
         ('a chart value without a CRD property', mutate(VALUES, '\nextraEnv: []', '\nextraEnv: []\nnewValue: 1'), rendered,

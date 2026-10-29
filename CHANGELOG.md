@@ -824,7 +824,10 @@ with `--check`).
   the chart or `watches.yaml` that git records executable (where git is not installed, as in that job's image, the
   checkout's execute bit, which in a job's checkout is git's), and makes a context from a copy of its inputs with
   every file and directory 0777, under umask 0000 and in a set-group-ID directory, and requires each directory of it
-  0755 and each file 0644. The operator's `README.md` says so.
+  0755 and each file 0644. busybox's `chmod`, the one in that job's image, clears a directory's set-group-ID bit under
+  0755 as under 00755, so that context there cannot show the directories' `chmod` written 0755 again, which only GNU's
+  shows; the check holds the script's two `chmod` lines by their text as well, the directories' written 00755, and
+  refuses any other. The operator's `README.md` says so.
 - **Fixed: the icons drawn after Feather's are credited to Cole Bemis, under Feather's MIT licence, where every record
   gave them the project's holders and licence alone.** The webmail's sprite in
   `hmailserver/source/Server/Common/Util/Portal.html`, which every icon of the webmail is drawn from, is drawn after
