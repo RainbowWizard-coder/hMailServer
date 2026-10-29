@@ -333,10 +333,9 @@ with `--check`).
   the file 0640 (from 3 October 2026); 6.3.6's and 6.3.7's own `.deb`s pack it 0640, so every snap made from a
   released `.deb` since 6.3.6 has the fault. 6.3.7's two snaps, built on 18 October 2026 and never on the Snap Store,
   have it: unpacked with their owners and modes and started as below, the amd64 one makes no configuration ("could
-  not be read"). `Snap.md` no longer offers them for an upload by hand and says they are not to be uploaded, so the
-  next release's snap is the first in the store. In the snap the file is the template alone - the
-  configuration made from it is `snap_daemon`'s and 0600 - so `snap/snapcraft.yaml` makes it 0644, as the snap's other
-  files are. `build/ci/snap-build.sh` now runs `hmailserver-start` as `snap_daemon`, with no group and nothing of
+  not be read"). `Snap.md` says that they are not to be uploaded, so the next release's snap is the first in the
+  store. In the snap the file is the template alone - the configuration made from it is `snap_daemon`'s and 0600 - so
+  `snap/snapcraft.yaml` makes it 0644, as the snap's other files are. `build/ci/snap-build.sh` now runs `hmailserver-start` as `snap_daemon`, with no group and nothing of
   root's, from the snap's files unpacked with their owners and modes, and requires the configuration made,
   `snap_daemon`'s and 0600, and the server's `--version`: from the 6.3.7 `.deb` of the pipeline before, with the file
   0640, it fails there (`awk: cannot open "..." (Permission denied)`, then "could not be read"), and with this change
@@ -3699,8 +3698,7 @@ with `--check`).
   continues the project", which a reviewer reads as the original's successor; the original hMailServer, Martin
   Knafve's, is developed again and has releases of its own. The comment now says that the snap is Progressive Robot's
   fork of hMailServer, maintained by Progressive Robot Ltd, that it is not the original by Martin Knafve, and that the
-  snap's title, summary and description say so. The step before the release of the kept 6.3.7 snaps to `stable`,
-  setting the store listing to the fork's texts by hand, is as it was.
+  snap's title, summary and description say so.
 
 - **ForkAndOriginal.md says what this project is beside the original hMailServer by Martin Knafve, for someone
   choosing between the two and for the listings and directories that describe this project.** It says that this
@@ -3753,9 +3751,9 @@ with `--check`).
   Chocolatey's CLI, and that 6.3.6's and 6.3.7's images carry an attestation beside each platform's image.
   [ContainerImage.md](hmailserver/docs/ContainerImage.md) said that Artifact Hub listed the chart at 6.3.6 without
   the Verified publisher label; both listings are at 6.3.7 with it. [Snap.md](hmailserver/docs/Snap.md) says that
-  6.3.7 is not in the Snap Store, why `snap-upload` cannot send it, that its two builds' artifacts are kept, and how
-  to upload it by hand. [Nix.md](hmailserver/docs/Nix.md) said that a build of `v6.3.6` needed the tag; the tag has
-  existed since 5 October 2026, and the build from it has still not been run. Roadmap2's and Roadmap3's Chocolatey
+  6.3.7 is not in the Snap Store, why `snap-upload` cannot send it, and that its two builds' artifacts are kept, which
+  are not to be uploaded (Correctness, above). [Nix.md](hmailserver/docs/Nix.md) said that a build of `v6.3.6`
+  needed the tag; the tag has existed since 5 October 2026, and the build from it has still not been run. Roadmap2's and Roadmap3's Chocolatey
   rows say the same.
 - **The channel documents say what the first runs of the PPA's, Copr's and OBS's jobs made on 21 October 2026, and
   where every channel stood that day.** Channels.md's opening says that OBS publishes 6.3.7 for openSUSE Leap 16.0
@@ -3771,10 +3769,10 @@ with `--check`).
   winget's submissions are made by hand and Chocolatey's by `chocolatey-publish`, whose first package was 6.3.7,
   where it said that every submission was made by hand and that the job replaced the GitHub workflow from 6.3.6; and
   that the AppImages were attached to 6.3.0 to 6.3.3 and again from 6.3.6, not to 6.3.4 or 6.3.5, where it said
-  that no release after 6.3.3 carried them. Snap.md's upload of 6.3.7 by hand sets the store listing's title,
-  summary, description and website to say the fork before the release to `stable`. ContainerImage.md, which
-  Artifact Hub shows as the image's README, opens by saying that this is Progressive Robot's fork of hMailServer,
-  not the original. Roadmap2's winget and Chocolatey row is named by the two packages' ids, where it was named
+  that no release after 6.3.3 carried them. Snap.md has the store listing's title, summary, description and website
+  set by hand to say the fork before the first snap in the store, the next release's, goes to `stable`.
+  ContainerImage.md, which Artifact Hub shows as the image's README, opens by saying that this is Progressive Robot's
+  fork of hMailServer, not the original. Roadmap2's winget and Chocolatey row is named by the two packages' ids, where it was named
   `winget install hMailServer`, the command that will install the original, and says first that Chocolatey's 6.3.7
   waits for moderation and that nothing is submitted to winget; Roadmap3's PPA, Copr and OBS rows say what was made
   on 21 October 2026, where they listed it as still to do. README.md no longer says that the original went quiet for
