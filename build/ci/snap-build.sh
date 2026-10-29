@@ -80,8 +80,12 @@ cp "$deb" "snap-build/input/hmailserver_$arch.deb"
 # its index (git ls-files -s) - 0755 for 100755 and 0644 for 100644, the modes of the
 # .deb's files - and each directory 0755, before the snap is packed. The mode is read
 # from the index, not from the checkout's execute bit, which a working tree chmodded by
-# hand or copied from a filesystem without modes may have where git has none; a file
-# git does not record is refused. That is done in the checkout itself, the one place
+# hand or copied from a filesystem without modes may have where git has none; an entry
+# git does not record is refused - a file, a symbolic link or anything else that is
+# not in the index, and a directory that holds none of the index's files, since the
+# dump plugin would copy each into the snap as the checkout has it (a link git records
+# is taken as the link it is, in snap/local alone, and a file the index records as
+# one must be a regular file in the checkout). That is done in the checkout itself, the one place
 # both are read from, the icon when snapcraft packs, after the parts' steps, and git
 # shows no change: git keeps no mode but the execute bit, and where the checkout's
 # differs from the index's while core.fileMode is true - a change of mode that git
@@ -106,18 +110,39 @@ if [ "$(in_git rev-parse --show-toplevel 2> /dev/null)" = "$top" ]; then
    in_git ls-files -s -z -- snap/local snap/hooks "$icon" > snap-build/input/git-modes \
       || fail "git ls-files could not list snap/local, snap/hooks and the icon"
    filemode="$(in_git config --bool core.fileMode || echo true)"
-   declare -A recorded=()
+   # The directories git's entries are in: git records no directory of its own, so
+   # one that holds none of its files is the checkout's alone.
+   declare -A recorded=() holds=()
    while IFS= read -r -d '' entry; do
-      recorded["${entry#*$'\t'}"]="${entry%% *}"
+      path="${entry#*$'\t'}"
+      recorded["$path"]="${entry%% *}"
+      while [[ "$path" == */* ]]; do
+         path="${path%/*}"
+         holds["$path"]=1
+      done
    done < snap-build/input/git-modes
-   find snap/local snap/hooks "$icon" -type f -print0 > snap-build/input/checkout-files
+   find snap/local snap/hooks -type d -print0 > snap-build/input/checkout-dirs
+   while IFS= read -r -d '' dir; do
+      [ -n "${holds[$dir]:-}" ] || fail "$dir holds no file git's index records: the snap takes the entries git records, and this directory is the checkout's alone"
+   done < snap-build/input/checkout-dirs
+   # Every other entry - a file, a symbolic link, anything but a directory - must be
+   # one git records, and of the kind it records: a link (120000) is copied as a link
+   # and has no mode of its own, and is allowed in snap/local alone.
+   find snap/local snap/hooks "$icon" ! -type d -print0 > snap-build/input/checkout-files
    while IFS= read -r -d '' file; do
       case "${recorded[$file]:-}" in
          100755) mode=0755 ;;
          100644) mode=0644 ;;
-         '') fail "$file is not in git's index: the snap takes the files git records, with their modes" ;;
-         *) fail "$file is ${recorded[$file]} in git's index, not a file's 100644 or 100755" ;;
+         120000)
+            [[ "$file" == snap/local/* ]] || fail "$file is a symbolic link in git's index: the snap takes a hook and its icon as files"
+            [ -L "$file" ] || fail "$file is a symbolic link in git's index and not one in the checkout"
+            continue ;;
+         '') fail "$file is not in git's index: the snap takes the entries git records, with their modes" ;;
+         *) fail "$file is ${recorded[$file]} in git's index, not a file's 100644 or 100755 or a link's 120000" ;;
       esac
+      if [ -L "$file" ] || [ ! -f "$file" ]; then
+         fail "$file is a file in git's index (${recorded[$file]}) and not a regular file in the checkout"
+      fi
       if [ "$filemode" = true ] && [ $((0$(stat -c %a "$file") & 0100)) != $((mode & 0100)) ]; then
          fail "$file is $(stat -c %a "$file") in the checkout and ${recorded[$file]} in git's index, a change of mode git status shows: the snap takes git's modes, and this build does not undo the change"
       fi

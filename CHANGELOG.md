@@ -800,9 +800,12 @@ with `--check`).
   but they were not the modes meant. `build/ci/snap-build.sh` now gives each file of `snap/local` and `snap/hooks` and
   the icon, in the checkout before it packs, the mode git's index records for it (`git ls-files -s`): 0755 for 100755
   and 0644 for 100644, not the checkout's execute bit, which a working tree chmodded by hand or copied from a
-  filesystem without modes may have where git has none. A file git does not record is refused, and so is one whose
-  execute bit differs from the index's while `core.fileMode` is true, a change of mode `git status` shows, which the
-  build does not undo; so git shows no change after it. Only a tree that is no git checkout takes the owner's execute
+  filesystem without modes may have where git has none. An entry git does not record is refused, since the plugin
+  would copy it as the checkout has it: a file, a symbolic link or anything else the index does not hold, and a
+  directory that holds none of the index's files (a link git records is taken as a link, in `snap/local` alone, and a
+  file git records must be a regular file in the checkout). So is a file whose execute bit differs from the index's
+  while `core.fileMode` is true, a change of mode `git status` shows, which the build does not undo; so git shows no
+  change after it. Only a tree that is no git checkout takes the owner's execute
   bit for git's. Each directory of theirs is made 00755, which clears a set-group-ID bit that GNU's `chmod` keeps under
   0755, and the script packs under umask 022, so that what snapcraft makes does not take a shell's 0002. It requires
   every entry of the snap to be root's, each directory 0755 and each file 0644 or 0755, and each entry taken from

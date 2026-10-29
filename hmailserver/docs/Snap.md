@@ -277,9 +277,12 @@ job whose `.deb` it takes - in a `batch*` pipeline at once, on `master` once tha
    records for it (`git ls-files -s`; the owner's execute bit only in a tree that is
    no git checkout) before it is packed, and the snap's entries are held to those
    modes after, since GitLab Runner writes a job's checkout under umask 0000 and the
-   snap would record its 0666 and 0777; a file git does not record, or one whose
-   execute bit differs from the index's in a change of mode `git status` shows, is
-   refused, not undone - so that `snap_daemon` reads every file and nobody
+   snap would record its 0666 and 0777; an entry git does not record - a file or a
+   symbolic link the index does not hold, or a directory that holds none of its
+   files, which the snap would take as the checkout has it - or a file whose execute
+   bit differs from the index's in a change of mode `git status` shows, is refused,
+   not undone (a link git records is taken as a link, in `snap/local` alone) - so
+   that `snap_daemon` reads every file and nobody
    but root may write one; the server it carries finds every library in the snap or core24
    and answers `--version` with that version; `hmailserver-start`, run as
    `snap_daemon` from the snap's files with their owners and modes, makes the
