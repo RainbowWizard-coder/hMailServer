@@ -171,8 +171,11 @@ appimage-runtime-sources:
     pull_policy: [if-not-present, always]
     docker:
       platform: linux/amd64
-  # When Alpine's GitLab cannot connect, its three tries take about eight minutes before
-  # the script asks git.alpinelinux.org, in each of the two packs.
+  # The script asks git.alpinelinux.org after three tries of Alpine's GitLab, in each of
+  # the two packs: about eight minutes when the GitLab cannot connect (each try fails
+  # after about 133 s), and at most ten and a half when it takes the connection and does
+  # not answer (each try is cut off after 180 s, with 30 and 60 s between them); with the
+  # mirror's fetch and the rest, about 17 and 22 minutes of the 30.
   timeout: 30 minutes
   script:
     - sh build/ci/packages/appimage-runtime-sources.sh pack appimage/runtime-x86_64-linked.txt appimage/runtime-aarch64-linked.txt

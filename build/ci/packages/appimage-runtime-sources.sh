@@ -27,10 +27,13 @@
 # their releases there: each upstream archive comes from Alpine's own distfiles mirror
 # (https://distfiles.alpinelinux.org/distfiles/<branch>/), and Alpine's build script
 # and patches from aports on Alpine's GitLab (https://gitlab.alpinelinux.org), at the
-# commit apk's database records for the installed package. When Alpine's GitLab cannot
-# be reached, the same commits are fetched by their ids from git.alpinelinux.org, Alpine's
-# own mirror of that repository (https://git.alpinelinux.org/aports), and from nowhere
-# else; the log says which served. No redirect is followed.
+# commit apk's database records for the installed package: every object of those commits
+# in one fetch, after which nothing more is read from the network. When that fetch from
+# Alpine's GitLab fails after its tries, each cut off after 180 s, the same commits are
+# fetched in the same way, by their ids, from git.alpinelinux.org, Alpine's own mirror of
+# that repository (https://git.alpinelinux.org/aports), and from nowhere else; the log
+# says which served, and the refusal when neither does names both. No redirect is
+# followed.
 #
 # Which of the two served changes nothing packed. A commit's id is the hash of the
 # commit, which names its tree by the tree's id, and git checks each object it is given
@@ -73,8 +76,9 @@
 # distfiles mirror and to Alpine's GitLab or git.alpinelinux.org, and installs git, curl,
 # GNU tar, gzip and xz with apk. Every step that reaches the network is tried again for
 # some minutes before the job fails: an outage of Alpine's mirror that short, or of
-# Alpine's GitLab of any length while git.alpinelinux.org answers, no longer stops a
-# tag's pipeline, and what arrives is held to the same SHA-512s and commit ids as before.
+# Alpine's GitLab of any length while git.alpinelinux.org answers, whether the GitLab
+# refuses, drops or holds the connection, no longer stops a tag's pipeline, and what
+# arrives is held to the same SHA-512s and commit ids as before.
 set -eu
 
 # The libraries whose source the release file carries, by aports origin, and the files
@@ -307,28 +311,32 @@ pack() {
   }
   aports_repo "$APORTS"
   cut -d' ' -f3 "$work/units" | LC_ALL=C sort -u > "$work/commits"
+  # Every object of the commits, blobs and all, in one fetch from origin, so that no git
+  # command after it reaches the network: a partial clone (--filter=blob:none) would
+  # fetch the blobs it left out from its origin when git archive reads them, from the
+  # GitLab after the GitLab had been chosen. Each try is cut off after 180 s: a host that
+  # takes the connection and does not answer would otherwise hold it for libcurl's
+  # 300 s of connecting, or with no end once TLS is up, as git sets no bound of its own.
+  # xargs runs timeout around git, not timeout around xargs, so that it is git that is
+  # stopped, with TERM, and git removes its lock files; the try has then failed.
   fetch_aports() {
-    xargs git -C "$aports" fetch -q --no-tags --depth 1 --filter=blob:none origin < "$work/commits"
-  }
-  # From git.alpinelinux.org, which ignores the blob filter, everything: a fresh
-  # repository, so that nothing is left for git to fetch later from the GitLab.
-  fetch_mirror() {
-    xargs git -C "$aports" fetch -q --no-tags --depth 1 origin < "$work/commits"
+    xargs timeout 180 git -C "$aports" fetch -q --no-tags --depth 1 origin < "$work/commits"
   }
   if attempt "fetching aports" fetch_aports; then
     echo "aports: the commits fetched from $APORTS"
   else
+    # From git.alpinelinux.org, into a fresh repository whose origin is the mirror, so
+    # that nothing of the GitLab's fetch is left.
     echo "aports could not be fetched from $APORTS; fetching the same commits by id from $APORTS_MIRROR"
     aports_repo "$APORTS_MIRROR"
-    attempt "fetching aports from $APORTS_MIRROR" fetch_mirror \
+    attempt "fetching aports from $APORTS_MIRROR" fetch_aports \
       || die "aports could not be fetched at $(tr '\n' ' ' < "$work/commits")from $APORTS or from $APORTS_MIRROR"
     echo "aports: the commits fetched from $APORTS_MIRROR"
   fi
 
   # Each library, version and commit: where it is in aports, and that directory's tree.
-  # Either fetch brought the trees (the GitLab's without the blobs, --filter=blob:none),
-  # so the lookup reads nothing from the network: a git failure here is not a missing
-  # directory, and is tried again.
+  # The fetch brought every object, so the lookup reads nothing from the network: a git
+  # failure here is not a missing directory, and is tried again.
   aports_where() {
     for wait in 30 60 none; do
       if listed=$(git -C "$aports" ls-tree -d "$1" "main/$2" "community/$2" 2>&1); then
@@ -371,9 +379,8 @@ pack() {
     mkdir -p "$target"
     rm -rf "$work/x"
     mkdir -p "$work/x"
-    # From the GitLab's fetch, the archive fetches the directory's blobs, which the fetch
-    # left out (the mirror's brought them): a lapse is tried again.
-    attempt "aports' $where at $commit" git -C "$aports" archive --format=tar -o "$work/aports.tar" "$commit" "$where" \
+    # From the objects the fetch brought: nothing is read from the network here.
+    git -C "$aports" archive --format=tar -o "$work/aports.tar" "$commit" "$where" \
       || die "aports' $where could not be read at $commit"
     tar -x -f "$work/aports.tar" -C "$work/x"
     if [ -n "$(find "$work/x" -type l)" ]; then

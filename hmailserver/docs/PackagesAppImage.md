@@ -510,10 +510,13 @@ is not in the release, and its `README.txt` says where Alpine's is.
   runtime jobs' records. For each library at each version and commit they name:
   - Alpine's aports directory at that commit, with its `APKBUILD` and patches,
     fetched from Alpine's GitLab by the commit's id, so that git checks every
-    file against the commit. When Alpine's GitLab cannot be reached after its
-    tries (below), the same commits are fetched by their ids from
-    `git.alpinelinux.org/aports`, Alpine's own mirror of that repository, into
-    a new repository, and from nowhere else; the job's log says which served.
+    file against the commit: every object of the commits in one fetch, after
+    which nothing more is read from the network. When that fetch fails after
+    its tries (below), each cut off after 180 s, the same commits are fetched
+    in the same way, by their ids, from `git.alpinelinux.org/aports`, Alpine's
+    own mirror of that repository, into a new repository, and from nowhere
+    else; the job's log says which served, and the refusal when neither does
+    names both.
     Either way the archive is the same bytes: a commit's id names its tree and
     every file in it, which git checks, and `README.txt` names the repository
     on Alpine's GitLab, which the mirror copies, with the commit and tree ids;
@@ -526,8 +529,9 @@ is not in the release, and its `README.txt` says where Alpine's is.
     5xx, is tried again with a growing wait for up to ten minutes (a 404 is
     not: it sends the job to `edge/`), and the aports fetch from each address
     and `apk add` are tried three times over a minute and a half, so that a
-    short outage of Alpine's hosts, or a long one of its GitLab while
-    `git.alpinelinux.org` answers, no longer fails a tag's pipeline;
+    short outage of Alpine's hosts, or one of its GitLab of any length while
+    `git.alpinelinux.org` answers, whether the GitLab refuses, drops or holds
+    the connection, no longer fails a tag's pipeline;
   - each source file held to the SHA-512 the `APKBUILD` gives it, the `APKBUILD`
     read as `abuild` reads it for each architecture that linked the library, and
     its version held to the package installed.

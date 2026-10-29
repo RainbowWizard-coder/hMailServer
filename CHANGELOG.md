@@ -3667,24 +3667,40 @@ with `--check`).
   at <the commits> from https://gitlab.alpinelinux.org/alpine/aports.git`), and the five AppImage jobs after it did not
   run. When the three tries fail, the script now fetches the same commits by their ids from
   `https://git.alpinelinux.org/aports`, Alpine's own mirror of that repository (its page says "Mirror of
-  https://gitlab.alpinelinux.org/alpine"), three times as well, and from nowhere else: GitHub stays out of the job. It
-  fetches them into a new repository and without the blob filter, which that host ignores, so that nothing is left for
-  git to fetch later from the host that failed, as the blobs a partial clone leaves out are. The log says which address
-  served ("aports: the commits fetched from ..."), and the refusal names both. What is packed does not depend on which:
-  a commit's id names its tree and so every file in it, git checks each object it is given against its id, and
-  `README.txt` names the repository by its home on Alpine's GitLab, which the mirror copies, with the commit and tree
-  ids, so every word of it stays true and the tarball is the same bytes either way. The job's timeout is 30 minutes,
-  where it was 20: when Alpine's GitLab cannot connect, its three tries take about eight minutes before the mirror is
-  asked, and the job packs twice. Nothing else changes: with Alpine's GitLab answering, the script fetches and packs as
-  before. The script's header, the job's comment and PackagesAppImage.md's "Licences" say so. Run on 29 October 2026 in
-  the job's `alpine:3.24` image by its digest, its whole script (the `.no-github` lines among it) on checkouts made as
+  https://gitlab.alpinelinux.org/alpine"), three times as well, into a new repository, and from nowhere else: GitHub
+  stays out of the job. Either host's fetch brings every object of the commits, blobs and all, after which nothing more
+  is read from the network: the GitLab's fetch was a partial clone (`--filter=blob:none`), whose missing blobs
+  `git archive` fetched from the GitLab one library at a time, so that a GitLab that stopped answering after the fetch
+  would have failed the job without the mirror being asked. One full fetch is also less to move than the partial one and
+  its eight later fetches. Each try of a fetch is cut off after 180 s (`timeout`, which stops git itself, so that git
+  removes its lock files): a host that takes the connection and never answers held each try for libcurl's 300 s of
+  connecting, or with no end once TLS was up, since git sets no bound of its own, and six such tries would have run past
+  the job's timeout. The log says which address served ("aports: the commits fetched from ..."), and the refusal names
+  both. What is packed does not depend on which: a commit's id names its tree and so every file in it, git checks each
+  object it is given against its id, and `README.txt` names the repository by its home on Alpine's GitLab, which the
+  mirror copies, with the commit and tree ids, so every word of it stays true and the tarball is the same bytes either
+  way. The job's timeout is 30 minutes, where it was 20: the job packs twice, and in each pack the GitLab's three tries
+  take about eight minutes before the mirror is asked when the GitLab cannot connect, and at most ten and a half when it
+  holds the connection. Nothing else changes: with Alpine's GitLab answering, the script packs the same bytes as before.
+  The script's header, the job's comment and PackagesAppImage.md's "Licences" say so. Run on 29 October 2026 in the
+  job's `alpine:3.24` image by its digest, its whole script (the `.no-github` lines among it) on checkouts made as
   GitLab Runner's helper makes one, over the records the `appimage-runtime-x86_64` and `appimage-runtime-aarch64` jobs'
-  whole scripts made (Alpine 3.24.2, eight libraries at eight aports commits), Alpine's GitLab answering again by then:
-  the script as it was made the tarball twice to the same bytes in 36 s, 10,741,716 bytes, `cfc228a9...`, and with
-  `gitlab.alpinelinux.org` given an address that drops every packet, as the outage did, it failed after 495 s with the
-  refusal above, each of its three tries failing to connect after 132.5 to 133.8 s; the script as it is made the same
-  bytes in 57 s with the GitLab answering, and, with the GitLab unreachable, fetched the commits from the mirror after
-  the three tries and made the same bytes twice, the job passing in 1,007 s.
+  whole scripts made (Alpine 3.24.2, eight libraries at eight aports commits). The script as it was before the mirror
+  made the tarball twice to the same bytes with Alpine's GitLab answering, and with `gitlab.alpinelinux.org` given an
+  address that drops every packet, as the outage did, it failed after 495 s with the refusal above, each of its three
+  tries failing to connect after 132.5 to 133.8 s. Over one tree, the script as it is made the bytes that script makes
+  there, 10,741,717 bytes, `99fec860...`, both packs alike, in each of these: with the GitLab answering (38 s, the log
+  naming it); refusing (204 s, the log naming the mirror); dropping every packet (1,008 s, its tries failing after 132.5
+  to 135.1 s); a socket that listens and never accepts (1,283 s, each try cut off at 180 s, where the script with the
+  mirror and without the bound took 2,005 s, its tries waiting 300 s each, past the job's 30 minutes); and made
+  unreachable as soon as its fetch had ended, where the script with the mirror and the partial fetch failed after 100 s
+  (`could not fetch ... from promisor remote`, then `aports' main/fuse3 could not be read at 0adb5f52...`) and never
+  asked the mirror, and the script as it is packed what it had fetched and then, in the second pack, what the mirror
+  served, in 125 s. With both hosts refusing it failed after 185 s, naming both. From the GitLab, the partial fetch of
+  the eight commits received 3,033 KiB and `git archive`'s fetches 35,370 KiB more, and the full fetch 26,683 KiB with
+  nothing after it, each library's directory archived to the same bytes. With the bound at 20 s, a try against a
+  stand-in that takes the TCP connection and never answers, and two against one that completes TLS and then sends
+  nothing, each ended after 20 s, leaving no git process and no lock file, the second running as the first had.
 
 ### Documentation
 
