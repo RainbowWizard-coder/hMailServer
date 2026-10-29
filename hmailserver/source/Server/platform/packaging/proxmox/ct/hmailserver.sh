@@ -77,7 +77,10 @@ var_dry_run="${var_dry_run:-no}"
 # with - is read as an argument too, so that an option there is either taken or
 # refused, never ignored. No shell, script or 'update' is called by such a name.
 first=()
-case "$0" in -*) first=("$0") ;; *) ;; esac
+case "$0" in
+  -*) first=("$0") ;;
+  *) ;;
+esac
 for argument in "${first[@]}" "$@"; do
   case "$argument" in
     --dry-run) var_dry_run=yes ;;
@@ -191,8 +194,14 @@ number var_disk "$var_disk"
 printf '%s\n' "$var_swap" | grep -Eqx '[0-9]{1,7}' || fail "var_swap is '$var_swap', not a whole number"
 printf '%s\n' "$var_hostname" | grep -Eqx '[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*' \
   || fail "var_hostname is '$var_hostname', not a host name"
-case "$var_nesting" in 0 | 1) ;; *) fail "var_nesting is '$var_nesting': 0 or 1" ;; esac
-case "$var_onboot" in 0 | 1) ;; *) fail "var_onboot is '$var_onboot': 0 or 1" ;; esac
+case "$var_nesting" in
+  0 | 1) ;;
+  *) fail "var_nesting is '$var_nesting': 0 or 1" ;;
+esac
+case "$var_onboot" in
+  0 | 1) ;;
+  *) fail "var_onboot is '$var_onboot': 0 or 1" ;;
+esac
 if [ "${var_unprivileged:-1}" != 1 ]; then
   fail "var_unprivileged is '${var_unprivileged}': this script makes unprivileged containers only"
 fi
@@ -283,7 +292,7 @@ if [ -n "${var_ssh_keys:-}" ]; then
 fi
 
 step "$APP: a Proxmox VE container"
-say "Proxmox VE ${pve_version:-(none here)}; container $ctid, '$var_hostname', unprivileged, nesting $var_nesting"
+say "Proxmox VE ${pve_version:-"(none here)"}; container $ctid, '$var_hostname', unprivileged, nesting $var_nesting"
 say "$var_cpu cores, $var_ram MiB of memory and $var_swap MiB of swap, a $var_disk GiB disk on $storage"
 if [ "$need_template" = yes ]; then
   say "the template: none on $template_storage yet; the newest ${OS_TEMPLATE_PREFIX}*_amd64 Proxmox VE offers once 'pveam update' has run (now ${template:-none is listed}), downloaded first"
@@ -302,7 +311,10 @@ if ! dry && [ "${var_yes:-no}" != yes ]; then
   # Nothing changes the host unasked: with no terminal to ask at, var_yes=yes is the yes.
   [ -t 0 ] || fail "not created: there is no terminal to ask at; give var_yes=yes to create it without the question, or var_dry_run=yes to see what it would run"
   read -r -p "Create it? [y/N] " answer
-  case "$answer" in y | Y | yes | YES) ;; *) fail "not created" ;; esac
+  case "$answer" in
+    y | Y | yes | YES) ;;
+    *) fail "not created" ;;
+  esac
 fi
 
 work="$(mktemp -d)"

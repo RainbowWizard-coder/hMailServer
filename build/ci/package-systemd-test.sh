@@ -713,9 +713,10 @@ clamd_started=$SECONDS
 # nothing, the step fails with the server's own reason from its error log, the
 # process's groups and the unit's RestrictAddressFamilies= and InaccessiblePaths=.
 api() {
-  local method=$1 path=$2 body=${3:-}
+  local method=$1 path=$2 body=${3:-} data=()
+  [ -z "$body" ] || data=(--data "$body")
   curl -sS --netrc-file "$work/netrc" -o "$work/api.json" -w '%{http_code}' -X "$method" \
-    -H 'Content-Type: application/json' ${body:+--data "$body"} "http://127.0.0.1:$REST_PORT$path" 2> "$work/api.err"
+    -H 'Content-Type: application/json' "${data[@]}" "http://127.0.0.1:$REST_PORT$path" 2> "$work/api.err"
 }
 # The wrong password the REST step sent leaves the administrator's credential
 # throttled for a moment (a 429 with Retry-After, up to ten seconds), until the

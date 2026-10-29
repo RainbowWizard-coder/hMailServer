@@ -267,7 +267,10 @@ held_to_sums() {
   local name want have
   name="$(basename "$1")"
   want="$(awk -v n="$name" '$2 == n || $2 == "*" n { print $1 }' "$2")"
-  case "$want" in *$'\n'*) fail "the signed sums name $name more than once" ;; *) ;; esac
+  case "$want" in
+    *$'\n'*) fail "the signed sums name $name more than once" ;;
+    *) ;;
+  esac
   printf '%s\n' "$want" | grep -Eqx '[0-9a-f]{64}' || fail "the signed sums have no line for $name"
   have="$(sha256sum "$1" | cut -d' ' -f1)"
   [ "$have" = "$want" ] || fail "$name's SHA-256 is $have; the signed sums say $want"
@@ -348,7 +351,10 @@ mail_server_units() {
 # removes: Postfix (the template's) and Exim (Debian's default). Any other is left to
 # the administrator, since its queue is not read here.
 removable_mail_server() {
-  case "$1" in postfix | exim4-daemon-light | exim4-daemon-heavy) return 0 ;; *) return 1 ;; esac
+  case "$1" in
+    postfix | exim4-daemon-light | exim4-daemon-heavy) return 0 ;;
+    *) return 1 ;;
+  esac
 }
 # The messages in Postfix's and Exim's queues, which removing the package would strand:
 # a file a message in Postfix's, and a message's -H file in Exim's.
@@ -403,14 +409,24 @@ ask_server() {
   exec 3<> /dev/tcp/127.0.0.1/25
   IFS= read -r -t 15 line <&3 || fail "no greeting on port 25"
   line="${line%$'\r'}"
-  case "$line" in 220\ *) say "SMTP on 25: $line" ;; *) fail "port 25 greets with '$line', not 220" ;; esac
+  case "$line" in
+    "220 "*) say "SMTP on 25: $line" ;;
+    *) fail "port 25 greets with '$line', not 220" ;;
+  esac
   printf 'EHLO hmailserver-lxc.invalid\r\n' >&3
   while IFS= read -r -t 15 line <&3; do
     line="${line%$'\r'}"
     extensions="$extensions $line"
-    case "$line" in 250\ *) break ;; 250-*) ;; *) fail "EHLO answered '$line'" ;; esac
+    case "$line" in
+      "250 "*) break ;;
+      250-*) ;;
+      *) fail "EHLO answered '$line'" ;;
+    esac
   done
-  case "$extensions" in *STARTTLS*) say "EHLO offers STARTTLS" ;; *) fail "EHLO does not offer STARTTLS" ;; esac
+  case "$extensions" in
+    *STARTTLS*) say "EHLO offers STARTTLS" ;;
+    *) fail "EHLO does not offer STARTTLS" ;;
+  esac
   printf 'QUIT\r\n' >&3
   exec 3>&-
   if [ "$mode" = install ]; then
@@ -436,7 +452,10 @@ ask_server() {
     return 0
   fi
   url_host="$rest_host"
-  case "$url_host" in *:*) url_host="[$url_host]" ;; *) ;; esac
+  case "$url_host" in
+    *:*) url_host="[$url_host]" ;;
+    *) ;;
+  esac
   url="https://$url_host:$rest_port/api/v1/status"
   wait_for_port "$rest_port" 60 "$rest_host" || fail "nothing answers on the REST API's port, $rest_host port $rest_port ($where)"
   if [ -n "${admin_password:-}" ]; then
@@ -501,9 +520,10 @@ if [ "$mode" = install ]; then
   step "Other mail servers and the ports"
   others="$(other_mail_servers | tr '\n' ' ')"
   others="${others% }"
+  # The same names one to an element, for the commands that are given them.
+  read -r -a other_packages <<< "$others"
   unknown=""
-  # shellcheck disable=SC2086 # one package name a word
-  for name in $others; do
+  for name in "${other_packages[@]}"; do
     removable_mail_server "$name" || unknown="${unknown:+$unknown }$name"
   done
   [ -z "$unknown" ] || fail "$unknown provide(s) mail-transport-agent, and the install removes only Postfix and Exim, whose queues it reads: deliver what $unknown still holds, remove it (apt-get remove $unknown), then run this again; nothing of the server has been installed, and nothing removed"
@@ -511,8 +531,7 @@ if [ "$mode" = install ]; then
     queued="$(queued_messages)"
     [ "$queued" = 0 ] || fail "$others has $queued message(s) in its queue; deliver or remove them first, then run this again: the install removes $others, and nothing of the server has been installed, and nothing removed"
     held_before="$(listeners 25)"
-    # shellcheck disable=SC2086
-    for unit in $(mail_server_units $others); do
+    for unit in $(mail_server_units "${other_packages[@]}"); do
       case "$unit" in
         *@.*) systemctl stop "${unit%%@*}@*.${unit##*.}" > /dev/null 2>&1 || true ;;
         *) systemctl disable --now "$unit" > /dev/null 2>&1 || true ;;
@@ -521,14 +540,13 @@ if [ "$mode" = install ]; then
     # It held port 25 if a listener there went with its units.
     held_note=""
     [ -z "$held_before" ] || [ -n "$(listeners 25)" ] || held_note=", which held port 25"
-    # shellcheck disable=SC2086
-    apt-get remove -y -q -o Dpkg::Use-Pty=0 $others || fail "$others could not be removed"
+    apt-get remove -y -q -o Dpkg::Use-Pty=0 "${other_packages[@]}" || fail "$others could not be removed"
     say "stopped and removed $others$held_note (its configuration is kept: 'apt-get install $others' puts it back)"
     unset unit held_before held_note
   else
     say "no other mail server is installed"
   fi
-  unset name unknown
+  unset name unknown other_packages
   ports="25 110 143 587"
   [ "$var_rest_port" = 0 ] || ports="$ports $var_rest_port"
   for port in $ports; do
@@ -673,7 +691,10 @@ if [ "$mode" = install ]; then
     printf 'Sign in to the Control Deck as Administrator with it:\n'
     for address in $addresses; do
       # An IPv6 address goes in brackets in a URL.
-      case "$address" in *:*) address="[$address]" ;; *) ;; esac
+      case "$address" in
+        *:*) address="[$address]" ;;
+        *) ;;
+      esac
       printf '    https://%s:%s/\n' "$address" "$var_rest_port"
     done
   else

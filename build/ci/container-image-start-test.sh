@@ -440,7 +440,7 @@ ask_image() {
 
   # What GET /api/v1/status says under build of the OpenSSL the server runs with,
   # held below to what the server does with it.
-  local pq argon logs logfiles logfile tail entries codes other handshake offered answer said_5607
+  local pq argon logs logfiles logfile tail found entries codes other handshake offered answer said_5607
   case "$body" in
     *'"post_quantum_key_exchange":true'*) pq=true ;;
     *'"post_quantum_key_exchange":false'*) pq=false ;;
@@ -471,7 +471,8 @@ ask_image() {
     tail=$(printf 'user = "Administrator:%s"\n' "$password" | curl -sk --max-time 10 -K - "https://$host:$rest_port/api/v1/logs/$logfile?lines=2000") \
       || fail "beside $database, GET /api/v1/logs/$logfile as Administrator failed"
     printf '%s: %s\n' "$logfile" "${tail:0:1500}"
-    entries=$((entries + $(grep -o 'Severity: [0-9]' <<< "$tail" | wc -l)))
+    found=$(grep -o 'Severity: [0-9]' <<< "$tail" | wc -l)
+    entries=$((entries + found))
     codes="$codes $(grep -oE 'Code: HM[0-9]+' <<< "$tail" | sed 's/^Code: //' | tr '\n' ' ')"
   done
   other=$(tr ' ' '\n' <<< "$codes" | sed '/^$/d' | grep -vx HM5720 | tr '\n' ' ')
@@ -531,7 +532,8 @@ ask_image() {
   for logfile in $logfiles; do
     tail=$(printf 'user = "Administrator:%s"\n' "$password" | curl -sk --max-time 10 -K - "https://$host:$rest_port/api/v1/logs/$logfile?lines=2000") \
       || fail "beside $database, GET /api/v1/logs/$logfile as Administrator failed"
-    said_5607=$((said_5607 + $(grep -o 'Code: HM5607, [^"]*has no Argon2id KDF' <<< "$tail" | wc -l)))
+    found=$(grep -o 'Code: HM5607, [^"]*has no Argon2id KDF' <<< "$tail" | wc -l)
+    said_5607=$((said_5607 + found))
   done
   made=$(printf 'user = "Administrator:%s"\n' "$password" | curl -sk --max-time 10 -K - -o /dev/null -w '%{http_code}' -X POST \
            -H 'Content-Type: application/json' --data "{\"name\":\"$domain\",\"active\":true}" "https://$host:$rest_port/api/v1/domains") \

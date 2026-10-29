@@ -9019,7 +9019,7 @@ START_TEST_DEFAULTS = ('expected="${HM_START_VERSION:-}"', '  tag="${CI_COMMIT_T
 # build/ci/container-image-start-test.sh as this file holds it: the SHA-256 of its text,
 # its line ends LF, with the two image pins of START_TEST_PINS each made
 # START_TEST_PIN_TAKEN_OUT (start_test_digest_problems).
-START_TEST_SHA256 = "8123a4285824ee65fcfb86486f6e6d2057b1c5f2d942b95ecc5d01cffe923e69"
+START_TEST_SHA256 = "fe69179aa991a98a6d5bdc3a23cd79e6a5201b4100d716c62bebf58eb7088cca"
 # The images the test starts by hand (--docker), each the default of a variable on a line
 # of its own: the variable, the one that overrides it, the image's name and the alias of
 # the start jobs' service it is. Renovate's regex manager for HM_*_IMAGE moves them, with

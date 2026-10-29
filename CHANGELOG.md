@@ -1557,7 +1557,8 @@ with `--check`).
   update from 6.3.6 to 6.3.7 ran in a container made from Proxmox VE's own `debian-13-standard` 13.6-1 template,
   checked against Proxmox's signed index, with systemd as PID 1, and the host's script end to end and in dry runs
   against stand-ins of Proxmox VE's commands; each of the download's checks refused a file made to fail it, and
-  shellcheck passes both scripts.
+  shellcheck passes both scripts. The semgrep job reads every line of both but the install script's two that open a
+  socket with `<>`, a redirection Semgrep's bash parser does not know.
 
 ### Control Panel
 
