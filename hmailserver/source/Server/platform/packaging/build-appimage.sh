@@ -806,6 +806,29 @@ SQUASHFS="${BUILD_DIR}/AppDir.squashfs"
 
 rm -f "${OUTPUT}" "${SQUASHFS}"
 
+# The modes. mksquashfs records each entry's mode as it is on disk, and some of the
+# AppDir's take theirs from whoever runs this script: the directories made above
+# with mkdir -p - the AppDir itself, usr, usr/bin, usr/lib, usr/share and its
+# applications and hmailserver, and licenses/bundled - take the caller's umask, and
+# DBScripts, copied with cp -r, the modes the checkout gave its files and
+# directories, masked by that umask. (install -m, -Dm and -d, and the chmods above,
+# set their own: coreutils' install makes the directories above a file 0755 whatever
+# the umask.) The CI's jobs run this under their image's umask, 0022, from the
+# runner's checkout, whose files are 0666 and directories 0777, so those entries were
+# 0644 and 0755 there; packed by hand under Ubuntu's umask for a user, 0002, the
+# image's directories were group-writable, and from a clone made under 0027 its
+# schema scripts were 0640 - an image other than the CI's from the same tree, with
+# those modes in every copy --appimage-extract makes. So every entry is given 0644,
+# or 0755 for a directory or a file already executable, as the two sources scripts
+# fix their tarballs' modes (appimage-runtime-sources.sh, appimage-bundled-sources.sh):
+# one chmod over the whole tree, where a umask set here would leave DBScripts the
+# checkout's modes, and a mode given to each mkdir would miss an entry a later change
+# makes without one. It changes no entry of a pack the CI makes, every mode above
+# being one of the two already; chmod -R passes the symbolic links by, which have no
+# mode of their own. appimage-build.sh packs the server a second time, from a copy of
+# the tree with other modes and under another umask, and fails if the two differ.
+chmod -R a+rX,u+w,go-w "${APPDIR}"
+
 # -root-owned: every file root's, as in a package, not the builder's uid.
 # zstd: what the runtime reads fastest; the runtime is linked with every
 # decompressor squashfuse was built with, and appimage-runtime.sh's self-test
