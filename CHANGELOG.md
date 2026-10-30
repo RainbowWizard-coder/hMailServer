@@ -1067,7 +1067,7 @@ with `--check`).
   `build/ci/operator-check.py`, which holds the definition, `watches.yaml` and the CSV to the chart and to each other,
   the CSV's permissions to an allow-list made from the kinds the chart renders, the Dockerfile to its allow-list, the
   three release jobs as written, the sign script whole, by the SHA-256 of its bytes, and the dotenv report the sign
-  job takes, and runs the context and bundle scripts, and its `--self-test`, which breaks them in 83 ways, each in a
+  job takes, and runs the context and bundle scripts, and its `--self-test`, which breaks them in 90 ways, each in a
   copy, and sees each refused with the problem it is meant to cause, every rule of the check by at least one case.
   Renovate reads one of operator-sdk's pins, the Dockerfile's `FROM`, and moves only its digest under its tag
   (`renovate.json`): the `FROM`, the bundle's builder annotations and the scorecard images are one release, moved by
