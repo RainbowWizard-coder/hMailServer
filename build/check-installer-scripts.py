@@ -806,7 +806,7 @@ PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'Hold
                            'HoldsOnlyEmptyFolders', 'FinalPathOf', 'RemoveHeldFolder', 'MakePlaceholder', 'ReleasePlaceholders', 'IsAtOrBelow', 'ProfilesFolder',
                            'DataLinkTargetIsGrantable', 'AclLetsEveryUserWrite', 'DatabaseTargetIsTheAdministrators', 'RestartNeededFor', 'RecordRestartNeeded',
                            'OthersCouldChange', 'NoteFolderOthersCouldChange', 'NoteFoldersOthersCouldChange', 'HardenForRestart', 'CheckFoldersBeforeTheStop',
-                           'FoldersChangedLine', 'RestoreServiceStart', 'GetCustomSetupExitCode', 'IsServiceInstalled',
+                           'FoldersChangedLine', 'RestoreServiceStart', 'GetCustomSetupExitCode', 'IsServiceInstalled', 'OpenNamedService', 'CloseServiceAndManager',
                            'DataFolderIsAllowed', 'DatabaseFilesWhy', 'HardenDataFolder', 'AddRestartFolder', 'StaleEntryLetsOthers', 'HandsDownWriteTo',
                            'NoteStaleItem', 'StaleItemIn', 'TakenEntriesLetOthers', 'RestartRecordedForWalked', 'WalkedFinal', 'MakeFolderIn',
                            'HardenDistrustedFolder', 'ProgramFolderWaitsForTheFiles')
@@ -1372,7 +1372,16 @@ PROGRAM_FOLDER_STATEMENTS = (
     ('DeinitializeSetup', 'the files setup keeps are not let go when setup ends before the files, or the folders setup made are removed after a successful installation too',
      "^procedure DeinitializeSetup(); begin ReleasePlaceholders(); if not g_bFilesInstalled then RemoveFoldersMadeHere(); ReleaseHeldFolders(); end;$"),
     ('IsServiceInstalled', 'whether the service is installed is not asked of the service manager, so that a service found not as prepared is not kept from starting',
-     "^function IsServiceInstalled(ServiceName: AnsiString) : boolean; var hSCM : HANDLE; hService: HANDLE; begin hSCM := OpenServiceManager(); Result := false; if hSCM <> 0 then begin hService := OpenService(hSCM,ServiceName,SERVICE_QUERY_CONFIG); if hService <> 0 then begin Result := true; CloseServiceHandle(hService) end; CloseServiceHandle(hSCM) end end;$"),
+     "^function IsServiceInstalled(Name: String) : Boolean; var manager: SC_HANDLE; service: SC_HANDLE; begin service := OpenNamedService(Name, SERVICE_QUERY_CONFIG, manager); Result := (service <> 0); CloseServiceAndManager(service, manager); end;$"),
+    # IsServiceInstalled asks through the two routines below, which the service routines of
+    # master's 4c57c52f5f share (the move of R1 to R4 onto master, 28 October 2026): the
+    # statement above held the manager opened, the service opened by its name with
+    # SERVICE_QUERY_CONFIG and both let go in one routine, and these three hold the same.
+    ('OpenNamedService', 'the service is not opened by its name through the service manager with the access asked, so that IsServiceInstalled does not answer whether it is installed',
+     "^function OpenNamedService(Name: String; Access: cardinal; var Manager: SC_HANDLE) : SC_HANDLE; begin Result := 0; Manager := OpenServiceManager(); if (Manager = 0) then Exit; "
+     "Result := OpenServiceW(Manager, Name, Access); if (Result = 0) then begin CloseServiceHandle(Manager); Manager := 0; end; end;$"),
+    ('CloseServiceAndManager', 'the service or the connection to the service manager IsServiceInstalled opened is not let go',
+     "^procedure CloseServiceAndManager(Service: SC_HANDLE; Manager: SC_HANDLE); begin if (Service <> 0) then CloseServiceHandle(Service); if (Manager <> 0) then CloseServiceHandle(Manager); end;$"),
     ('RemoveHeldFolder', 'an empty folder is removed through a link, or by a handle not read as that folder',
      "handle := HoldFolder(Folder, HM_REMOVE_FOLDER_ACCESS, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle = -1 then begin Why := ~; Exit; end; szFinal := FinalPathOfHeld(handle); if HeldIsLink(handle, bKnown) then Why := ~ else if (szFinal = '') or (ParentFinal = '') or (CompareText(szFinal, AddBackslash(ParentFinal) + ExtractFileName(Folder)) <> 0) then Why := ~ else begin info := HM_DISPOSITION_DELETE_POSIX; Result := SetHeldInformation(handle, HM_FILE_DISPOSITION_INFO_EX, info, 4);"),
     ('NothingTurnedIn', 'a folder is walked after the files without being opened as itself, as no link, and as the folder its path names',
@@ -2434,7 +2443,7 @@ ISPP_PLACES = (
     ('hMailServerInnoExtension.iss', 'RunPostInstallTasks', 'ProgressPage.Show();', "ProgressPage.SetText('Installing the .NET {#DOTNET_MAJOR} Desktop Runtime...', '');", 'ProgressPage.SetProgress(1,6);', 1),
     ('hMailServerInnoExtension.iss', 'StepsNotCompleteBeforeDatabase', 'if not bRuntimeReady then', "AppendStep(szList, 'the .NET {#DOTNET_MAJOR} Desktop Runtime');", 'if not bDatabaseBackendReady then', 1),
     ('hMailServerInnoExtension.iss', '[code]', '// Called from RunPostInstallTasks before the database tools are executed - they', '// are .NET {#DOTNET_MAJOR} apps and run from [Code] at ssPostInstall.', '//', 1),
-    ('hMailServerInnoExtension.iss', '[code]', '// The current download page for the runtime, quoted in the failure message.', "DOTNET_DOWNLOAD_URL = 'https://dotnet.microsoft.com/download/dotnet/{#DOTNET_CHANNEL}';", 'function ControlService(hService :HANDLE; dwControl :cardinal;var ServiceStatus :SERVICE_STATUS) : boolean;', 1),
+    ('hMailServerInnoExtension.iss', '[code]', '// The current download page for the runtime, quoted in the failure message.', "DOTNET_DOWNLOAD_URL = 'https://dotnet.microsoft.com/download/dotnet/{#DOTNET_CHANNEL}';", "// The Service Control Manager's functions, as winsvc.h declares them, through their", 1),
     ('hMailServerInnoExtension.iss', '[code]', 'end;', '#include "OriginalHMailServer.iss"', '// Whether the installation this setup would replace is one of the original', 1),
     ('hMailServerInnoExtension.iss', '[code]', 'end;', '// Installs the bundled .NET {#DOTNET_MAJOR} Desktop Runtime when it is missing.', '// Called from RunPostInstallTasks before the database tools are executed - they', 1),
     ('hMailServerInnoExtension.iss', '[code]', 'end;', '// Returns true when the .NET {#DOTNET_MAJOR} Desktop Runtime is not installed, in', '// which case the bundled runtime installer is executed. Also the Check function on', 1),
@@ -3406,7 +3415,13 @@ def negative_controls(texts):
          altered(texts, 'section_files_64.iss', 'hMailServer.exe"; DestDir: "{app}\\Bin"; Flags: ignoreversion uninsrestartdelete;',
                  'hMailServer.exe"; DestDir: "{app}\\Bin"; Flags: ignoreversion uninsrestartdelete regserver;')),
         ('IsServiceInstalled always false, so that no service found not as prepared is kept from starting',
-         altered(texts, EXTENSION, '\thSCM := OpenServiceManager();\n\tResult := false;', '\tResult := false;\n\tExit;\n\thSCM := OpenServiceManager();')),
+         altered(texts, EXTENSION, '   service := OpenNamedService(Name, SERVICE_QUERY_CONFIG, manager);\n   Result := (service <> 0);',
+                 '   Result := false;\n   Exit;\n   service := OpenNamedService(Name, SERVICE_QUERY_CONFIG, manager);\n   Result := (service <> 0);')),
+        ('OpenNamedService answering the connection to the service manager for the service, so that IsServiceInstalled is true of a service that is not there',
+         altered(texts, EXTENSION, '   if (Manager = 0) then\n      Exit;\n   Result := OpenServiceW(Manager, Name, Access);',
+                 '   if (Manager = 0) then\n      Exit;\n   Result := Manager;\n   Exit;\n   Result := OpenServiceW(Manager, Name, Access);')),
+        ('CloseServiceAndManager not letting go of the service, so that each IsServiceInstalled leaves a handle to it open',
+         altered(texts, EXTENSION, '   if (Service <> 0) then\n      CloseServiceHandle(Service);', '   if (Service <> 0) then\n      Service := 0;')),
         ('RunPostInstallTasks no longer running /ProtectFolders',
          altered(texts, EXTENSION, '         ProtectFolders();\n', '')),
         ('folders not as prepared ending in 0 (steps incomplete taken for complete)',

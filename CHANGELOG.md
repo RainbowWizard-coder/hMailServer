@@ -2716,7 +2716,7 @@ with `--check`).
   folders whole** ([work item 78](https://gitlab.com/hmailserver/hmailserver/-/work_items/78), R1 to R4): every
   constant of setup's `[Code]` to its value, defined once, the TrustedInstaller SID to the live update's; every
   Windows function and record the preparation reads and changes folders with to its declaration; and each routine its
-  entry points reach, 101 of them, but the two the rest of setup shares, which are named with why, to a digest of its
+  entry points reach, 103 of them, but the two the rest of setup shares, which are named with why, to a digest of its
   code, comments and white space aside, so that no change of one passes until it has been reviewed and its digest
   written in both (`python build/check-installer-scripts.py --digests` prints them as the tree is). Thirty-four more
   statements hold the helpers the decisions rely on, and `PrepareToInstallRefusal`, which the rest of setup shares,
@@ -2759,7 +2759,7 @@ with `--check`).
   look after the files, one more in `CurStepChanged`, and `#if 0` around `section_dirs.iss`'s `{app}` entry had passed
   both and compiled. The fixture reads an installer script as ISCC and the checker read it, a lone carriage return
   ending the line, where three one-line changes behind one - code after a `//` comment, `#if 0` around a `[Dirs]`
-  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 620. The smoke test's dac-handle case gives the program folder an
+  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 622. The smoke test's dac-handle case gives the program folder an
   entry of its own for the standard account, as an account could write one through `Everyone`'s right to change the
   permissions, and requires it dropped and named, and none for it after the restart; copy-fails runs the watch's
   check of the program folder as it was made, which the base fails, since it gives the folder Inno Setup made its
