@@ -2962,6 +2962,53 @@ function Test-ProgramFolderMadeWithItsPermissions([string] $Phase, [string] $Cla
       })
 }
 
+# The empty folders on the program folder's own level - the data folders and those setup
+# installs into - that are no link, each with whether its list inherits nothing: what
+# the last look of an installer after check 8 of R1 to R4 removes and makes again with
+# the list it had (RemoveAndMakeAgain).
+function Get-EmptyLevelFolders([string] $App) {
+   $found = @()
+   foreach ($name in 'Data', 'Logs', 'Temp', 'Database', 'Events', 'Addons', 'DBScripts', 'WebAdmin', 'Languages') {
+      $folder = Join-Path $App $name
+      if (-not (Test-Path -LiteralPath $folder)) { continue }
+      $item = Get-Item -LiteralPath $folder -Force
+      if ($item.LinkType -or @(Get-ChildItem -LiteralPath $folder -Force -ErrorAction SilentlyContinue).Count -gt 0) { continue }
+      $found += [pscustomobject] @{ Path = $folder; Protected = (Get-Acl -LiteralPath $folder).AreAccessRulesProtected }
+   }
+   return $found
+}
+
+# Work item 78's R1 and R2 (check 8 of R1 to R4, 28 October 2026): an empty folder on the
+# program folder's own level that the installer removed in its last look was made again
+# at once by setup with the list it had - Inno's log saying so, Inno Setup not making
+# it, and one that inherited nothing inheriting nothing still - where the installer
+# before made it Inno Setup's, with what the program folder hands down, so that an
+# earlier installation's private Logs and Temp were readable by every user until
+# /ProtectFolders ran after the files.
+function Test-EmptyFoldersMadeAgain([string] $Phase, [string] $Claimed, [string] $LogPath, $Before) {
+   $Before = @($Before | Where-Object { $_ })
+   if ($Before.Count -eq 0) { return }
+   $name = "${Phase}: the empty folders on the program folder's own level setup removed were made again by setup with the list each had, not by Inno Setup (work item 78, R1 and R2)"
+   $removed = @($Before | Where-Object { Select-String -LiteralPath $LogPath -Pattern ('Setup removed ' + [regex]::Escape($_.Path) + ', an empty folder there before this installation') -Quiet })
+   if ($removed.Count -eq 0) { Write-Info $name "the installer removed none of $(($Before | ForEach-Object { Split-Path -Leaf $_.Path }) -join ', ')"; return }
+   if (-not (Test-HardensBeforeFiles $Claimed)) { Write-Info $name "$Claimed is not held to it; it removed $(($removed | ForEach-Object { Split-Path -Leaf $_.Path }) -join ', ')"; return }
+   [void] (Test-Step $name {
+         $said = @()
+         foreach ($folder in $removed) {
+            $escaped = [regex]::Escape($folder.Path)
+            if (-not (Select-String -LiteralPath $LogPath -Pattern ('Setup removed ' + $escaped + ', an empty folder there before this installation, and made it again with the permissions it had') -Quiet)) {
+               throw "Inno's log does not say setup made $($folder.Path) again with the permissions it had"
+            }
+            if (Select-String -LiteralPath $LogPath -Pattern ('Creating directory: ' + $escaped + '\s*$') -Quiet) { throw "Inno's log says Inno Setup made $($folder.Path) again, with what the program folder hands down" }
+            if (-not (Test-Path -LiteralPath $folder.Path)) { throw "$($folder.Path) is gone" }
+            $now = (Get-Acl -LiteralPath $folder.Path).AreAccessRulesProtected
+            if ($folder.Protected -and -not $now) { throw "$($folder.Path) inherited nothing before the installer and inherits from the program folder now" }
+            $said += "$(Split-Path -Leaf $folder.Path) inherits nothing $now"
+         }
+         $said -join ', '
+      })
+}
+
 # Setup's line that it made the program folder, which names the folder by the path the
 # handle of the folder above gives: the /DIR path, or on a volume mounted on the way
 # (copy-fails' C:\hm-small) the volume's own path, \\?\Volume{...}\...\<leaf>, as the
@@ -4238,6 +4285,8 @@ if ($State.Installed) {
       $upgradeThere = @(@((Join-Path (Get-InstallDirectory) 'Bin'), (Join-Path (Get-InstallDirectory) 'ControlPanel')) | Where-Object { Test-Path -LiteralPath $_ })
       $upgradeProgramFolderToo = Test-DataFoldersInheritNothing (Get-InstallDirectory)
       Write-Info 'upgrade: the data folders inherit nothing from the program folder, before the installer' $(if ($upgradeProgramFolderToo) { 'yes: the program folder is to be hardened before the files too' } else { 'no: the program folder is left to /ProtectFolders, after the files' })
+      $upgradeEmpty = @(Get-EmptyLevelFolders (Get-InstallDirectory))
+      Write-Info 'upgrade: the empty folders on the program folder''s own level, before the installer' $(if ($upgradeEmpty.Count -gt 0) { ($upgradeEmpty | ForEach-Object { "$($_.Path) inherits nothing $($_.Protected)" }) -join '; ' } else { 'none' })
       $upgradeArguments = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=$upgradeLog")
       if (-not $State.PasswordInEnvironment) { $upgradeArguments += "/adminpassword=$AdminPassword" }
       $upgradeWatch = Start-FolderWatch (Get-InstallDirectory)
@@ -4289,6 +4338,7 @@ if ($State.Installed) {
 
       Test-Installed 'upgrade' $secondVersion
       Test-FoldersHardenedBeforeTheFiles 'upgrade' $secondVersion $upgradeWatched $upgradeLog $upgradeThere $upgradeProgramFolderToo
+      Test-EmptyFoldersMadeAgain 'upgrade' $secondVersion $upgradeLog $upgradeEmpty
       Test-ProgramFoldersHardened 'upgrade' $secondVersion $upgradeLog
 
       [void] (Test-Step "upgrade: the schema moved to the newer build's" {

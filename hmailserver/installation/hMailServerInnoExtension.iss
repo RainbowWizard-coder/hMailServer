@@ -4173,6 +4173,61 @@ end;
 // or runs from, is left as it is, and said in the setup log (check 5 of R1 to R4). The
 // five folders are walked only as the folders of their names in the program folder
 // (CheckWhatIsInside, Expected).
+// Work item 78's R1 and R2 (check 8 of R1 to R4, 28 October 2026): an empty folder on the
+// program folder's own level, there before this installation - a data folder, Events or
+// another of those setup installs into - removed in the last look (RemoveHeldFolder) and
+// made again at once by setup, in the program folder held by AppHandle, by its one name
+// relative to that handle (MakeFolderIn), with the list of entries it had, read through
+// a handle on it as itself before it was removed - inheriting nothing when it inherited
+// nothing - and held until setup ends: a new folder no handle opened before reaches, as
+// private as it was, which a cancel or a failure leaves in place. Inno Setup made it
+// again with what the program folder hands down, the service's grant and the privacy
+// /ProtectFolders gives Logs and Temp gone until they ran after the files. True when
+// it is there again; false, with Why, otherwise.
+function RemoveAndMakeAgain(Item: String; AppHandle: Integer; AppFinal: String; var Why: String): Boolean;
+var
+   handle: Integer;
+   made: Integer;
+   status: cardinal;
+   readResult: cardinal;
+   pOwner: cardinal;
+   pDacl: cardinal;
+   pDescriptor: cardinal;
+begin
+   Result := false;
+   Why := '';
+   handle := HoldFolder(Item, HM_READ_CONTROL, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0);
+   if handle = -1 then
+   begin
+      Why := 'its permissions could not be read (Windows error ' + IntToStr(DLLGetLastError()) + ')';
+      Exit;
+   end;
+   pOwner := 0;
+   pDacl := 0;
+   pDescriptor := 0;
+   readResult := ReadHeldSecurity(handle, HM_FILE_OBJECT, HM_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor);
+   ReleaseFolder(handle);
+   if readResult <> 0 then
+   begin
+      Why := 'its permissions could not be read (Windows error ' + IntToStr(readResult) + ')';
+      Exit;
+   end;
+   if not RemoveHeldFolder(Item, AppFinal, Why) then
+   begin
+      FreeWindowsMemory(pDescriptor);
+      Exit;
+   end;
+   made := MakeFolderIn(AppHandle, ExtractFileName(Item), pDescriptor, status);
+   FreeWindowsMemory(pDescriptor);
+   if made = -1 then
+   begin
+      g_bFoldersChanged := true;
+      Why := 'it was removed, but could not be made again with the permissions it had (NTSTATUS ' + Format('%.8x', [status]) + ')';
+      Exit;
+   end;
+   Result := true;
+end;
+
 function CheckWhatElseIsInside(App: String; AppHandle: Integer; Final: Boolean; var Found: Integer; var Why: String): Boolean;
 var
    rec: TFindRec;
@@ -4360,12 +4415,14 @@ begin
                begin
                   // An empty folder, there before this installation, of those setup
                   // installs into, or a data folder when the server is installed: removed,
-                  // as in Bin; [Dirs] makes it again (a data folder only with the server).
-                  if RemoveHeldFolder(szItem, szAppFinal, szRemoved) then
-                     Log('Setup removed ' + szItem + ', an empty folder there before this installation; Inno Setup makes it again if it installs into it.')
+                  // as in Bin, and made again at once by setup with the permissions it had
+                  // (RemoveAndMakeAgain; check 8 of R1 to R4, 28 October 2026).
+                  if RemoveAndMakeAgain(szItem, AppHandle, szAppFinal, szRemoved) then
+                     Log('Setup removed ' + szItem + ', an empty folder there before this installation, and made it again with the permissions it had: a program that opened ' +
+                         'it while another account could change it would keep what it opened it for.')
                   else
                   begin
-                     szText := szItem + ' is an empty folder there before this installation, and could not be removed - ' + szRemoved +
+                     szText := szItem + ' is an empty folder there before this installation, and could not be removed and made again - ' + szRemoved +
                                '. An administrator closes the program that holds it, or restarts Windows, and runs setup again.';
                      Found := Found + 1;
                      if Found <= 10 then

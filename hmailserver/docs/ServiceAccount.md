@@ -796,8 +796,14 @@ does before the files:
   the installation in `Bin`, `ControlPanel` and the five folders that hold what is
   run, and on the program folder's own level one of those five, or a data folder when
   the server is installed, is removed, through a handle read as that folder, never by a
-  path that may lead elsewhere since - Inno Setup makes it again when it installs into
-  it - as an empty `Bin` is made again; another empty folder on the program folder's own
+  path that may lead elsewhere since, and - one on the program folder's own level -
+  made again at once by setup in the program folder it holds, by its one name
+  relative to that handle, with the list of entries it had, read through a handle on
+  it before it was removed, and owned by the account setup runs as: a new folder no
+  handle opened before reaches, as private as it was (an earlier installation's
+  `Logs` and `Temp` keep what `/ProtectFolders` and `/GrantServiceAccess` gave them,
+  where Inno Setup made them again with what the program folder hands down until
+  those ran after the files), which a cancel or a failure leaves in place; another empty folder on the program folder's own
   level, which nothing installs into or runs from, is left as it is, and said;
   what this look refuses was not there, or not so, when the first step looked, and is
   taken for a folder changed; and another file whose owner is not SYSTEM, the Administrators or

@@ -809,7 +809,7 @@ PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'Hold
                            'FoldersChangedLine', 'RestoreServiceStart', 'GetCustomSetupExitCode', 'IsServiceInstalled', 'OpenNamedService', 'CloseServiceAndManager',
                            'DataFolderIsAllowed', 'DatabaseFilesWhy', 'HardenDataFolder', 'AddRestartFolder', 'StaleEntryLetsOthers', 'HandsDownWriteTo',
                            'NoteStaleItem', 'StaleItemIn', 'TakenEntriesLetOthers', 'RestartRecordedForWalked', 'WalkedFinal', 'MakeFolderIn',
-                           'HardenDistrustedFolder', 'ProgramFolderWaitsForTheFiles', 'RelativeLinkTarget')
+                           'HardenDistrustedFolder', 'ProgramFolderWaitsForTheFiles', 'RelativeLinkTarget', 'RemoveAndMakeAgain')
 
 # Each decision of R1 to R4 held by its exact statement, so that a one-line change of
 # one is refused (the review of 26 October 2026 changed nineteen such lines, one at a
@@ -1119,10 +1119,20 @@ PROGRAM_FOLDER_STATEMENTS = (
      "if Final and FolderHoldsNothing(szItem) and (not IsAtOrBelow(szItem, AddBackslash(g_szProgramFolderReal) + 'MySQL')) then begin if RemoveHeldFolder(szItem, szFinal, szRemoved) then Log('Setup removed ' + szItem + ', an empty folder there before this installation"),
     ('CheckWhatIsInside', 'an empty folder that could not be removed is taken',
      "Log('The program folder: refused, ' + szText); Result := false; end; end else begin SetArrayLength(folders, count + 1);"),
-    ('CheckWhatElseIsInside', 'an empty folder of the program folder\'s own level that setup makes again - one of the five, a data folder when the server is installed - is left, once it is hardened, for a handle opened before to make a junction, or removed by its path rather than through a handle read as that folder (check 4 of R1 to R4, 27 October 2026); or an administrator\'s empty folder setup neither installs into nor makes again is removed (check 5)',
+    ('CheckWhatElseIsInside', 'an empty folder of the program folder\'s own level that setup makes again - one of the five, a data folder when the server is installed - is left, once it is hardened, for a handle opened before to make a junction, or removed by its path rather than through a handle read as that folder (check 4 of R1 to R4, 27 October 2026); or an administrator\'s empty folder setup neither installs into nor makes again is removed (check 5); or one removed is not made again at once with the permissions it had (check 8)',
      "else if Final and bFolder and (not bLink) and (not IsRunFolderName(rec.Name)) and (not (bData and IsComponentSelected('server'))) and FolderHoldsNothing(szItem) then @@"
      "Log('The program folder: ' + szItem + ' is an empty folder there before this installation, which setup neither installs into nor makes again, and is left ' + 'as it is.') "
-     "else if Final and bFolder and (not bLink) and FolderHoldsNothing(szItem) then begin @@if RemoveHeldFolder(szItem, szAppFinal, szRemoved) then Log('Setup removed ' + szItem + ', an empty folder there before this installation"),
+     "else if Final and bFolder and (not bLink) and FolderHoldsNothing(szItem) then begin @@if RemoveAndMakeAgain(szItem, AppHandle, szAppFinal, szRemoved) then Log('Setup removed ' + szItem + ', an empty folder there before this installation, and made it again with the permissions it had"),
+    ('RemoveAndMakeAgain', 'an empty folder of the program folder\'s own level is removed without its permissions read first through a handle on it as itself, '
+     'or by a path rather than through a handle read as that folder (check 8 of R1 to R4, 28 October 2026)',
+     "handle := HoldFolder(Item, HM_READ_CONTROL, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle = -1 then begin Why := ~; Exit; end; "
+     "pOwner := 0; pDacl := 0; pDescriptor := 0; readResult := ReadHeldSecurity(handle, HM_FILE_OBJECT, HM_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor); "
+     "ReleaseFolder(handle); if readResult <> 0 then begin Why := ~; Exit; end; if not RemoveHeldFolder(Item, AppFinal, Why) then begin "
+     "FreeWindowsMemory(pDescriptor); Exit; end;"),
+    ('RemoveAndMakeAgain', 'an empty folder removed in the last look is left for Inno Setup to make again with what the program folder hands down, or made by '
+     'a path, or with other permissions than it had, or one that could not be made again is taken (check 8 of R1 to R4)',
+     "made := MakeFolderIn(AppHandle, ExtractFileName(Item), pDescriptor, status); FreeWindowsMemory(pDescriptor); if made = -1 then begin "
+     "g_bFoldersChanged := true; Why := ~; Exit; end; Result := true; end;$"),
     ('ItemIsIn', 'what the path reaches is taken for what is in the folder setup holds without being read through the two handles',
      "handle := HoldFolder(Item, HM_READ_CONTROL, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle = -1 then Exit; szItem := FinalPathOfHeld(handle); ReleaseFolder(handle); szFolder := FinalPathOfHeld(FolderHandle); if (szItem <> '') and (szFolder <> '') then Result := CompareText(szItem, AddBackslash(szFolder) + ExtractFileName(Item)) = 0;"),
     ('NothingTurnedIn', 'a link or an empty folder setup did not leave is taken after the files',
@@ -1575,7 +1585,7 @@ PROGRAM_FOLDER_CODE = (
     ('BroadGroupSid', '8b255776e8013335'),
     ('CheckFoldersBeforeTheStop', 'a2e38e9db48a13e5'),
     ('CheckProgramFolders', 'fb990829a08ad331'),
-    ('CheckWhatElseIsInside', '8e8517dfe66e1d63'),
+    ('CheckWhatElseIsInside', 'f6745410cf02c64f'),
     ('CheckWhatIsInside', 'd53f9875ea5c5d75'),
     ('ControlPanelIsInstalled', '3ab47178b35c2ef7'),
     ('DatabaseFilesWhy', '385a1b53ff151af2'),
@@ -1649,6 +1659,7 @@ PROGRAM_FOLDER_CODE = (
     ('ReleaseHeldFolders', 'f8c80f82d876588b'),
     ('ReleasePlaceholders', '676d729ff0128f12'),
     ('RemakeEmptyFolder', 'f84455156da5337c'),
+    ('RemoveAndMakeAgain', '12c493d812248984'),
     ('RemoveFoldersMadeHere', '5d8963b8738f5484'),
     ('RemoveHeldFolder', '149850770478f53c'),
     ('RemoveMadeFolder', 'b58144954352dd5e'),
@@ -3409,7 +3420,9 @@ def negative_controls(texts):
         ('an empty folder of Bin removed by its path',
          altered(texts, EXTENSION, 'if RemoveHeldFolder(szItem, szFinal, szRemoved) then', 'if RemoveDir(szItem) then')),
         ('an empty folder of the program folder removed by its path',
-         altered(texts, EXTENSION, 'if RemoveHeldFolder(szItem, szAppFinal, szRemoved) then', 'if RemoveDir(szItem) then')),
+         altered(texts, EXTENSION, 'if RemoveAndMakeAgain(szItem, AppHandle, szAppFinal, szRemoved) then', 'if RemoveDir(szItem) then')),
+        ('an empty folder of the program folder removed by its path before it is made again (check 8 of R1 to R4)',
+         altered(texts, EXTENSION, '   if not RemoveHeldFolder(Item, AppFinal, Why) then\n', '   if not RemoveDir(Item) then\n')),
         ('a folder walked after the files whatever its handle says it is',
          altered(texts, EXTENSION, "   if (szFinal = '') or (CompareText(szFinal, Expected) <> 0) then", '   if false then')),
         ('a folder of Bin walked before the files as a link or elsewhere',
@@ -3699,6 +3712,16 @@ def negative_controls(texts):
     # between PrepareToInstall and the look after the files that the rules above did not name - check 8's mutations8.py 8.01,
     # 8.02 and 8.04 to 8.07b, which passed the checker and compiled, and more.
     deinit = 'procedure DeinitializeSetup();\nbegin'
+    controls.append(('an earlier installation\'s empty data folder removed in the last look and left for Inno Setup to make again with what the program folder '
+                     'hands down, as before check 8 of R1 to R4',
+                     altered(texts, EXTENSION, '                  if RemoveAndMakeAgain(szItem, AppHandle, szAppFinal, szRemoved) then\n',
+                             '                  if RemoveHeldFolder(szItem, szAppFinal, szRemoved) then\n')))
+    controls.append(('an empty folder removed in the last look made again with the program folder\'s permissions, its own not read (check 8 of R1 to R4)',
+                     altered(texts, EXTENSION, '   made := MakeFolderIn(AppHandle, ExtractFileName(Item), pDescriptor, status);\n',
+                             '   made := MakeFolderIn(AppHandle, ExtractFileName(Item), 0, status);\n')))
+    controls.append(('an empty folder removed in the last look that could not be made again taken (check 8 of R1 to R4)',
+                     altered(texts, EXTENSION, "      Why := 'it was removed, but could not be made again with the permissions it had (NTSTATUS ' + Format('%.8x', [status]) + ')';\n      Exit;\n",
+                             "      Log('it was removed, but could not be made again');\n")))
     controls.append(('a relative symbolic link whose name starts with a separator taken from the folder the link is in, as GetFullPathName reads the '
                      'joined path (check 8 of R1 to R4)',
                      altered(texts, EXTENSION, "   if Copy(Name, 1, 1) = '\\' then\n      szPath := Name\n   else\n      szPath := szRest + '\\..\\' + Name;\n",

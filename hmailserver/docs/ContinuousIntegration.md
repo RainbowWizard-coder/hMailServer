@@ -3433,7 +3433,11 @@ first file appeared, and Inno's log must harden each before the first file it co
 there - or, for one that held nothing, say that setup removed it and made it again
 before that file, a hardening in place not enough, since a program that opened it
 before keeps what it opened it for; the program folder with them when its data folders
-inherited nothing (R2). An
+inherited nothing (R2); and an empty folder on the program folder's own level that the
+upgrade's last look removed - an earlier installation's `Logs` or `Temp` - must have
+been made again by setup with the list it had, Inno's log saying so and not that Inno
+Setup made it, one that inherited nothing inheriting nothing still (R1, R2; check 8 of
+R1 to R4). An
 installer of 6.3.7 or earlier is not held to it, and what the watch saw is an INFO
 line; `--hardened-before-files` holds a build that still says 6.3.7 to it - never an
 earlier installer, such as the first of an upgrade run from 6.3.6 - which is how the
