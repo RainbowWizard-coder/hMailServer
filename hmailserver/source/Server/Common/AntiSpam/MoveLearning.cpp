@@ -166,13 +166,29 @@ namespace HM
       if (!copy)
          return;
 
+      LearnFromMove(source, destination, std::vector<std::shared_ptr<Message> >(1, copy), destinationOwner, sessionAccount);
+   }
+
+   void
+   MoveLearning::LearnFromMove(std::shared_ptr<IMAPFolder> source, std::shared_ptr<IMAPFolder> destination,
+                               const std::vector<std::shared_ptr<Message> > &copies, std::shared_ptr<const Account> destinationOwner,
+                               std::shared_ptr<const Account> sessionAccount)
+   {
+      if (copies.empty())
+         return;
+
       AntiSpamConfiguration &config = Configuration::Instance()->GetAntiSpamConfiguration();
       const int backend = config.GetMoveLearningBackend();
 
-      // SpamAssassin's as it was, call for call.
+      // SpamAssassin's as it was, call for call: a lesson queued for each copy.
       if (backend == BackendSpamAssassin)
       {
-         SpamAssassinLearner::LearnFromMove(source, destination, copy, destinationOwner);
+         for (size_t i = 0; i < copies.size(); i++)
+         {
+            if (copies[i])
+               SpamAssassinLearner::LearnFromMove(source, destination, copies[i], destinationOwner);
+         }
+
          return;
       }
 
@@ -198,31 +214,26 @@ namespace HM
       facts.destination_junk = IsJunk_(designations, destination->GetID());
 
       bool spam = false;
-      if (!IsLesson(facts, spam))
+      if (!IsLesson(facts, spam) || !destinationOwner)
          return;
 
-      Teach(backend, copy, destinationOwner, spam);
-   }
-
-   void
-   MoveLearning::Teach(int backend, std::shared_ptr<Message> copy, std::shared_ptr<const Account> destinationOwner, bool spam)
-   {
-      if (!copy || !destinationOwner)
-         return;
-
-      if (backend == BackendRspamd)
+      // Every copy of one move between the same two folders is the same lesson,
+      // and Rspamd's are queued together, as an IMAP command's are: a queue that
+      // is full drops the newest of them with one line in the application log
+      // for the move, not one for each message.
+      std::vector<RspamdLearner::Lesson> lessons;
+      for (size_t i = 0; i < copies.size(); i++)
       {
+         if (!copies[i])
+            continue;
+
          RspamdLearner::Lesson lesson;
-         lesson.copy = copy;
+         lesson.copy = copies[i];
          lesson.owner = destinationOwner;
          lesson.spam = spam;
-
-         std::vector<RspamdLearner::Lesson> lessons;
          lessons.push_back(lesson);
-         RspamdLearner::Queue(lessons);
-         return;
       }
 
-      SpamAssassinLearner::Teach(copy, destinationOwner, spam);
+      RspamdLearner::Queue(lessons);
    }
 }

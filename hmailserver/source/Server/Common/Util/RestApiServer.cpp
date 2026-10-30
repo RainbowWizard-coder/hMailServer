@@ -17445,7 +17445,7 @@ namespace HM
          return BuildResponse_(500, "{\"error\":\"the message was copied to the folder but the original could not be removed\"}");
 
       // Into or out of Junk teaches spamd, as the same move over IMAP does.
-      LearnAfterMove_(source, destination, newMessageId, account);
+      LearnAfterMove_(source, destination, std::vector<__int64>(1, newMessageId), account);
 
       AnsiString json;
       json.Format("{\"id\":%I64d,\"folder_id\":%I64d}", newMessageId, destination->GetID());
@@ -17532,15 +17532,27 @@ namespace HM
    }
 
    // What an IMAP MOVE into or out of \Junk does after the copy: the learner
-   // decides whether the move is a lesson and queues it off this thread.
+   // decides whether the move is a lesson and queues it off this thread - the
+   // copies of one move from source to destination together (newMessageIds,
+   // a bulk move's slice), as one IMAP command's are.
    void
-   RestApiServer::LearnAfterMove_(std::shared_ptr<IMAPFolder> source, std::shared_ptr<IMAPFolder> destination, __int64 newMessageId, std::shared_ptr<const Account> account)
+   RestApiServer::LearnAfterMove_(std::shared_ptr<IMAPFolder> source, std::shared_ptr<IMAPFolder> destination, const std::vector<__int64> &newMessageIds, std::shared_ptr<const Account> account)
    {
-      if (!source || !destination || newMessageId <= 0 || !account)
+      if (!source || !destination || newMessageIds.empty() || !account)
          return;
 
-      std::shared_ptr<Message> copy = std::shared_ptr<Message>(new Message());
-      if (!PersistentMessage::ReadObject(copy, newMessageId) || copy->GetID() == 0)
+      std::vector<std::shared_ptr<Message> > copies;
+      for (size_t i = 0; i < newMessageIds.size(); i++)
+      {
+         if (newMessageIds[i] <= 0)
+            continue;
+
+         std::shared_ptr<Message> copy = std::shared_ptr<Message>(new Message());
+         if (PersistentMessage::ReadObject(copy, newMessageIds[i]) && copy->GetID() != 0)
+            copies.push_back(copy);
+      }
+
+      if (copies.empty())
          return;
 
       // Learned for the destination folder's owner, as IMAP MOVE does: a
@@ -17549,7 +17561,7 @@ namespace HM
       // The backend the administrator chose (AntiSpam/MoveLearning.h): for
       // SpamAssassin exactly SpamAssassinLearner::LearnFromMove, as before.
       std::shared_ptr<const Account> owner = CacheContainer::Instance()->GetAccount(destination->GetAccountID());
-      MoveLearning::LearnFromMove(source, destination, copy, owner ? owner : account, account);
+      MoveLearning::LearnFromMove(source, destination, copies, owner ? owner : account, account);
    }
 
    namespace
@@ -18104,6 +18116,7 @@ namespace HM
          // it does for the per-message move; it is counted as failed.
          failed += (int) toExpunge.size() - (int) deleted.size();
 
+         std::vector<__int64> movedCopies;
          for (size_t i = 0; i < deleted.size(); i++)
          {
             std::map<__int64, __int64>::const_iterator copy = copiedTo.find(deleted[i]);
@@ -18111,11 +18124,14 @@ namespace HM
                continue;
 
             moved.push_back(std::make_pair(copy->second, copy->first));
-
-            // Into or out of Junk teaches spamd, as the same move over IMAP
-            // does: one lesson queued per message moved (docs/Performance.md).
-            LearnAfterMove_(folder, destination, copy->second, account);
+            movedCopies.push_back(copy->second);
          }
+
+         // Into or out of Junk teaches the spam filter, as the same move over
+         // IMAP does: one lesson queued per message moved (docs/Performance.md),
+         // the slice's together, as an IMAP command's are.
+         if (!movedCopies.empty())
+            LearnAfterMove_(folder, destination, movedCopies, account);
 
          toExpunge.clear();
          copiedTo.clear();

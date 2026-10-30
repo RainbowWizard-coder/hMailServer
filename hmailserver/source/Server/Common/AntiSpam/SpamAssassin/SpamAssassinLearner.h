@@ -54,6 +54,15 @@ namespace HM
       // spam trap's is, because the message it was taken from is on its way to a
       // mailbox), and nothing will look at it again once spamd has had it.
       SpamAssassinLearnTask(const String &messageFile, bool spam, const String &user, bool removeFileAfterwards = false);
+
+      // A lesson on a move (SpamAssassinLearner::Teach): storedFile is the
+      // message's file as the message store holds it, of owner's mailbox, and the
+      // task makes the plain file spamd is sent - the stored one, or a temporary
+      // copy it removes afterwards (MessageStore::PlainFileFor) - when it runs,
+      // so that the command that queued it waits on none of that.
+      enum StoredFileTag { StoredFile };
+      SpamAssassinLearnTask(const String &storedFile, bool spam, const String &user, StoredFileTag, const String &owner);
+
       virtual void DoWork();
 
    private:
@@ -61,5 +70,7 @@ namespace HM
       bool spam_;
       String user_;
       bool remove_file_afterwards_;
+      bool stored_file_;
+      String owner_;
    };
 }

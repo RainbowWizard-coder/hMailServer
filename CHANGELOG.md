@@ -1695,41 +1695,45 @@ with `--check`).
   the regression fixture `IMAP.ImapMoveEvents` holds a VBScript `MOVE`, a JScript `UID MOVE`, a `COPY`, a failed
   `MOVE`, the setting off, a failing handler, the master user and the reply to the client.
 
-- **New: Rspamd as the filter that learns from the Junk folder, beside SpamAssassin (GitLab work item 108).** A
-  message a user moves into their Junk folder is spam and one moved out of it ham, and the filter is now the one a new
-  database setting, `MoveLearningBackend`, names: SpamAssassin, the default, which the `SpamAssassinLearnOnMove` key of
-  hMailServer.ini switches on and which is taught exactly as before - the same moves, spamc's same `TELL` with
-  `Set: local`, the same user - or Rspamd, through its controller: `POST /learnspam` or `/learnham` with the whole
-  message as stored, the `Classifier` the new `RspamdClassifier` names, the controller's password from
-  `RspamdControllerPassword`, and the mailbox owner's full address as `Deliver-To` and `Rcpt`, which is where a
-  per-user classifier (`per_user = true`) takes its user from - never the sender or a header of the message. A lesson
-  is never sent without a classifier named, since Rspamd would then teach every classifier it has, the global one
-  among them. Off by default: nothing is sent to Rspamd until the backend is chosen and `RspamdControllerUrl` and the
-  classifier are set. The controller is reached over https, its certificate verified as every HTTPS client of the
-  server verifies it, with no switch to turn that off, or over plain http to this machine only; never through
-  `HttpProxy`, and never to a link-local or metadata address. Lessons are given only after the IMAP `MOVE`, `UID
-  MOVE`, `COPY` or `UID COPY` has succeeded - for a move, after its originals are expunged - from a queue of at most
-  1,000 that one task of the asynchronous work queue sends in order, each bounded by `RspamdTimeoutSeconds` (15); a
-  full queue drops the command's newest with a line in the application log, nothing is retried, a restart loses what
-  is waiting, and an outage never slows or fails an IMAP command. Every lesson's outcome is a line in the
-  application log; a missing address or classifier, a refused password and a classifier Rspamd does not have are
-  reported in the error log too (HM8580 to HM8583), once in ten minutes. A message already learned as the same class
-  is answered so by Rspamd's learn cache and changes nothing; a correction out of Junk is unlearned from spam and
-  learned as ham by Rspamd in the same request. Rspamd is taught only when the account signed in owns both folders -
-  a delegate's move in another account's mailbox teaches nobody - and SpamAssassin keeps its rule. A second new
-  setting, `MoveLearningFromCopy`, decides for both whether a `COPY` into or out of Junk teaches; it is on, as a `COPY`
-  always did, and off only a `MOVE`, a `UID MOVE` and the webmail's move teach. A message of a mailbox encrypted at
-  rest teaches neither. The six settings are in the database (COM `Settings.AntiSpam`, the REST anti-spam group,
-  the Control Panel's Content filters tab, card **Learning from the Junk folder**; the password write-only, stored
-  protected and left out of the backup). hmailserver/docs/JunkFolderLearning.md has which moves teach, which folder is
-  Junk when a mailbox has both a Junk and a Spam folder (Junk, unless Spam is designated `\Junk`), how lessons run and
-  what can be lost, what to configure on the Rspamd side, and the settings. `move-learning-tests`, which debian/rules
-  and the RPM spec run, holds the rules for both backends, the Junk folder beside a Spam one, the Rspamd request and
-  every answer of the controller; `rspamd-learn-tests` sends the request to a stand-in controller on a loopback port;
-  ClassTester runs both on Windows; the regression fixture `AntiSpam.RspamdLearning` teaches a stand-in controller over
-  IMAP and checks the settings, on Windows and Linux, `AntiSpam.SpamAssassinLearning` holds the SpamAssassin backend to
-  what it was, and on Linux `AntiSpam.RspamdLive`, run with a real Rspamd beside the server (skipped without one),
-  teaches it through IMAP moves and reads the owner's statistics back from its Redis.
+- **New: Rspamd as the filter that learns from the Junk folder, beside SpamAssassin (GitLab work item 108).** A message
+  a user moves into their Junk folder is spam and one moved out of it ham, and the filter is now the one a new database
+  setting, `MoveLearningBackend`, names: SpamAssassin, the default, which the `SpamAssassinLearnOnMove` key of
+  hMailServer.ini switches on and which is taught exactly as before - the same moves, spamc's same `TELL` with `Set:
+  local`, the same user - or Rspamd, through its controller: `POST /learnspam` or `/learnham` with the whole message as
+  stored, the `Classifier` the new `RspamdClassifier` names, the controller's password from `RspamdControllerPassword`,
+  and the mailbox owner's full address as `Deliver-To` and `Rcpt`, which is where a per-user classifier (`per_user =
+  true`) takes its user from - never the sender or a header of the message. A lesson is never sent without a classifier
+  named, since Rspamd would then teach every classifier it has, the global one among them. Off by default: nothing is
+  sent to Rspamd until the backend is chosen and `RspamdControllerUrl` and the classifier are set. The controller is
+  reached over https, its certificate verified as every HTTPS client of the server verifies it, with no switch to turn
+  that off, or over plain http to this machine only; never through `HttpProxy`, and never to a link-local or metadata
+  address. Lessons are given only after the IMAP `MOVE`, `UID MOVE`, `COPY` or `UID COPY` has succeeded - for a move,
+  after its originals are expunged - from a queue of at most 1,000 that one task of the asynchronous work queue sends
+  in order, each bounded by `RspamdTimeoutSeconds` (15); a full queue drops the newest lessons of the command, or of
+  each slice of at most fifty messages of a webmail move, with one line in the application log, nothing is retried, a
+  restart loses what is waiting, and an outage never slows or fails an IMAP command. Every lesson's outcome is a line
+  in the application log; a missing address or classifier, a refused password and a classifier Rspamd does not have are
+  reported in the error log too (HM8580 to HM8583), once in ten minutes. A message already learned as the same class is
+  answered so by Rspamd's learn cache and changes nothing; a correction out of Junk is unlearned from spam and learned
+  as ham by Rspamd in the same request. Rspamd is taught only when the account signed in owns both folders - a
+  delegate's move in another account's mailbox teaches nobody - and SpamAssassin keeps its rule. A second new setting,
+  `MoveLearningFromCopy`, decides for both whether a `COPY` into or out of Junk teaches; it is on, as a `COPY` always
+  did, and off only a `MOVE`, a `UID MOVE` and the webmail's move teach. A message of a mailbox encrypted at rest
+  teaches neither, and the application log says so for both. SpamAssassin's lesson now makes the plain copy spamd is
+  sent of a message the store compresses, encrypts or keeps in an object store when the task of the asynchronous work
+  queue runs, as Rspamd's reads the message, where the IMAP command made it before answering the client; spamd is sent
+  the same bytes. The six settings are in the database (COM `Settings.AntiSpam`, the REST anti-spam group, the Control
+  Panel's Content filters tab, card **Learning from the Junk folder**; the password write-only, stored protected and
+  left out of the backup, and removed by the card's own button). hmailserver/docs/JunkFolderLearning.md has which moves
+  teach, which folder is Junk when a mailbox has both a Junk and a Spam folder (Junk, unless Spam is designated
+  `\Junk`), how lessons run and what can be lost, what to configure on the Rspamd side, and the settings.
+  `move-learning-tests`, which debian/rules and the RPM spec run, holds the rules for both backends, the Junk folder
+  beside a Spam one, the Rspamd request and every answer of the controller; `rspamd-learn-tests` sends the request to a
+  stand-in controller on a loopback port; ClassTester runs both on Windows; the regression fixture
+  `AntiSpam.RspamdLearning` teaches a stand-in controller over IMAP and checks the settings, on Windows and Linux,
+  `AntiSpam.SpamAssassinLearning` holds the SpamAssassin backend to what it was, and on Linux `AntiSpam.RspamdLive`,
+  run with a real Rspamd beside the server (skipped without one), teaches it through IMAP moves and reads the owner's
+  statistics back from its Redis.
 
 - **New: the ACME certificate's state, and a check of it now, over REST and COM (GitLab work item 98).** `GET
   /api/v1/acme` (COM `Utilities.GetAcmeStatus`) says what the server knows of the certificate ACME issues, from the

@@ -10122,6 +10122,12 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   <data name="Remove the member {0} from this list?" xml:space="preserve">
     <value>¿Quitar el miembro {0} de esta lista?</value>
   </data>
+  <data name="Remove the password" xml:space="preserve">
+    <value>Quitar la contraseña</value>
+  </data>
+  <data name="Remove the password lessons carry to Rspamd's controller? Lessons are then sent without one." xml:space="preserve">
+    <value>¿Quitar la contraseña que llevan las lecciones al controlador de Rspamd? Las lecciones se enviarán entonces sin ella.</value>
+  </data>
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>¿Eliminar el dominio de muestra con todos sus buzones, mensajes y reglas? También se va todo lo que se le haya añadido.</value>
   </data>
@@ -13637,6 +13643,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   </data>
   <data name="The password this Control Panel, the REST API and every script that connects through the COM API sign in to the server with. Mailbox passwords are not changed." xml:space="preserve">
     <value>La contraseña con la que este Control Panel, la API REST y cualquier script que se conecte por la API COM inician sesión en el servidor. Las contraseñas de los buzones no cambian.</value>
+  </data>
+  <data name="The password was removed; lessons to Rspamd now carry none." xml:space="preserve">
+    <value>Se quitó la contraseña; las lecciones a Rspamd ya no llevan ninguna.</value>
   </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>Las personas y los dominios para los que este servidor transporta correo.</value>

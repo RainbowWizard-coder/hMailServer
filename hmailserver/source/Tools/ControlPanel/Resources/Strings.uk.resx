@@ -10240,6 +10240,12 @@
   <data name="Remove the member {0} from this list?" xml:space="preserve">
     <value>Вилучити учасника {0} із цього списку?</value>
   </data>
+  <data name="Remove the password" xml:space="preserve">
+    <value>Видалити пароль</value>
+  </data>
+  <data name="Remove the password lessons carry to Rspamd's controller? Lessons are then sent without one." xml:space="preserve">
+    <value>Вилучити пароль, який уроки передають контролеру Rspamd? Тоді уроки надсилатимуться без нього.</value>
+  </data>
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Вилучити зразковий домен з усіма скриньками, повідомленнями та правилами в ньому? Усе, що до нього додано, теж зникне.</value>
   </data>
@@ -13824,6 +13830,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The password this Control Panel, the REST API and every script that connects through the COM API sign in to the server with. Mailbox passwords are not changed." xml:space="preserve">
     <value>Пароль, з яким ця Панель керування, REST API і будь-який скрипт, що під'єднується через COM API, входять на сервер. Паролі поштових скриньок не змінюються.</value>
+  </data>
+  <data name="The password was removed; lessons to Rspamd now carry none." xml:space="preserve">
+    <value>Пароль видалено; уроки для Rspamd тепер надсилаються без нього.</value>
   </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>Люди та домени, для яких цей сервер обслуговує пошту.</value>

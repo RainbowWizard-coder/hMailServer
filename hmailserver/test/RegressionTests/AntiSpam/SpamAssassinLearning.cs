@@ -191,6 +191,43 @@ namespace RegressionTests.AntiSpam
       }
 
       [Test]
+      [Description("With MessageStoreCompression on, the message moved into Junk is stored as a container, and spamd is told the message as it arrived: the plain copy is made for the lesson, by the task that tells spamd. Negative control: the container's own bytes sent to spamd fail the comparison.")]
+      public void AMessageStoredCompressedIsToldAsItArrived()
+      {
+         dynamic settings = _application.Settings;
+         bool compressionFound = (bool) settings.MessageStoreCompression;
+         settings.MessageStoreCompression = true;
+         try
+         {
+            ImapClientSimulator client = DeliverOneAndOpenTheInbox();
+
+            string response = client.SendSingleCommand("A15 MOVE 1 Junk");
+            StringAssert.Contains("A15 OK", response);
+            client.Disconnect();
+
+            AssertTell(_spamd.WaitForRequest(1), "spam");
+            byte[] told = _spamd.WaitForMessage(1);
+
+            // The test is worth something only if the copy in Junk is a container.
+            Message moved = _account.IMAPFolders.get_ItemByName("Junk").Messages[0];
+            byte[] head = new byte[8];
+            using (var file = System.IO.File.OpenRead(moved.Filename))
+               ClassicAssert.AreEqual(8, file.Read(head, 0, 8));
+            CollectionAssert.AreEqual(new byte[] { 0x89, 0x48, 0x4D, 0x53, 0x0D, 0x0A, 0x1A, 0x0A }, head,
+               "With MessageStoreCompression on, the copy in Junk is stored as a container.");
+
+            string toldText = System.Text.Encoding.ASCII.GetString(told);
+            StringAssert.Contains("Subject: Lesson", toldText, "spamd is told the message, not the container.");
+            StringAssert.Contains("Body text.", toldText, "spamd is told the message, not the container.");
+         }
+         finally
+         {
+            settings.MessageStoreCompression = compressionFound;
+            ClassicAssert.AreEqual(compressionFound, (bool) settings.MessageStoreCompression, "MessageStoreCompression was not put back.");
+         }
+      }
+
+      [Test]
       [Description("Off by default: without the setting a move into Junk sends spamd nothing.")]
       public void OffByDefaultNothingIsSent()
       {

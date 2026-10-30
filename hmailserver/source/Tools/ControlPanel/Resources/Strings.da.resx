@@ -10122,6 +10122,12 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Remove the member {0} from this list?" xml:space="preserve">
     <value>Fjern medlemmet {0} fra denne liste?</value>
   </data>
+  <data name="Remove the password" xml:space="preserve">
+    <value>Fjern adgangskoden</value>
+  </data>
+  <data name="Remove the password lessons carry to Rspamd's controller? Lessons are then sent without one." xml:space="preserve">
+    <value>Fjern den adgangskode, lektionerne har med til Rspamd-controlleren? Lektioner sendes så uden en.</value>
+  </data>
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Fjern prøvedomænet med alle postkasser, beskeder og regler i det? Alt, du har tilføjet til det, følger med.</value>
   </data>
@@ -13637,6 +13643,9 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   </data>
   <data name="The password this Control Panel, the REST API and every script that connects through the COM API sign in to the server with. Mailbox passwords are not changed." xml:space="preserve">
     <value>Den adgangskode, som dette Control Panel, REST API'et og ethvert script, der forbinder gennem COM API'et, logger på serveren med. Postkasseadgangskoder ændres ikke.</value>
+  </data>
+  <data name="The password was removed; lessons to Rspamd now carry none." xml:space="preserve">
+    <value>Adgangskoden er fjernet; lektioner til Rspamd har nu ingen.</value>
   </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>De personer og domæner, denne server bærer post for.</value>

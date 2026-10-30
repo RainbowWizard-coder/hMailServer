@@ -3242,6 +3242,35 @@ namespace hMailServer.ControlPanel.Views
             Blurb = L("For example http://127.0.0.1:11334, the controller on this machine. Plain http is accepted to this machine only; a controller elsewhere is reached over https, its certificate verified.")
          });
          learning.Settings.Add(new ComPassword { Path = "AntiSpam.SetRspamdControllerPassword", MethodName = "SetRspamdControllerPassword", Label = L("Password (leave empty to keep current)") });
+
+         // An empty box keeps the password, as it keeps the sandbox's token; with
+         // none stored a lesson carries no Password header at all (a controller
+         // that admits this server by secure_ip), a state of its own, so removing
+         // it is a button of its own, as the sandbox's token's is.
+         learning.Settings.Add(new ComAction
+         {
+            ButtonText = L("Remove the password"),
+            Destructive = true,
+            Action = () =>
+            {
+               if (!Dialogs.Confirm(L("Remove the password lessons carry to Rspamd's controller? Lessons are then sent without one."), L("Rspamd"), L("Re_move"), destructive: true))
+                  return (true, L("Nothing was changed."));
+
+               dynamic settings = ServerSession.Current.Application.Settings;
+               dynamic antiSpam = null;
+               try
+               {
+                  antiSpam = settings.AntiSpam;
+                  antiSpam.SetRspamdControllerPassword("");
+                  return (true, L("The password was removed; lessons to Rspamd now carry none."));
+               }
+               finally
+               {
+                  ServerSession.Release((object)antiSpam);
+                  ServerSession.Release((object)settings);
+               }
+            }
+         });
          learning.Settings.Add(new ComText { Path = "AntiSpam.RspamdClassifier", Label = L("Rspamd classifier (a per-user one)") });
          learning.Settings.Add(new ComText { Path = "AntiSpam.RspamdTimeoutSeconds", Label = L("Timeout for one lesson (seconds)"), Numeric = true });
          Tab(L("Content filters")).Cards.Add(learning);

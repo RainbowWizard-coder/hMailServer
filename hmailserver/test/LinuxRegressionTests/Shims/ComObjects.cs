@@ -563,6 +563,15 @@ namespace hMailServer
          set { SettingsApi.Put(SettingsApi.Server, "service_imap", value); }
       }
 
+      // Settings.MessageStoreCompression over COM: whether a message is stored as a
+      // compressed container (docs/MessageStore.md), message_store_compression
+      // in the server group, which takes effect at once.
+      public bool MessageStoreCompression
+      {
+         get { return Flag("message_store_compression"); }
+         set { SettingsApi.Put(SettingsApi.Server, "message_store_compression", value); }
+      }
+
       public string WelcomeSMTP
       {
          get { return Str("welcome_smtp"); }

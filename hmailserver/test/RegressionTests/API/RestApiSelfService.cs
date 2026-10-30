@@ -1120,6 +1120,73 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("With Rspamd the filter that learns from the Junk folder, the webmail's move into Junk teaches it as an IMAP MOVE does: one message's move a lesson of spam for the owner, and a bulk move of three a lesson for each of them, queued together as one command's are, and nothing more")]
+      public void TheWebmailsMovesIntoJunkTeachRspamd()
+      {
+         var controller = new FakeHttpEndpoint(200, "{\"success\":true}");
+         var antiSpam = _settings.AntiSpam;
+         try
+         {
+            antiSpam.MoveLearningBackend = 1;
+            antiSpam.RspamdControllerUrl = "http://127.0.0.1:" + controller.Port;
+            antiSpam.RspamdClassifier = "bayes_user";
+
+            string[] subjects = { "Taught A", "Taught B", "Taught C", "Taught D" };
+            foreach (string subject in subjects)
+               Deliver(Address, subject, "Body of " + subject + ".");
+            Pop3ClientSimulator.AssertMessageCount(Address, UserPassword, subjects.Length);
+
+            (int status, string body) tree = Http("GET", "/api/v1/me/folders", UserHeader(UserPassword));
+            long inboxId = IdBefore(tree.body, "\"path\":\"INBOX\"");
+            (int status, string body) page = Http("GET", "/api/v1/me/folders/" + inboxId + "/messages", UserHeader(UserPassword));
+            long[] ids = subjects.Select(s => IdBefore(page.body, "\"subject\":\"" + s + "\"")).ToArray();
+
+            (int status, string body) junked = Http("POST", "/api/v1/me/messages/" + ids[0] + "/move", UserHeader(UserPassword), "{\"to\":\"junk\"}");
+            Assert.AreEqual(200, junked.status, "Body: " + junked.body);
+            WaitForLessons(controller, 1);
+
+            (int status, string body) bulk = Http("POST", "/api/v1/me/folders/" + inboxId + "/bulk", UserHeader(UserPassword),
+               "{\"action\":\"move\",\"to\":\"junk\",\"ids\":[" + ids[1] + "," + ids[2] + "," + ids[3] + "]}");
+            Assert.AreEqual(200, bulk.status, "Body: " + bulk.body);
+            StringAssert.Contains("\"done\":3", bulk.body);
+
+            System.Collections.Generic.List<string> lessons = WaitForLessons(controller, 4);
+            Thread.Sleep(1500);
+            Assert.AreEqual(4, controller.Requests.Count, "One lesson for each message moved, and no more.");
+            foreach (string subject in subjects)
+            {
+               string lesson = lessons.FirstOrDefault(r => r.Contains("Subject: " + subject + "\r\n"));
+               Assert.IsNotNull(lesson, "No lesson for the message " + subject + ".");
+               StringAssert.StartsWith("POST /learnspam HTTP/1.0\r\n", lesson, "A move into Junk is a lesson of spam.");
+               StringAssert.Contains("\r\nDeliver-To: " + Address + "\r\n", lesson, "The lesson is the owner's.");
+               StringAssert.Contains("\r\nClassifier: bayes_user\r\n", lesson, "The classifier is named.");
+            }
+         }
+         finally
+         {
+            antiSpam.MoveLearningBackend = 0;
+            antiSpam.RspamdControllerUrl = "";
+            antiSpam.RspamdClassifier = "";
+            controller.Dispose();
+         }
+      }
+
+      private static System.Collections.Generic.List<string> WaitForLessons(FakeHttpEndpoint controller, int count)
+      {
+         DateTime deadline = DateTime.UtcNow.AddSeconds(20);
+         while (DateTime.UtcNow < deadline)
+         {
+            System.Collections.Generic.List<string> requests = controller.Requests;
+            if (requests.Count >= count)
+               return requests;
+            Thread.Sleep(100);
+         }
+
+         Assert.Fail("The stand-in controller was sent " + controller.Requests.Count + " lesson(s), and " + count + " were expected.");
+         return null;
+      }
+
+      [Test]
       [Description("A bulk call takes ids, max_uid and before_uid only as whole numbers an __int64 holds: 1e20, -1e20, 1.5 and twenty digits are each its 400 - never converted out of range or read as another id - and a real id still marks its message")]
       public void ABulkCallRefusesNumbersNoIdOrUidCanBe()
       {

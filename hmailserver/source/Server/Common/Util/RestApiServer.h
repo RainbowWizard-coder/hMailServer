@@ -1781,7 +1781,7 @@ namespace HM
       // emptied; the message's raw headers, its Authentication-Results
       // verdicts and whether its sender is external; the file itself.
       static std::shared_ptr<IMAPFolder> DesignatedFolderOrCreate_(std::shared_ptr<const Account> account, int designation, const String &name);
-      static void LearnAfterMove_(std::shared_ptr<IMAPFolder> source, std::shared_ptr<IMAPFolder> destination, __int64 newMessageId, std::shared_ptr<const Account> account);
+      static void LearnAfterMove_(std::shared_ptr<IMAPFolder> source, std::shared_ptr<IMAPFolder> destination, const std::vector<__int64> &newMessageIds, std::shared_ptr<const Account> account);
       static HttpResponse HandleMeFolderEmpty_(const Caller &caller, __int64 folderId, const AnsiString &query);
       // One action - flags, move or delete - over many messages of one folder,
       // named by id or as every message up to a UID, a bounded step per call

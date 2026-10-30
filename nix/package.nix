@@ -59,10 +59,12 @@ stdenv.mkDerivation {
   # makes beside it, found rather than listed, as linux-build.sh finds them, so a
   # new one runs here the day it is added. None needs the network but the
   # loopback: network-deadline-tests connects to peers of its own on 127.0.0.1 and
-  # writes a configuration of its own under $TMPDIR, and http-server-tests answers
-  # itself on 127.0.0.1, which the sandbox's loopback and its temporary directory
-  # give them. database-claim-tests and database-transaction-tests, the two that
-  # need a database, are given none here and say SKIPPED.
+  # writes a configuration of its own under $TMPDIR, http-server-tests answers
+  # itself on 127.0.0.1, and rspamd-learn-tests sends its lessons to a stand-in
+  # Rspamd controller of its own on 127.0.0.1 and writes a configuration under
+  # $TMPDIR, which the sandbox's loopback and its temporary directory give them.
+  # database-claim-tests and database-transaction-tests, the two that need a
+  # database, are given none here and say SKIPPED.
   doCheck = true;
   checkPhase = ''
     runHook preCheck

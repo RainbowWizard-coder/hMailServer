@@ -5,6 +5,8 @@
 #pragma once
 
 #include <map>
+#include <memory>
+#include <vector>
 
 namespace HM
 {
@@ -117,9 +119,12 @@ namespace HM
                                 std::shared_ptr<Message> copy, std::shared_ptr<const Account> destinationOwner,
                                 std::shared_ptr<const Account> sessionAccount);
 
-      // Queues one lesson for the backend it was decided for. Never blocks: each
-      // backend teaches on the asynchronous work queue.
-      static void Teach(int backend, std::shared_ptr<Message> copy, std::shared_ptr<const Account> destinationOwner, bool spam);
+      // The same for the copies of one move of many messages between the same two
+      // folders: SpamAssassin's lessons are queued one by one, as they always were,
+      // and Rspamd's together, as an IMAP command's are.
+      static void LearnFromMove(std::shared_ptr<IMAPFolder> source, std::shared_ptr<IMAPFolder> destination,
+                                const std::vector<std::shared_ptr<Message> > &copies, std::shared_ptr<const Account> destinationOwner,
+                                std::shared_ptr<const Account> sessionAccount);
 
    private:
       static bool IsJunk_(const std::map<__int64, int> &designations, __int64 folderId);

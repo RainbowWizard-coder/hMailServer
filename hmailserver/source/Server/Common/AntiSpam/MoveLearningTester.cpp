@@ -122,6 +122,21 @@ namespace HM
             port_ = acceptor_.local_endpoint().port();
          }
 
+         // A block an expectation leaves by throwing, between Start and Join, ends
+         // the stand-in here: a joinable std::thread destroyed unjoined would end
+         // the process (std::terminate) - the hMailServer service itself, where
+         // ClassTester runs - instead of the failure being reported as one.
+         // io_context::stop may be called from any thread, and a run_for that has
+         // not begun yet returns at once.
+         ~StandIn()
+         {
+            io_.stop();
+            Join();
+         }
+
+         StandIn(const StandIn &) = delete;
+         StandIn &operator=(const StandIn &) = delete;
+
          unsigned short Port() const { return port_; }
 
          void Start()

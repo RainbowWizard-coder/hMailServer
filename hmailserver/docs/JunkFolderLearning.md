@@ -45,8 +45,13 @@ A lesson is given only after the command has succeeded and its work is done -
 for a `MOVE`, after the originals have been expunged - and never on the IMAP
 command's own path: the command queues it and answers the client, and the
 lesson goes to the filter afterwards, from the server's asynchronous work queue,
-outside every folder lock and transaction. A filter that is slow or down never
-makes an IMAP command slower or makes it fail.
+outside every folder lock and transaction. The message is read there too: for
+SpamAssassin, the plain copy spamd is sent of a message the store compresses,
+encrypts or keeps in an object store is written by that task, not by the
+command. A filter that is slow or down never makes an IMAP command slower or
+makes it fail. The webmail's move of a message into or out of Junk teaches as
+an IMAP `MOVE` does, after the move, and its move of many messages queues the
+lessons of each slice of at most fifty together, as one command's are.
 
 ### Whose lesson it is
 
@@ -83,23 +88,28 @@ folder, so that one move can never be taken two ways.
 
 A message of a mailbox encrypted at rest (EncryptionAtRest.md) is never sent out
 of the server in the clear: a move of one teaches nothing, for either backend,
-and the application log says so.
+and the application log says so, with a line for each such lesson.
 
 How lessons run, and what can be lost
 -------------------------------------
 
 | | SpamAssassin | Rspamd |
 |---|---|---|
-| Queue | the asynchronous work queue, a task per lesson, as before | a queue of its own of at most 1,000 lessons, sent in order, one at a time, by one task of the asynchronous work queue |
-| A full queue | as before | the command's newest lessons are dropped, with one line in the application log for the command; the client is never made to wait |
+| Queue | the asynchronous work queue, a task per lesson, as before; the task makes the plain copy spamd is sent | a queue of its own of at most 1,000 lessons, sent in order, one at a time, by one task of the asynchronous work queue |
+| A full queue | as before | the command's newest lessons are dropped, with one line in the application log for the command (for a webmail move, for each slice of at most fifty messages); the client is never made to wait |
 | Bound on one lesson | spamd's connection's own session ceiling | `RspamdTimeoutSeconds` (15) for the whole request: the name's lookup, the connection, TLS, sending and the answer |
 | Retries | none | none |
 | A restart of the service | lessons waiting are lost | lessons waiting are lost |
 
-Every Rspamd lesson's outcome is one line in the application log - the message's
-id, the owner, spam or ham, the classifier, and what Rspamd said - and never the
-password or any of the message. The misconfigurations an administrator must put
-right are also in the error log, once in ten minutes each:
+Every Rspamd lesson's outcome is in the application log - one line for each
+lesson sent, with the message's id, the owner, spam or ham, the classifier, and
+what Rspamd said, one for each lesson let go before it was sent (the message
+deleted since, too large, encrypted at rest, a setting missing, or
+`MoveLearningBackend` changed since the move), and one for the lessons a full
+queue dropped - and never the password or any of the message. Each SpamAssassin
+lesson has its line too: what spamd was told and whether it acknowledged, or why
+it was not told. The misconfigurations an administrator must put right are also
+in the error log, once in ten minutes each:
 
 | Code | What it means |
 |---|---|
@@ -230,7 +240,10 @@ All six are on the Control Panel's Anti-spam settings page, Content filters tab,
 in the card *Learning from the Junk folder*; the Control Deck draws them from the
 REST schema. Each takes effect at the next move. The password is stored
 protected (SecretsAtRest.md), never read back over COM or REST, never logged and
-left out of the backup archive: after a restore, enter it again. The address may
+left out of the backup archive: after a restore, enter it again. An empty box on
+the card keeps the password set; its button *Remove the password* removes it, as
+`SetRspamdControllerPassword("")` and an empty `rspamd_controller_password` do,
+and lessons are then sent with no `Password` header. The address may
 not carry a user name, a password, a query or a fragment.
 
 Where it lives

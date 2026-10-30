@@ -99,23 +99,25 @@ namespace HM
       if (IniFileSettings::Instance()->GetSpamAssassinUserFromRecipient())
          user = destinationOwner->GetAddress();
 
+      // None while the servers are stopped (the error log says it is missing):
+      // the lesson is not given, and the application log says so, as it says
+      // each lesson's outcome.
       std::shared_ptr<WorkQueue> queue = Application::Instance()->GetAsyncWorkQueue();
       if (!queue)
+      {
+         LOG_APPLICATION(Formatter::Format("SpamAssassin was not told message {0} of {1} is {2}: the servers are stopped.",
+            copy->GetID(), destinationOwner->GetAddress(), spam ? String("spam") : String("ham")));
          return;
+      }
 
-      // spamd is sent a plain file: the stored one when it is plain, else a
-      // temporary copy of its original bytes that the task removes once spamd
-      // has had it (Persistence/MessageStore.h) - and none at all for a message
-      // of a mailbox encrypted at rest, which is never written out in the clear
-      // for another process (docs/EncryptionAtRest.md): such a move teaches
-      // spamd nothing.
-      bool temporary = false;
-      const String messageFile = MessageStore::PlainFileFor(PersistentMessage::GetFileName(destinationOwner, copy), temporary);
-      if (messageFile.IsEmpty())
-         return;
-
-      std::shared_ptr<SpamAssassinLearnTask> task =
-         std::shared_ptr<SpamAssassinLearnTask>(new SpamAssassinLearnTask(messageFile, spam, user, temporary));
+      // The task is given the message's file as the store holds it, and makes the
+      // plain file spamd is sent when it runs (SpamAssassinLearnTask::DoWork): on
+      // a store that compresses or encrypts, or is an object store, that is a read
+      // of the whole message and a temporary copy written, which is no work for
+      // the IMAP command that queued the lesson to wait on.
+      std::shared_ptr<SpamAssassinLearnTask> task = std::shared_ptr<SpamAssassinLearnTask>(
+         new SpamAssassinLearnTask(PersistentMessage::GetFileName(destinationOwner, copy), spam, user,
+                                   SpamAssassinLearnTask::StoredFile, destinationOwner->GetAddress()));
       queue->AddTask(task);
    }
 
@@ -169,20 +171,68 @@ namespace HM
       message_file_(messageFile),
       spam_(spam),
       user_(user),
-      remove_file_afterwards_(removeFileAfterwards)
+      remove_file_afterwards_(removeFileAfterwards),
+      stored_file_(false)
+   {
+   }
+
+   SpamAssassinLearnTask::SpamAssassinLearnTask(const String &storedFile, bool spam, const String &user, StoredFileTag, const String &owner) :
+      Task("SpamAssassinLearnTask"),
+      message_file_(storedFile),
+      spam_(spam),
+      user_(user),
+      remove_file_afterwards_(false),
+      stored_file_(true),
+      owner_(owner)
    {
    }
 
    void
    SpamAssassinLearnTask::DoWork()
    {
-      const bool acknowledged = SpamAssassinLearner::Tell(message_file_, spam_, user_);
+      String told = message_file_;
+      bool removeAfterwards = remove_file_afterwards_;
+
+      if (stored_file_)
+      {
+         // spamd is sent a plain file: the stored one when it is plain, else a
+         // temporary copy of its original bytes, removed below once spamd has
+         // had it (Persistence/MessageStore.h) - and none at all for a message
+         // of a mailbox encrypted at rest, which is never written out in the
+         // clear for another process (docs/EncryptionAtRest.md): such a move
+         // teaches spamd nothing, and the application log says so, as it says
+         // each lesson's outcome. So it does of a message no plain file could
+         // be had of; the store reports why where it is an error (HM7351, or an
+         // unreadable message's own).
+         std::string publicKey;
+         if (MessageStore::IsEncrypted(message_file_, publicKey))
+         {
+            LOG_APPLICATION(Formatter::Format("SpamAssassin was not told {0} is {1}{2}: the mailbox of {3} is encrypted at rest, and its messages are not written out for another program.",
+               message_file_, spam_ ? String("spam") : String("ham"),
+               user_.IsEmpty() ? String("") : String(" for ") + user_, owner_));
+            return;
+         }
+
+         bool temporary = false;
+         told = MessageStore::PlainFileFor(message_file_, temporary);
+         if (told.IsEmpty())
+         {
+            LOG_APPLICATION(Formatter::Format("SpamAssassin was not told {0} is {1}{2}: no plain copy of it could be had.",
+               message_file_, spam_ ? String("spam") : String("ham"),
+               user_.IsEmpty() ? String("") : String(" for ") + user_));
+            return;
+         }
+
+         removeAfterwards = temporary;
+      }
+
+      const bool acknowledged = SpamAssassinLearner::Tell(told, spam_, user_);
 
       // A copy made for this lesson is removed once spamd has had it, whatever
       // it answered: nothing else will ever read it, and leaving it would grow
       // the temporary directory by one message per lesson.
-      if (remove_file_afterwards_)
-         FileUtilities::DeleteFile(message_file_);
+      if (removeAfterwards)
+         FileUtilities::DeleteFile(told);
 
       LOG_APPLICATION(Formatter::Format("SpamAssassin was told {0} is {1}{2}: {3}.",
          message_file_, spam_ ? String("spam") : String("ham"),

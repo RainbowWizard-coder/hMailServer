@@ -10122,6 +10122,12 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   <data name="Remove the member {0} from this list?" xml:space="preserve">
     <value>Fjerne medlemmet {0} fra denne listen?</value>
   </data>
+  <data name="Remove the password" xml:space="preserve">
+    <value>Fjern passordet</value>
+  </data>
+  <data name="Remove the password lessons carry to Rspamd's controller? Lessons are then sent without one." xml:space="preserve">
+    <value>Fjerne passordet leksjonene har med til Rspamd-kontrolleren? Leksjoner sendes da uten et.</value>
+  </data>
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Fjerne prøvedomenet med alle postkasser, meldinger og regler i det? Alt som er lagt til, følger med.</value>
   </data>
@@ -13637,6 +13643,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   </data>
   <data name="The password this Control Panel, the REST API and every script that connects through the COM API sign in to the server with. Mailbox passwords are not changed." xml:space="preserve">
     <value>Passordet som dette Control Panel, REST-API-et og ethvert skript som kobler til gjennom COM-API-et, logger på serveren med. Postbokspassord endres ikke.</value>
+  </data>
+  <data name="The password was removed; lessons to Rspamd now carry none." xml:space="preserve">
+    <value>Passordet er fjernet; leksjoner til Rspamd har nå ingen.</value>
   </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>Personene og domenene denne serveren bærer post for.</value>

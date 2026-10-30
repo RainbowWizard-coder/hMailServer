@@ -10240,6 +10240,12 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Remove the member {0} from this list?" xml:space="preserve">
     <value>Odebrat člena {0} z tohoto seznamu?</value>
   </data>
+  <data name="Remove the password" xml:space="preserve">
+    <value>Odebrat heslo</value>
+  </data>
+  <data name="Remove the password lessons carry to Rspamd's controller? Lessons are then sent without one." xml:space="preserve">
+    <value>Odebrat heslo, které lekce nesou k řadiči Rspamd? Lekce se pak posílají bez něj.</value>
+  </data>
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Odstranit ukázkovou doménu se všemi schránkami, zprávami a pravidly v ní? Odejde i vše, co jste do ní přidali.</value>
   </data>
@@ -13824,6 +13830,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   </data>
   <data name="The password this Control Panel, the REST API and every script that connects through the COM API sign in to the server with. Mailbox passwords are not changed." xml:space="preserve">
     <value>Heslo, kterým se k serveru přihlašuje tento Control Panel, REST API a každý skript připojující se přes COM API. Hesla schránek se nemění.</value>
+  </data>
+  <data name="The password was removed; lessons to Rspamd now carry none." xml:space="preserve">
+    <value>Heslo bylo odebráno; lekce pro Rspamd teď žádné nenesou.</value>
   </data>
   <data name="The people and the domains this server carries mail for." xml:space="preserve">
     <value>Lidé a domény, pro které tento server přenáší poštu.</value>

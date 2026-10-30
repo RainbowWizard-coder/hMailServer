@@ -159,7 +159,9 @@ namespace HM
    // once and only when it has succeeded, hands what it did to Committed. Nothing
    // is done there but queueing: the lessons of learning from the Junk folder
    // (Common/AntiSpam/MoveLearning.h) go, for SpamAssassin, to the asynchronous
-   // work queue as they always have (SpamAssassinLearner::Teach), and for Rspamd
+   // work queue as they always have (SpamAssassinLearner::Teach), whose task also
+   // makes the plain copy spamd is sent of a message stored compressed, encrypted
+   // or in an object store, and for Rspamd
    // to its bounded queue (RspamdLearner::Queue), whose drainer sends them on the
    // asynchronous work queue; the move events go to the bounded queue above,
    // whose drainer fires them on the asynchronous work queue too - all of it

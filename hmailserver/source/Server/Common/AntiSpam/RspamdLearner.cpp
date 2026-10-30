@@ -474,7 +474,8 @@ namespace HM
       if (admitted < lessons.size())
       {
          // The client is not made to wait for Rspamd: the newest are dropped, and
-         // said so, once for the command.
+         // said so, once for the command - and for a webmail move once for each
+         // slice of at most fifty messages, whose lessons are queued together.
          LOG_APPLICATION(Formatter::Format("Rspamd: {0} of the {1} lessons of a move were not queued, because {2} are waiting already, the most there may be. "
             "The controller is slower than the moves it is told of, or not answering.",
             (unsigned __int64) (lessons.size() - admitted), (unsigned __int64) lessons.size(),
@@ -513,7 +514,7 @@ namespace HM
       // Switched to another backend since the move: what was waiting is let go.
       if (config.GetMoveLearningBackend() != MoveLearning::BackendRspamd)
       {
-         LOG_DEBUG(Formatter::Format("Rspamd: message {0} of {1} not taught: MoveLearningBackend was changed after the move.", messageId, owner));
+         LOG_APPLICATION(Formatter::Format("Rspamd: message {0} of {1} was not taught as {2}: MoveLearningBackend was changed after the move.", messageId, owner, kind));
          return;
       }
 

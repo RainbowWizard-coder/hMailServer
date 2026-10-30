@@ -137,6 +137,27 @@ namespace RegressionTests.AntiSpam
       }
 
       [Test]
+      [Description("SetRspamdControllerPassword(\"\"), which the Control Panel's Remove the password calls, removes a stored password: the next lesson carries no Password header, and is otherwise the lesson it was.")]
+      public void ARemovedPasswordIsNotSent()
+      {
+         _settings.AntiSpam.SetRspamdControllerPassword("");
+
+         ImapClientSimulator client = DeliverOneAndOpenTheInbox();
+         StringAssert.Contains("A10 OK", client.SendSingleCommand("A10 MOVE 1 Junk"));
+         client.Disconnect();
+
+         string request = WaitForRequests(1)[0];
+         StringAssert.StartsWith("POST /learnspam HTTP/1.0\r\n", request, "A move into Junk is still a lesson of spam.");
+         StringAssert.Contains("\r\nClassifier: " + Classifier + "\r\n", request, "The classifier is still named.");
+         StringAssert.Contains("\r\nDeliver-To: " + _account.Address + "\r\n", request, "The lesson is still the owner's.");
+         string head = request.Substring(0, request.IndexOf("\r\n\r\n", StringComparison.Ordinal) + 2);
+         StringAssert.DoesNotContain("\r\nPassword:", head, "With the password removed, the lesson carries none.");
+         StringAssert.DoesNotContain(ControllerPassword, request, "The removed password is sent nowhere in the lesson.");
+
+         AssertNoMoreThan(1);
+      }
+
+      [Test]
       [Description("A COPY into Junk teaches while MoveLearningFromCopy is on, as a COPY always did, and nothing while it is off.")]
       public void ACopyTeachesByTheSetting()
       {
