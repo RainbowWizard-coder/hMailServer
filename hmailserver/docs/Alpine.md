@@ -247,9 +247,11 @@ a fifth that the suite found a month later (5):
    refuses every other surrogate and every value above U+10FFFF, and on musl a
    Boost.Filesystem path's `wstring()` of a name holding a byte above `0x7F` is made
    of those, so a line naming such a file would still have been empty. musl's
-   `vswprintf` has no `%p` either, which no format of the Linux build uses, and
-   ends the process on a null `%s`, where glibc's writes `(null)`; the layer does
-   as glibc's does.
+   `vswprintf` has no `%p` either, and ends the process on a null `%s`, where
+   glibc's writes `(null)`. The layer writes a null `%s` as `(null)`, as glibc's
+   does, and makes a `%p` with the C library's `snprintf`, as it makes the
+   numbers, so that a null pointer is `0` on musl, where glibc writes `(nil)`; no
+   format of the Linux build uses `%p`.
    `string-format-tests` asks for U+00E0, U+0130, U+20AC, U+1F600, `0xDF80` to
    `0xDFFF`, the other surrogates, U+FFFE, U+10FFFF and values above it, holds the
    formatter to the C library's `vswprintf` over a table of formats - every case
