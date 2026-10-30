@@ -1756,6 +1756,12 @@ with `--check`).
   which CodeQL's insecure-protocol rule reads as allowing TLS 1.0 and 1.1; it now sets `minimum_version` to TLS 1.2
   itself, so the code says what it asks for. The listener and every case are as they were.
 
+- **The linux-sanitize job runs `string-format-tests` under AddressSanitizer too.** The tester drives
+  String::Format's own formatter on Linux with every kind of wide character, and AddressSanitizer is how its
+  format rewriter was once caught reading past a format that ends in `%`; the job built and ran `snmp-tests` and
+  `workqueue-teardown-tests` alone. `build/ci/linux-sanitize.sh`'s list and the texts that name the job's targets
+  (its comment in `.gitlab-ci.yml`, CONTRIBUTING.md and ContinuousIntegration.md) now name all three.
+
 - **Fixed: `build/ci/container-image-start-test.sh --docker` and two lab scripts remove their containers' volumes with
   them.** The start test removed its four containers with `docker rm -f`, which leaves their anonymous volumes - the
   three the image declares and each database's one, eight a run - on the machine; it now uses `docker rm -fv`, and

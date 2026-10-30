@@ -72,9 +72,11 @@ tail -n 5 "$out/configure.log"
 ninja -C "$build_dir" -t targets all > "$out/targets.txt" 2> /dev/null
 # The targets this job builds and runs under the sanitizer. snmp-tests feeds the
 # BER decoder bytes nobody meant it to see; workqueue-teardown-tests removes a
-# work queue while a worker is still inside it. A tree with HM_SANITIZE but
+# work queue while a worker is still inside it; string-format-tests drives
+# String::Format's own formatter, whose format rewriter the sanitizer once
+# caught reading past a format that ends in %. A tree with HM_SANITIZE but
 # without one of these no longer makes what the job exists to run.
-sanitize_targets=(snmp-tests workqueue-teardown-tests)
+sanitize_targets=(snmp-tests workqueue-teardown-tests string-format-tests)
 for target in "${sanitize_targets[@]}"; do
   if ! grep -q "^$target:" "$out/targets.txt"; then
     echo "FAILED: the build offers HM_SANITIZE but makes no $target target, which is what this job runs."
