@@ -2762,14 +2762,16 @@ with `--check`).
   entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 622. The smoke test's dac-handle case gives the program folder an
   entry of its own for the standard account, as an account could write one through `Everyone`'s right to change the
   permissions, and requires it dropped and named, and none for it after the restart; copy-fails runs the watch's
-  check of the program folder as it was made, which the base fails, since it gives the folder Inno Setup made its
+  check of the program folder as it was made, taking setup's line on the folder by the path its handle gives, as on
+  the mounted volume the case installs to, which the base fails, since it gives the folder Inno Setup made its
   permissions just after, its folder by the end passing the end state's clauses; and emptied-earlier, the earlier
   installation's program folder holding only an empty `Data` that inherits from it, with an entry of its own for
   `Authenticated Users` Modify, is hardened and refused until a restart, then installed into. Three cases are new:
   stale-folder, a folder holding a library made where `Users` may change what is made in it and moved into `Bin`, is
   hardened and refused until a restart, then installed into with neither left changeable by `Users`; mysql-user, a
   program in `MySQL` another account owns, and mysql-link, a junction at `MySQL` only the administrators
-  control, are refused, exit code 7, where the installer before check 7 of R1 to R4 installs.
+  control, each in a program folder with permissions of its own, so that no restart rule decides first, are refused,
+  exit code 7, where the installer before check 7 of R1 to R4 installs.
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
   whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is

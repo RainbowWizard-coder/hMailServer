@@ -2946,9 +2946,20 @@ function Test-ProgramFolderMadeWithItsPermissions([string] $Phase, [string] $Cla
          if ($TrustedOwnerSids -notcontains $first.Owner) { throw "when it appeared it was owned by $($first.Owner)" }
          $app = [regex]::Escape($State.App)
          if (Select-String -LiteralPath $LogPath -Pattern "Creating directory: $app\s*$" -Quiet) { throw "Inno's log says Inno Setup made it ('Creating directory: $($State.App)'), with what the folder above hands down" }
-         if (-not (Select-String -LiteralPath $LogPath -Pattern "Setup made $app with permissions of its own" -Quiet)) { throw "Inno's log does not say that setup made it with permissions of its own" }
+         if (-not (Select-String -LiteralPath $LogPath -Pattern (Get-MadeProgramFolderPattern $State.App) -Quiet)) { throw "Inno's log does not say that setup made it with permissions of its own" }
          $found
       })
+}
+
+# Setup's line that it made the program folder, which names the folder by the path the
+# handle of the folder above gives: the /DIR path, or on a volume mounted on the way
+# (copy-fails' C:\hm-small) the volume's own path, \\?\Volume{...}\...\<leaf>, as the
+# lines of Bin and ControlPanel do. Not Bin's, ControlPanel's or another folder's whose
+# name ends in the leaf (check 8 of R1 to R4, 28 October 2026).
+function Get-MadeProgramFolderPattern([string] $App) {
+   $path = [regex]::Escape($App)
+   $leaf = [regex]::Escape('\' + (Split-Path -Leaf $App))
+   return "Setup made (?:$path|\\\\\?\\Volume\{[0-9a-fA-F-]+\}(?:\\[^\\]+)*$leaf) with permissions of its own"
 }
 
 # Work item 78's R2: Bin and ControlPanel, there before the installer, were hardened
@@ -3135,6 +3146,14 @@ function Set-LockedByAccount([string] $Path) {
    if ($LASTEXITCODE -ne 0) { throw "icacls /inheritance:r /grant:r on $Path returned ${LASTEXITCODE}: $($answer -join ' ')" }
 }
 
+# The program folder's list as an installation after 6.3.7 leaves it: inheriting
+# nothing, SYSTEM and the Administrators Full control, Users Read & execute, handed
+# down to what is in it.
+function Set-SmokeProgramFolderOwnList([string] $Path) {
+   $answer = @(& icacls.exe $Path /inheritance:r /grant:r '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' '*S-1-5-32-545:(OI)(CI)RX' 2>&1)
+   if ($LASTEXITCODE -ne 0) { throw "icacls /inheritance:r /grant:r on $Path returned ${LASTEXITCODE}: $($answer -join ' ')" }
+}
+
 function New-LinkTarget([string] $Target) {
    New-Item -ItemType Directory -Force -Path $Target | Out-Null
    $answer = @(& icacls.exe $Target /inheritance:r /grant:r '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' '*S-1-5-32-545:(OI)(CI)RX' 2>&1)
@@ -3194,10 +3213,15 @@ function New-FolderCase {
          # uninstaller runs (section_uninstallrun.iss), its program another account's
          # (check 7 of R1 to R4, 28 October 2026).
          New-Item -ItemType Directory -Force -Path (Join-Path $app 'MySQL\Bin') | Out-Null
+         # The program folder with permissions of its own, as an installation after 6.3.7
+         # leaves it, so that no restart rule of a folder another account could change
+         # decides first and an installer that does not look inside MySQL installs (check 8
+         # of R1 to R4, 28 October 2026).
+         Set-SmokeProgramFolderOwnList $app
          Set-Content -LiteralPath (Join-Path $app 'MySQL\Bin\mysqld-nt.exe') -Value 'placed before the installation' -Encoding ASCII
          Set-OwnedByAccount (Join-Path $app 'MySQL\Bin\mysqld-nt.exe')
          $State.CaseFiles = @('MySQL\Bin\mysqld-nt.exe')
-         "$app and $app\MySQL\Bin made by the administrator, inheriting from the folder above; $app\MySQL\Bin\mysqld-nt.exe owned by $SmokeAccountName"
+         "$app and $app\MySQL\Bin made by the administrator, the program folder with permissions of its own: $(Get-LinkList $app); $app\MySQL\Bin\mysqld-nt.exe owned by $SmokeAccountName"
       }
       'foreign-dll' {
          New-Item -ItemType Directory -Force -Path (Join-Path $app 'Bin') | Out-Null
@@ -3256,6 +3280,9 @@ function New-FolderCase {
       }
       { $_ -in @('events-link', 'mysql-link') } {
          New-Item -ItemType Directory -Force -Path $app | Out-Null
+         # mysql-link's program folder with permissions of its own, as mysql-user's (check 8
+         # of R1 to R4, 28 October 2026); events-link's inherits from the folder above.
+         if ($FolderCase -eq 'mysql-link') { Set-SmokeProgramFolderOwnList $app }
          New-LinkTarget $LinkTarget
          # Events, which setup installs into, or MySQL, which it does not and the
          # uninstaller runs from (check 7 of R1 to R4, 28 October 2026).
