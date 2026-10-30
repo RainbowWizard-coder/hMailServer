@@ -2727,10 +2727,13 @@ with `--check`).
   under `{app}`, no `[Run]` entry without `postinstall` but the .NET runtime's from `{tmp}`, with nothing of `{app}`
   or of a `{code:}` in it, no `BeforeInstall` or `AfterInstall` on an entry of any section, the functions entries
   name for Inno Setup to call during the install held to the seven they are, what lets go of setup's holds and of the
-  files it keeps called where it is now alone, no `CurInstallProgressChanged`, `NeedRestart` or
-  `RegisterPreviousData`, which Inno Setup calls between `PrepareToInstall` and `ssPostInstall`, and a
-  `CurPageChanged`, a `ShouldSkipPage`, an `UpdateReadyMemo` and functions of the entries that run no program and let
-  nothing go, by any routine they call, no file there registered during the copy, nothing run at `ssInstall` but the state's reads and the
+  files it keeps called where it is now alone, no `CurInstallProgressChanged`, `NeedRestart`,
+  `RegisterPreviousData` or `RegisterExtraCloseApplicationsResources`, which Inno Setup calls between
+  `PrepareToInstall` and `ssPostInstall` (the last when it uses the Restart Manager, before the files), and a
+  `CurPageChanged`, a `ShouldSkipPage`, an `UpdateReadyMemo`, a `CancelButtonClick` (which it calls on the installing
+  page during the copy) and functions of the entries and of the `[Setup]` section (a `{code:...}` in a directive, a
+  function in a directive Inno Setup evaluates as an expression) that run no program and let nothing go, by any
+  routine they call, every entry of the last page, in any script, held to `Check: FoldersWereAsPrepared`, no file there registered during the copy, nothing run at `ssInstall` but the state's reads and the
   settings file's move - the groups of every user to `ServiceAccount.cpp`'s, and that `hMailServer.Updater` puts no
   earlier version back over folders the installer found changed. The checker's negative controls were 563, and each of
   those that alters an installer script for R1 to R4, or the Updater, fails the fixture too. The installer smoke
@@ -2759,7 +2762,7 @@ with `--check`).
   look after the files, one more in `CurStepChanged`, and `#if 0` around `section_dirs.iss`'s `{app}` entry had passed
   both and compiled. The fixture reads an installer script as ISCC and the checker read it, a lone carriage return
   ending the line, where three one-line changes behind one - code after a `//` comment, `#if 0` around a `[Dirs]`
-  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 622. The smoke test's dac-handle case gives the program folder an
+  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 632. The smoke test's dac-handle case gives the program folder an
   entry of its own for the standard account, as an account could write one through `Everyone`'s right to change the
   permissions, and requires it dropped and named, and none for it after the restart; copy-fails runs the watch's
   check of the program folder as it was made, taking setup's line on the folder by the path its handle gives, as on

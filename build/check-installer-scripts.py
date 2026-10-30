@@ -2168,12 +2168,29 @@ RELEASE_CALLERS = (('ReleaseHeldFolders', ('CheckProgramFolders', 'DeinitializeS
 # and RegisterPreviousData as the uninstall information is saved (RegisterUninstallInfo) -
 # Inno Setup 6.7.3's Setup.Install.pas and Setup.MainForm.pas; check 7 of R1 to R4, 28
 # October 2026.
-INSTALL_EVENTS_REFUSED = ('CurInstallProgressChanged', 'NeedRestart', 'RegisterPreviousData')
+# And RegisterExtraCloseApplicationsResources, which Inno Setup runs when it uses the
+# Restart Manager, after PrepareToInstall returned '' and before the install
+# (Setup.MainFunc.pas' RegisterResourcesWithRestartManager, reached from
+# Setup.WizardForm.pas' QueryRestartManager) - check 8 of R1 to R4, 28 October 2026.
+INSTALL_EVENTS_REFUSED = ('CurInstallProgressChanged', 'NeedRestart', 'RegisterPreviousData', 'RegisterExtraCloseApplicationsResources')
 # The event functions of the pages up to the install, which run before the folders are
-# looked at or as the install begins, and the functions the sections' entries name for Inno
-# Setup to call during the install (INSTALL_TIME_FUNCTIONS): none runs a program or lets
-# what setup holds go, itself or through any routine it calls (check 7 of R1 to R4).
-PAGE_EVENTS_HELD = ('CurPageChanged', 'ShouldSkipPage', 'UpdateReadyMemo')
+# looked at or as the install begins, CancelButtonClick, which Inno Setup runs on the
+# installing page during the copy (check 8 of R1 to R4), and the functions the sections'
+# entries name for Inno Setup to call during the install (INSTALL_TIME_FUNCTIONS): none runs
+# a program or lets what setup holds go, itself or through any routine it calls (check 7 of
+# R1 to R4).
+PAGE_EVENTS_HELD = ('CurPageChanged', 'ShouldSkipPage', 'UpdateReadyMemo', 'CancelButtonClick')
+# The [Setup] directives Inno Setup 6.7.3 evaluates as a Boolean expression, which may name
+# functions of the [Code] (EvalDirectiveCheck): ChangesEnvironment and ChangesAssociations
+# just after ssInstall, Uninstallable and CreateUninstallRegKey as the uninstall information
+# is saved, before ssPostInstall, and the UsePrevious* five as the wizard starts. A function
+# one names, and one a {code:...} of any [Setup] directive names (UninstallDisplayIcon,
+# UninstallDisplayName and the others RegisterUninstallInfo expands before ssPostInstall),
+# is held as one an entry names: it is one of INSTALL_TIME_FUNCTIONS, through every routine
+# it reaches (check 8 of R1 to R4, 28 October 2026).
+SETUP_EXPRESSION_DIRECTIVES = ('ChangesAssociations', 'ChangesEnvironment', 'CreateUninstallRegKey', 'Uninstallable', 'UsePreviousAppDir',
+                               'UsePreviousGroup', 'UsePreviousSetupType', 'UsePreviousTasks', 'UsePreviousUserInfo')
+SETUP_EXPRESSION_WORDS = ('yes', 'no', 'true', 'false', 'not', 'and', 'or')
 PROGRAM_RUNNERS = ('Exec', 'ShellExec', 'ExecAsOriginalUser', 'ShellExecAsOriginalUser')
 
 
@@ -2203,13 +2220,17 @@ def check_install_sections(texts, problems):
     Setup runs before ssPostInstall, runs anything but the .NET runtime from {tmp}, with
     nothing of {app} or of a {code:} in it; no entry of any section names a procedure to
     run before or after it (BeforeInstall, AfterInstall), and the functions entries name
-    for Inno Setup to call during the install (Check:, {code:...}) are INSTALL_TIME_FUNCTIONS;
-    ReleaseHeldFolders, ReleasePlaceholders and LetGoOfHeld are called where they are now
-    alone (RELEASE_CALLERS); CurInstallProgressChanged, NeedRestart and RegisterPreviousData,
-    which Inno Setup calls between PrepareToInstall and ssPostInstall, are not defined
-    (INSTALL_EVENTS_REFUSED), and CurPageChanged, ShouldSkipPage, UpdateReadyMemo and the
-    functions the entries name run no program and let nothing go, by any routine they call
-    (check 5 of R1 to R4; check 7, 28 October 2026); no file under {app} is
+    for Inno Setup to call during the install (Check:, {code:...}), and those the [Setup]
+    section names (a {code:...} in a directive, a function in a directive Inno Setup
+    evaluates as an expression), are INSTALL_TIME_FUNCTIONS; ReleaseHeldFolders,
+    ReleasePlaceholders and LetGoOfHeld are called where they are now alone
+    (RELEASE_CALLERS); CurInstallProgressChanged, NeedRestart, RegisterPreviousData and
+    RegisterExtraCloseApplicationsResources, which Inno Setup calls between PrepareToInstall
+    and ssPostInstall, are not defined (INSTALL_EVENTS_REFUSED), and CurPageChanged,
+    ShouldSkipPage, UpdateReadyMemo, CancelButtonClick and the functions the entries name
+    run no program and let nothing go, by any routine they call (check 5 of R1 to R4; check
+    7, 28 October 2026; check 8); every entry of the last page, in any script, is held to
+    Check: FoldersWereAsPrepared (check 8); no file under {app} is
     registered during the copy (regserver, regtypelib); no folder but the eleven setup made
     is given to the uninstaller whatever is in it (uninsalwaysuninstall); and nothing runs
     at ssInstall but what reads the state and moves the settings file. And whether the
@@ -2256,9 +2277,10 @@ def check_install_sections(texts, problems):
     # {app} or of a {code:} among its parameters; the holds and the files setup keeps are
     # let go only where they are let go now; and no event function Inno Setup calls during
     # the install but CurStepChanged is defined - CurInstallProgressChanged, NeedRestart,
-    # RegisterPreviousData - and none of the pages' (CurPageChanged, ShouldSkipPage,
-    # UpdateReadyMemo), nor a function an entry names, runs a program or lets them go,
-    # itself or through a routine it calls (check 7 of R1 to R4, 28 October 2026).
+    # RegisterPreviousData, RegisterExtraCloseApplicationsResources - and none of the pages'
+    # (CurPageChanged, ShouldSkipPage, UpdateReadyMemo, CancelButtonClick), nor a function an
+    # entry or the [Setup] section names, runs a program or lets them go, itself or through a
+    # routine it calls (check 7 of R1 to R4, 28 October 2026; check 8).
     called = set()
     for name, text in sorted(texts.items()):
         if not name.lower().endswith('.iss') or '/' in name:
@@ -2273,9 +2295,24 @@ def check_install_sections(texts, problems):
                 check = parameter(entry, 'Check')
                 if check:
                     called.update(re.findall(r'\b(?!not\b|and\b|or\b)(\w+)\s*(?:\(|$|\s)', check.strip()))
+        # The [Setup] section's functions: a {code:...} in any directive, and what a directive
+        # Inno Setup evaluates as an expression names (check 8 of R1 to R4, 28 October 2026).
+        for number, entry in section_entries(text, 'Setup'):
+            directive = re.match(r'(\w+)\s*=\s*(.*)$', entry)
+            if not directive:
+                continue
+            called.update(re.findall(r'\{code:(\w+)', directive.group(2)))
+            if directive.group(1).lower() in [name.lower() for name in SETUP_EXPRESSION_DIRECTIVES]:
+                value = re.sub(r"'(?:[^']|'')*'|\"[^\"]*\"", ' ', directive.group(2))
+                called.update(word for word in re.findall(r'\b[A-Za-z_]\w*\b', value) if word.lower() not in SETUP_EXPRESSION_WORDS)
         for number, entry in section_entries(text, 'Run'):
             flags = (parameter(entry, 'Flags') or '').lower().split()
             if 'postinstall' in flags:
+                # A last-page entry of any script, not of section_run.iss alone, runs nothing of
+                # an installation whose folders were not as setup left them (check 8 of R1 to R4).
+                if parameter(entry, 'Check') != 'FoldersWereAsPrepared':
+                    problems.append('%s:%d: an entry of the last page runs %s whether or not the folders setup prepared were as it left them '
+                                    '(Check: FoldersWereAsPrepared)' % (name, number, parameter(entry, 'Filename')))
                 continue
             # The whole entry, since a parameter's doubled quotes end what parameter() reads.
             arguments = entry.lower()
@@ -3647,6 +3684,45 @@ def negative_controls(texts):
                              'function FoldersWereAsPrepared(): Boolean;\nbegin\n   Result := FolderWasPrepared() and (not g_bFoldersNotAsPrepared);\nend;')))
     trusted = bodies.get('istrustedsid', (None, ''))[1]
     controls.append(('a routine of R1 to R4 defined twice', altered(texts, EXTENSION, trusted, trusted + '\n\n' + trusted) if trusted else None))
+    # Rebase repair 1 of R1 to R4 (check 8, 28 October 2026): what Inno Setup runs of the [Code], or of the installation,
+    # between PrepareToInstall and the look after the files that the rules above did not name - check 8's mutations8.py 8.01,
+    # 8.02 and 8.04 to 8.07b, which passed the checker and compiled, and more.
+    deinit = 'procedure DeinitializeSetup();\nbegin'
+    controls.append(('8.01 RegisterExtraCloseApplicationsResources, which Inno Setup runs after PrepareToInstall and before the files, running '
+                     '/ProtectFolders (check 8 of R1 to R4)',
+                     altered(texts, EXTENSION, deinit, 'procedure RegisterExtraCloseApplicationsResources();\nbegin\n   ProtectFolders();\nend;\n\n' + deinit)))
+    controls.append(('8.02 RegisterExtraCloseApplicationsResources running {app}\\Bin\\hMailServer.exe itself (Exec) (check 8 of R1 to R4)',
+                     altered(texts, EXTENSION, deinit, "procedure RegisterExtraCloseApplicationsResources();\nvar\n   ResultCode: Integer;\nbegin\n"
+                             "   Exec(ExpandConstant('{app}\\Bin\\hMailServer.exe'), '/RegisterTypeLib', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);\nend;\n\n" + deinit)))
+    controls.append(('RegisterExtraCloseApplicationsResources defined at all, doing nothing of R1 to R4 (check 8 of R1 to R4)',
+                     altered(texts, EXTENSION, deinit, "procedure RegisterExtraCloseApplicationsResources();\nbegin\n   Log('registering');\nend;\n\n" + deinit)))
+    controls.append(('8.04 CancelButtonClick running /RegisterTypeLib on the installing page, during the copy (check 8 of R1 to R4)',
+                     altered(texts, EXTENSION, deinit, 'procedure CancelButtonClick(CurPageID: Integer; var Cancel, Confirm: Boolean);\nbegin\n'
+                             '   if CurPageID = wpInstalling then\n      RegisterTypeLib();\nend;\n\n' + deinit)))
+    controls.append(('CancelButtonClick letting every hold go through a routine it calls (check 8 of R1 to R4)',
+                     altered(texts, EXTENSION, deinit, 'procedure LetEverythingGoOnCancel();\nbegin\n   ReleaseHeldFolders();\nend;\n\n'
+                             'procedure CancelButtonClick(CurPageID: Integer; var Cancel, Confirm: Boolean);\nbegin\n   LetEverythingGoOnCancel();\nend;\n\n' + deinit)))
+    controls.append(('8.05 [Setup] UninstallDisplayIcon={code:...}, which Inno Setup expands as it saves the uninstall information before '
+                     'ssPostInstall, its function running /ProtectFolders (check 8 of R1 to R4)',
+                     (lambda setup: altered(setup, EXTENSION, deinit, "function HmUninstallIcon(Param: String): String;\nbegin\n   ProtectFolders();\n"
+                                                                      "   Result := ExpandConstant('{app}\\Bin\\hMailServer.exe');\nend;\n\n" + deinit) if setup else None)(
+                         altered(texts, 'section_setup.iss', 'AppId=hMailServer\n', 'AppId=hMailServer\nUninstallDisplayIcon={code:HmUninstallIcon}\n'))))
+    controls.append(('8.06 [Setup] ChangesEnvironment=<a function>, which Inno Setup evaluates just after ssInstall, before the files, running '
+                     '/RegisterTypeLib (check 8 of R1 to R4)',
+                     (lambda setup: altered(setup, EXTENSION, deinit, 'function HmChangesEnvironment(): Boolean;\nbegin\n   RegisterTypeLib();\n'
+                                                                      '   Result := false;\nend;\n\n' + deinit) if setup else None)(
+                         altered(texts, 'section_setup.iss', 'AppId=hMailServer\n', 'AppId=hMailServer\nChangesEnvironment=HmChangesEnvironment\n'))))
+    controls.append(('[Setup] Uninstallable=<an expression naming a function>, which Inno Setup evaluates before ssPostInstall (check 8 of R1 to R4)',
+                     (lambda setup: altered(setup, EXTENSION, deinit, 'function HmUninstallable(): Boolean;\nbegin\n   Result := true;\nend;\n\n' + deinit)
+                      if setup else None)(altered(texts, 'section_setup.iss', 'Uninstallable=true\n', 'Uninstallable=not WizardSilent or HmUninstallable\n'))))
+    controls.append(('8.07b a last-page [Run] entry (postinstall) at the end of section_icons.iss running {app}\\Bin\\DBSetup.exe with no Check: '
+                     'FoldersWereAsPrepared (check 8 of R1 to R4)',
+                     altered(texts, 'section_icons.iss', 'Parameters: "STOP hMailServer"; Components: server;\n',
+                             'Parameters: "STOP hMailServer"; Components: server;\n\n[Run]\nFilename: "{app}\\Bin\\DBSetup.exe"; Flags: postinstall nowait; Description: Run DBSetup\n')))
+    controls.append(('a last-page [Run] entry outside section_run.iss held to the opposite of FoldersWereAsPrepared (check 8 of R1 to R4)',
+                     altered(texts, 'section_icons.iss', 'Parameters: "STOP hMailServer"; Components: server;\n',
+                             'Parameters: "STOP hMailServer"; Components: server;\n\n[Run]\nFilename: "{app}\\Bin\\DBSetup.exe"; Flags: postinstall nowait; '
+                             'Description: Run DBSetup; Check: not FoldersWereAsPrepared\n')))
 
     missed = []
     for description, copy in controls:

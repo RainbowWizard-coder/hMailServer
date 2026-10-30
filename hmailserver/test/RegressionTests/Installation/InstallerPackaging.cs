@@ -2235,7 +2235,7 @@ namespace RegressionTests.Installation
       }
 
       [Test]
-      [Description("Work item 78 (check 4 of R1 to R4, 27 October 2026): what Inno Setup does outside the [Code] between PrepareToInstall and the look after the files keeps what setup prepared - no [Dirs] or [Files] entry under {app} gives permissions, which Inno Setup applies as it makes the folder or copies the file; no [Run] entry without postinstall, which Inno Setup runs before ssPostInstall, runs anything but the .NET runtime from {tmp}, with nothing of {app} or of a {code:} in it; no entry names a procedure to run before or after it (BeforeInstall, AfterInstall), and the functions entries name for Inno Setup to call during the install are those held; ReleaseHeldFolders, ReleasePlaceholders and LetGoOfHeld are called where they are now alone, CurInstallProgressChanged is not defined and CurPageChanged runs no program (check 5 of R1 to R4, 27 October 2026: nine one-line changes of that kind passed), and neither are NeedRestart and RegisterPreviousData, which Inno Setup calls after the files and as it saves the uninstall information, nor do ShouldSkipPage, UpdateReadyMemo and the functions the entries name run a program or let anything go, by any routine they call (check 7 of R1 to R4, 28 October 2026: three such changes passed); no file under {app} is registered during the copy; no folder but those setup made is given to the uninstaller whatever is in it; nothing but the state's reads and the settings file's move runs at ssInstall; whether the folders were checked is set and cleared by CheckProgramFolders and PrepareProgramFolders alone; and /ProtectFolders runs after the files. Each passed the checker and these tests before.")]
+      [Description("Work item 78 (check 4 of R1 to R4, 27 October 2026): what Inno Setup does outside the [Code] between PrepareToInstall and the look after the files keeps what setup prepared - no [Dirs] or [Files] entry under {app} gives permissions, which Inno Setup applies as it makes the folder or copies the file; no [Run] entry without postinstall, which Inno Setup runs before ssPostInstall, runs anything but the .NET runtime from {tmp}, with nothing of {app} or of a {code:} in it; no entry names a procedure to run before or after it (BeforeInstall, AfterInstall), and the functions entries name for Inno Setup to call during the install are those held; ReleaseHeldFolders, ReleasePlaceholders and LetGoOfHeld are called where they are now alone, CurInstallProgressChanged is not defined and CurPageChanged runs no program (check 5 of R1 to R4, 27 October 2026: nine one-line changes of that kind passed), and neither are NeedRestart and RegisterPreviousData, which Inno Setup calls after the files and as it saves the uninstall information, nor do ShouldSkipPage, UpdateReadyMemo and the functions the entries name run a program or let anything go, by any routine they call (check 7 of R1 to R4, 28 October 2026: three such changes passed); nor is RegisterExtraCloseApplicationsResources, which Inno Setup runs after PrepareToInstall and before the install when it uses the Restart Manager, CancelButtonClick, which it runs on the installing page, is held as the pages' events are, the functions the [Setup] section names (a {code:...} in a directive, a function in a directive Inno Setup evaluates as an expression) are held as those the entries name, and every entry of the last page, in any script, runs only while the folders were as setup left them (check 8 of R1 to R4: six such changes passed); no file under {app} is registered during the copy; no folder but those setup made is given to the uninstaller whatever is in it; nothing but the state's reads and the settings file's move runs at ssInstall; whether the folders were checked is set and cleared by CheckProgramFolders and PrepareProgramFolders alone; and /ProtectFolders runs after the files. Each passed the checker and these tests before.")]
       public void WhatInnoSetupDoesOutsideTheCodeKeepsWhatSetupPrepared()
       {
          var failed = new List<string>();
@@ -2266,6 +2266,29 @@ namespace RegressionTests.Installation
                string whole = entry.Value.ToLowerInvariant();
                if (!flags.Contains("postinstall") && (EntryParameter(entry.Value, "Filename") != @"{tmp}\{#DOTNET_RUNTIME_FILE}" || whole.Contains("{app}") || whole.Contains("{code:")))
                   failed.Add(script.Name + ":" + entry.Key + " runs something other than the .NET runtime from {tmp} before ssPostInstall");
+               // A last-page entry of any script, not of section_run.iss alone, is held to
+               // FoldersWereAsPrepared (check 8 of R1 to R4, 28 October 2026).
+               if (flags.Contains("postinstall") && EntryParameter(entry.Value, "Check") != "FoldersWereAsPrepared")
+                  failed.Add(script.Name + ":" + entry.Key + " is an entry of the last page that runs whether or not the folders setup prepared were as it left them");
+            }
+            // The [Setup] section's functions: a {code:...} in any directive, and what a
+            // directive Inno Setup evaluates as an expression names (EvalDirectiveCheck: the
+            // nine below) - check 8 of R1 to R4, 28 October 2026.
+            foreach (KeyValuePair<int, string> entry in SectionEntries(text, "Setup"))
+            {
+               Match directive = Regex.Match(entry.Value, @"^(\w+)\s*=\s*(.*)$");
+               if (!directive.Success)
+                  continue;
+               foreach (Match code in Regex.Matches(directive.Groups[2].Value, @"\{code:(\w+)"))
+                  called.Add(code.Groups[1].Value);
+               if (new[] { "changesassociations", "changesenvironment", "createuninstallregkey", "uninstallable", "usepreviousappdir", "usepreviousgroup",
+                           "useprevioussetuptype", "useprevioustasks", "useprevioususerinfo" }.Contains(directive.Groups[1].Value.ToLowerInvariant()))
+               {
+                  string value = Regex.Replace(directive.Groups[2].Value, @"'(?:[^']|'')*'|""[^""]*""", " ");
+                  foreach (Match word in Regex.Matches(value, @"\b[A-Za-z_]\w*\b"))
+                     if (!new[] { "yes", "no", "true", "false", "not", "and", "or" }.Contains(word.Value.ToLowerInvariant()))
+                        called.Add(word.Value);
+               }
             }
             // No entry names a procedure to run before or after it, and the functions entries
             // name for Inno Setup to call during the install are those held here.
@@ -2319,11 +2342,15 @@ namespace RegressionTests.Installation
                routines.Where(pair => pair.Key != release.Key.ToLowerInvariant() && Regex.IsMatch(Regex.Replace(pair.Value[1], @"//[^\n]*|\{(?!#)[^}]*\}|'(?:[^'\n]|'')*'", " "), @"\b" + release.Key + @"\s*\("))
                        .Select(pair => pair.Value[0]).ToArray(),
                release.Key + " is called from elsewhere than " + string.Join(" and ", release.Value) + ", so that what setup holds is let go before the look after the files.");
-         foreach (string refused in new[] { "CurInstallProgressChanged", "NeedRestart", "RegisterPreviousData" })
+         // RegisterExtraCloseApplicationsResources, which Inno Setup runs when it uses the
+         // Restart Manager, after PrepareToInstall and before the install, is refused too, and
+         // CancelButtonClick, which it runs on the installing page during the copy, is held
+         // (check 8 of R1 to R4, 28 October 2026).
+         foreach (string refused in new[] { "CurInstallProgressChanged", "NeedRestart", "RegisterPreviousData", "RegisterExtraCloseApplicationsResources" })
             Assert.IsFalse(routines.ContainsKey(refused.ToLowerInvariant()), refused + ", which Inno Setup calls between PrepareToInstall and ssPostInstall, is defined.");
          var runs = new List<string>();
          var held = new[] { "exec", "shellexec", "execasoriginaluser", "shellexecasoriginaluser", "protectfolders", "releaseheldfolders", "releaseplaceholders", "letgoofheld" };
-         foreach (string name in new[] { "CurPageChanged", "ShouldSkipPage", "UpdateReadyMemo", "DotNetDesktopMissing", "FoldersWereAsPrepared", "FolderMadeBySetup", "SetupMadeFolder",
+         foreach (string name in new[] { "CurPageChanged", "ShouldSkipPage", "UpdateReadyMemo", "CancelButtonClick", "DotNetDesktopMissing", "FoldersWereAsPrepared", "FolderMadeBySetup", "SetupMadeFolder",
                                          "SetupMadeProgramFolder", "SetupMadeBin", "SetupMadeControlPanel" })
             if (routines.ContainsKey(name.ToLowerInvariant()))
                runs.AddRange(RoutineReach(routines, name).Intersect(held).OrderBy(call => call, StringComparer.Ordinal).Select(call => name + " runs " + call));

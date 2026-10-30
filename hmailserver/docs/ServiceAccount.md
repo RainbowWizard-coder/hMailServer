@@ -1852,10 +1852,15 @@ puts back, as HM5481 ([Upgrading.md](Upgrading.md), "If the upgrade fails").
   `BeforeInstall` or `AfterInstall` on an entry of any section; the functions entries
   name for Inno Setup to call during the install (`Check:`, `{code:...}`) the seven they
   are; what lets go of setup's holds and of the files it keeps called where it is now
-  alone; no `CurInstallProgressChanged`, `NeedRestart` or `RegisterPreviousData`, which
-  Inno Setup calls between `PrepareToInstall` and `ssPostInstall`, and a
-  `CurPageChanged`, a `ShouldSkipPage`, an `UpdateReadyMemo` and functions of the
-  entries that run no program and let nothing go, by any routine they call; no
+  alone; no `CurInstallProgressChanged`, `NeedRestart`, `RegisterPreviousData` or
+  `RegisterExtraCloseApplicationsResources`, which Inno Setup calls between
+  `PrepareToInstall` and `ssPostInstall` (the last when it uses the Restart Manager,
+  before the files), and a `CurPageChanged`, a `ShouldSkipPage`, an `UpdateReadyMemo`,
+  a `CancelButtonClick` (which it calls on the installing page during the copy) and
+  functions of the entries and of the `[Setup]` section (a `{code:...}` in a directive,
+  a function in a directive Inno Setup evaluates as an expression) that run no program
+  and let nothing go, by any routine they call; every entry of the last page, in any
+  script, held to `Check: FoldersWereAsPrepared`; no
   registration during the copy; nothing at `ssInstall` but the state's reads and the
   settings file's move. `API/UpdateApply.cs` holds `hMailServer.Updater` to putting
   nothing back on 12, nor on a 7 whose log says the folders were found changed. Each decision is
