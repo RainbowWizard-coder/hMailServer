@@ -339,13 +339,17 @@ with `--check`).
   locale; a locale of the call's own would not have done, since musl's `C.UTF-8` refuses `0xDF80` to `0xDFFF`, of
   which a Boost.Filesystem path's `wstring()` is made there for a name holding a byte above `0x7F`. musl's `vswprintf`
   has no `%p` either, which no format of the Linux build uses, and ends the process on a null `%s`, where glibc's
-  writes `(null)`; the layer does as glibc's does. On glibc the text is what `vswprintf` made, but for one thing: a
-  text longer than 65,535 characters, which the old measure in a buffer that doubled up to 64 KB gave as nothing, is
-  now made whole, as on Windows. A new tester program, `string-format-tests`, which `linux-build`, the package builds,
-  the APKBUILD's `check()`, `debian/rules` and the RPM spec's `%check` run, asks for U+00E0, U+0130, U+20AC, U+1F600,
-  `0xDF80` to `0xDFFF`, the other surrogates, U+FFFE, U+10FFFF and the values above it through `%s`, `%c` and the
-  format's own text, holds the formatter to the C library's own `vswprintf` over a table of formats, and logs lines
-  holding those characters through the default format, the event log and the backup log and reads them back.
+  writes `(null)`; the layer does as glibc's does. With glibc 2.37 and later the text is what `vswprintf` made, but
+  for one thing: a text longer than 65,535 characters, which the old measure in a buffer that doubled up to 64 KB gave
+  as nothing, is now made whole, as on Windows (2.36 and older, Debian 12's and Enterprise Linux 9's, also refused a
+  `%c` of `WEOF`, which the layer writes, as 2.37 does). It costs more there: a short format, a log line's among them,
+  takes 1.4 to 2.0 times as long as glibc's `vswprintf` took (0.04 to 0.27 microseconds more, clang -O3), and a long
+  text less; on musl every format measured takes less time than before. A new tester program, `string-format-tests`,
+  which `linux-build`, the package builds, the APKBUILD's `check()`, `debian/rules` and the RPM spec's `%check` run,
+  asks for U+00E0, U+0130, U+20AC, U+1F600, `0xDF80` to `0xDFFF`, the other surrogates, U+FFFE, U+10FFFF and the values
+  above it through `%s`, `%c` and the format's own text, holds the formatter to the C library's own `vswprintf` over a
+  table of formats, and logs lines holding those characters through the default format, the event log and the backup log
+  and reads them back.
   `Alpine.md`, "What musl changed", says so. And
   `LogonNameVariants.OverHttpBasicAVariantSpellingFailsAndIsCountedAsAFailure` expects of the dotted capital I what
   the server's C library does, as `LogonName.h` states the rule: on a musl server that spelling is the account's own

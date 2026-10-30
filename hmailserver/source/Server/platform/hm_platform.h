@@ -204,6 +204,77 @@ namespace HMPlatform
       return out;
    }
 
+   // The helpers of FormatWideForGlibc's numeric conversions.
+   //
+   // One integer argument, read as the type the conversion's length names -
+   // Signed for %d and %i, Unsigned for the others - and carried in an unsigned
+   // long long, which holds every such value, a signed one as its two's
+   // complement, so that a cast back to long long gives it again. The pair of
+   // types is named at each call, so that each length reads its argument by a
+   // call of its own, also where two of the types are one (long and intmax_t on
+   // LP64).
+   template <typename Signed, typename Unsigned>
+   inline unsigned long long IntegerArgument(va_list *arguments, bool isSigned)
+   {
+      if (isSigned)
+         return (unsigned long long) (long long) va_arg(*arguments, Signed);
+      return (unsigned long long) va_arg(*arguments, Unsigned);
+   }
+
+   // An integer cut to the bits of a short or a char (mask 0xFFFF or 0xFF), as
+   // printf cuts one for h and hh, and given its sign again when the conversion
+   // is a signed one.
+   inline unsigned long long CutInteger(unsigned long long bits, unsigned long long mask, bool isSigned)
+   {
+      bits &= mask;
+      const unsigned long long sign = (mask >> 1) + 1;
+      if (isSigned && (bits & sign) != 0)
+         bits |= ~mask;
+      return bits;
+   }
+
+   // value, 0 to INT_MAX, in decimal at text, with no NUL after it; the number of
+   // digits written.
+   inline size_t WriteDecimal(char *text, long long value)
+   {
+      char digits[20];
+      size_t count = 0;
+      do
+      {
+         digits[count++] = (char) ('0' + (int) (value % 10));
+         value /= 10;
+      } while (value > 0 && count < sizeof(digits));
+      for (size_t i = 0; i < count; ++i)
+         text[i] = digits[count - 1 - i];
+      return count;
+   }
+
+   // The text the C library's snprintf makes of one value under a narrow spec,
+   // appended to out as wide characters: in the C locale it is ASCII. Measured
+   // and written by one call, into a buffer on the stack; a longer text - a
+   // width of hundreds - is written again, into a buffer of its length.
+   template <typename Value>
+   inline bool AppendNarrowConversion(std::wstring &out, const char *spec, Value value)
+   {
+      char small[128];
+      const int needed = ::snprintf(small, sizeof(small), spec, value);
+      if (needed < 0)
+         return false;
+      std::string large;
+      const char *text = small;
+      if ((size_t) needed >= sizeof(small))
+      {
+         large.assign((size_t) needed + 1, '\0');
+         if (::snprintf(&large[0], large.size(), spec, value) != needed)
+            return false;
+         text = large.data();
+      }
+      out.reserve(out.size() + (size_t) needed);
+      for (int i = 0; i < needed; ++i)
+         out.push_back((wchar_t) (unsigned char) text[i]);
+      return true;
+   }
+
    // ------------------------------------------------------------ wide formatting
    //
    // The text glibc's vswprintf makes of a wide format WideFormatForGlibc has
@@ -229,27 +300,37 @@ namespace HMPlatform
    // precision (a field is padded with spaces, on the left unless the - flag or a
    // negative * width asks for the right; a precision cuts a string; a null
    // string is "(null)", or nothing under a precision below 6, where musl's
-   // vswprintf read a null %ls and ended the process); a narrow %s or %c through
-   // the C library's own mbrtowc and btowc, as both C libraries convert one, which
-   // in the C locale gives for a byte above 0x7F 0xDF80 + the byte on musl and on
-   // glibc a failure of the whole call (%s) or WEOF (%c), as before; and the
-   // numeric conversions and %p by the C library's snprintf, whose text in the C
-   // locale is ASCII (musl's vswprintf has no %p at all). %% is a percent
-   // sign. Anything else - %n, %m, a positional argument, a length the
-   // conversion does not take, a format ending in % - is not read here: the
-   // whole call goes to the C library's vswprintf as before. Unlike that path,
-   // which measured in a buffer that doubled up to 64 KB and answered -1 above
-   // it, the text here has no ceiling but the int it is counted in, as on
-   // Windows.
+   // vswprintf read a null %ls and ended the process); a narrow %s or %c byte by
+   // byte through the C library's own btowc, as both C libraries convert one in
+   // the C locale, where a character is one byte: for a byte above 0x7F 0xDF80 +
+   // the byte on musl, and on glibc a failure of the whole call (%s) or WEOF
+   // (%c), as before; and the numeric conversions and %p by the C library's
+   // snprintf, whose text in the C locale is ASCII (musl's vswprintf has no %p
+   // at all), an integer read as the type its length names and written as a
+   // long long, cut to a short or a char first for h and hh as printf cuts it.
+   // %% is a percent sign. Anything else - %n, %m, a positional argument, a
+   // length the conversion does not take, a format ending in % - is not read
+   // here: the whole call goes to the C library's vswprintf as before. Unlike
+   // that path, which measured in a buffer that doubled up to 64 KB and answered
+   // -1 above it, the text here has no ceiling but the int it is counted in, as
+   // on Windows.
    //
-   // -1 where glibc's vswprintf answers -1 for the same arguments; otherwise the
-   // number of characters in out, which may hold a NUL, as %lc writes one.
+   // -1 where glibc's vswprintf answers -1 for the same arguments (glibc 2.37 and
+   // later: 2.36 and older also refuse a %lc of WEOF, which this writes, as 2.37
+   // does); otherwise the number of characters in out, which may hold a NUL, as
+   // %lc writes one.
    inline int FormatWideForGlibc(std::wstring &out, const wchar_t *format, va_list arguments)
    {
       out.clear();
       if (!format)
          return -1;
+      out.reserve(::wcslen(format) + 32);
 
+      // The arguments are read from a copy of the caller's, through its address
+      // (IntegerArgument, below), and the whole call from another when the C
+      // library is asked instead.
+      va_list next;
+      va_copy(next, arguments);
       va_list whole;
       va_copy(whole, arguments);
 
@@ -263,6 +344,9 @@ namespace HMPlatform
          if (left)
             out.append(padding, L' ');
       };
+
+      // printf's flags, in the order of the bits of flags below.
+      const char kFlagCharacters[] = "-+ #0'";
 
       bool mine = true;
       bool failed = false;
@@ -280,24 +364,26 @@ namespace HMPlatform
             continue;
          }
 
-         std::string flags;
-         bool left = false;
-         while (*p && ::wcschr(L"-+ #0'", *p))
+         // The flags, each once: a flag given twice means what it means once.
+         unsigned int flags = 0;
+         while (*p > 0 && *p < 0x80)
          {
-            if (*p == L'-')
-               left = true;
-            flags.push_back((char) *p);
+            const char *flag = ::strchr(kFlagCharacters, (int) *p);
+            if (!flag)
+               break;
+            flags |= 1u << (unsigned int) (flag - kFlagCharacters);
             ++p;
          }
+         bool left = (flags & 1u) != 0;
 
          long long width = -1;
          if (*p == L'*')
          {
-            const int given = va_arg(arguments, int);
+            const int given = va_arg(next, int);
             if (given < 0)
             {
                left = true;
-               flags.push_back('-');
+               flags |= 1u;
                width = -(long long) given;
             }
             else
@@ -321,7 +407,7 @@ namespace HMPlatform
             ++p;
             if (*p == L'*')
             {
-               const int given = va_arg(arguments, int);
+               const int given = va_arg(next, int);
                precision = given < 0 ? -1 : given;
                ++p;
             }
@@ -335,9 +421,11 @@ namespace HMPlatform
             }
          }
 
-         std::string length;
-         while (mine && *p && ::wcschr(L"hlLqjzZt", *p) && length.size() < 2)
-            length.push_back((char) *p++);
+         // The length, as written: at most two of h, l, L, q, j, z, Z and t.
+         char length[3] = { 0, 0, 0 };
+         size_t lengthCount = 0;
+         while (mine && *p > 0 && *p < 0x80 && lengthCount < 2 && ::strchr("hlLqjzZt", (int) *p))
+            length[lengthCount++] = (char) *p++;
          if (!mine || !*p)
          {
             mine = false;
@@ -345,10 +433,11 @@ namespace HMPlatform
          }
 
          const wchar_t conversion = *p;
-         const bool none = length.empty();
-         if ((conversion == L's' && length == "l") || (conversion == L'S' && none))
+         const bool none = lengthCount == 0;
+         const bool longLength = ::strcmp(length, "l") == 0;
+         if ((conversion == L's' && longLength) || (conversion == L'S' && none))
          {
-            const wchar_t *text = va_arg(arguments, const wchar_t *);
+            const wchar_t *text = va_arg(next, const wchar_t *);
             if (!text)
                text = precision < 0 || precision >= 6 ? L"(null)" : L"";
             const size_t count = precision >= 0 ? ::wcsnlen(text, (size_t) precision) : ::wcslen(text);
@@ -356,44 +445,41 @@ namespace HMPlatform
          }
          else if (conversion == L's' && none)
          {
-            const char *text = va_arg(arguments, const char *);
+            const char *text = va_arg(next, const char *);
             if (!text)
             {
                const wchar_t *null = precision < 0 || precision >= 6 ? L"(null)" : L"";
                field(null, ::wcslen(null), width, left);
                continue;
             }
-            // In the C locale a byte is a character; the count is glibc's, a
-            // precision being a number of bytes.
+            // In the C locale a byte is a character (MB_CUR_MAX is 1 there with
+            // glibc and with musl), so each byte is converted on its own, as %c
+            // converts one; the count is glibc's, a precision being a number of
+            // bytes.
             const size_t count = precision >= 0 ? ::strnlen(text, (size_t) precision) : ::strlen(text);
             std::wstring wide;
-            std::mbstate_t state{};
-            const char *next = text;
-            while (wide.size() < count)
+            wide.reserve(count);
+            for (size_t i = 0; i < count; ++i)
             {
-               wchar_t character = 0;
-               const size_t used = ::mbrtowc(&character, next, MB_LEN_MAX, &state);
-               if (used == (size_t) -1 || used == (size_t) -2)
+               const wint_t character = ::btowc((unsigned char) text[i]);
+               if (character == WEOF)
                {
                   failed = true;
                   break;
                }
-               if (used == 0)
-                  break;
-               wide.push_back(character);
-               next += used;
+               wide.push_back((wchar_t) character);
             }
             if (!failed)
                field(wide.data(), wide.size(), width, left);
          }
-         else if ((conversion == L'c' && length == "l") || (conversion == L'C' && none))
+         else if ((conversion == L'c' && longLength) || (conversion == L'C' && none))
          {
-            const wchar_t character = (wchar_t) va_arg(arguments, wint_t);
+            const wchar_t character = (wchar_t) va_arg(next, wint_t);
             field(&character, 1, width, left);
          }
          else if (conversion == L'c' && none)
          {
-            const wchar_t character = (wchar_t) ::btowc((unsigned char) va_arg(arguments, int));
+            const wchar_t character = (wchar_t) ::btowc((unsigned char) va_arg(next, int));
             field(&character, 1, width, left);
          }
          else if (::wcschr(L"diouxXeEfFgGaAp", conversion))
@@ -402,70 +488,82 @@ namespace HMPlatform
             // written out: L with an integer and q are glibc's ll, Z its z.
             const bool integer = ::wcschr(L"diouxX", conversion) != nullptr;
             const bool real = ::wcschr(L"eEfFgGaA", conversion) != nullptr;
-            std::string size = length;
-            if (integer && (size == "L" || size == "q"))
+            const char *size = length;
+            if (integer && (::strcmp(size, "L") == 0 || ::strcmp(size, "q") == 0))
                size = "ll";
-            if (integer && size == "Z")
+            else if (integer && ::strcmp(size, "Z") == 0)
                size = "z";
-            if (real && size == "l")
+            else if (real && ::strcmp(size, "l") == 0)
                size = "";
-            const bool sized = integer ? (size.empty() || size == "h" || size == "hh" || size == "l" || size == "ll" ||
-                                          size == "j" || size == "z" || size == "t")
-                                       : real ? (size.empty() || size == "L") : size.empty();
+            const auto is = [&size](const char *name) { return ::strcmp(size, name) == 0; };
+            const bool sized = integer ? (is("") || is("h") || is("hh") || is("l") || is("ll") || is("j") || is("z") || is("t"))
+                                       : real ? (is("") || is("L")) : is("");
             if (!sized)
             {
                mine = false;
                break;
             }
 
-            std::string spec = "%" + flags;
+            // The spec: %, the flags, the width, the precision, the length - ll for
+            // every integer, which is read below as the type its own length names
+            // and carried in a long long - and the conversion. At most 1 + 6 + 10
+            // + 1 + 10 + 2 + 1 characters and the NUL, as a width and a precision
+            // are at most INT_MAX here.
+            char spec[40];
+            size_t used = 0;
+            spec[used++] = '%';
+            for (unsigned int i = 0; kFlagCharacters[i]; ++i)
+               if (flags & (1u << i))
+                  spec[used++] = kFlagCharacters[i];
             if (width >= 0)
-               spec += std::to_string(width);
+               used += WriteDecimal(spec + used, width);
             if (precision >= 0)
-               spec += "." + std::to_string(precision);
-            spec += size;
-            spec.push_back((char) conversion);
+            {
+               spec[used++] = '.';
+               used += WriteDecimal(spec + used, precision);
+            }
+            const char *specLength = integer ? "ll" : size;
+            for (const char *l = specLength; *l; ++l)
+               spec[used++] = *l;
+            spec[used++] = (char) conversion;
+            spec[used] = '\0';
 
             const bool isSigned = conversion == L'd' || conversion == L'i';
-            std::string text;
-            auto print = [&text, &spec](auto value) -> bool
-            {
-               const int needed = ::snprintf(nullptr, 0, spec.c_str(), value);
-               if (needed < 0)
-                  return false;
-               text.assign((size_t) needed + 1, '\0');
-               ::snprintf(&text[0], text.size(), spec.c_str(), value);
-               text.resize((size_t) needed);
-               return true;
-            };
-
             bool printed = false;
             if (conversion == L'p')
-               printed = print(va_arg(arguments, void *));
+               printed = AppendNarrowConversion(out, spec, va_arg(next, void *));
             else if (real)
-               printed = size == "L" ? print(va_arg(arguments, long double)) : print(va_arg(arguments, double));
-            else if (size.empty() || size == "h" || size == "hh")
-               printed = isSigned ? print(va_arg(arguments, int)) : print(va_arg(arguments, unsigned int));
-            else if (size == "l")
-               printed = isSigned ? print(va_arg(arguments, long)) : print(va_arg(arguments, unsigned long));
-            else if (size == "ll")
-               printed = isSigned ? print(va_arg(arguments, long long)) : print(va_arg(arguments, unsigned long long));
-            else if (size == "j")
-               printed = isSigned ? print(va_arg(arguments, intmax_t)) : print(va_arg(arguments, uintmax_t));
-            else if (size == "z")
-               printed = isSigned ? print(va_arg(arguments, ssize_t)) : print(va_arg(arguments, size_t));
+               printed = is("L") ? AppendNarrowConversion(out, spec, va_arg(next, long double))
+                                 : AppendNarrowConversion(out, spec, va_arg(next, double));
             else
-               printed = isSigned ? print(va_arg(arguments, ptrdiff_t)) : print(va_arg(arguments, size_t));
-
+            {
+               unsigned long long bits = 0;
+               if (is("") || is("h") || is("hh"))
+                  bits = IntegerArgument<int, unsigned int>(&next, isSigned);
+               else if (is("l"))
+                  bits = IntegerArgument<long, unsigned long>(&next, isSigned);
+               else if (is("ll"))
+                  bits = IntegerArgument<long long, unsigned long long>(&next, isSigned);
+               else if (is("j"))
+                  bits = IntegerArgument<intmax_t, uintmax_t>(&next, isSigned);
+               else if (is("z"))
+                  bits = IntegerArgument<ssize_t, size_t>(&next, isSigned);
+               else
+                  bits = IntegerArgument<ptrdiff_t, size_t>(&next, isSigned);
+               // h and hh: printf prints the value converted to a short or a char.
+               if (is("h"))
+                  bits = CutInteger(bits, 0xFFFFull, isSigned);
+               else if (is("hh"))
+                  bits = CutInteger(bits, 0xFFull, isSigned);
+               printed = isSigned ? AppendNarrowConversion(out, spec, (long long) bits) : AppendNarrowConversion(out, spec, bits);
+            }
             if (!printed)
                failed = true;
-            else
-               for (char c : text)
-                  out.push_back((wchar_t) (unsigned char) c);
          }
          else
             mine = false;              // %n, %m and the rest: the C library's
       }
+      va_end(next);
 
       if (mine)
       {

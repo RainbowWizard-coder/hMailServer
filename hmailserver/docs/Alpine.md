@@ -255,9 +255,13 @@ a fifth that the suite found a month later (5):
    formatter to the C library's `vswprintf` over a table of formats - every case
    with glibc, and each that musl's can format - and logs lines holding those
    characters through the Logger and reads them back; `check()` runs it. Elsewhere
-   nothing changes but one thing: the layer measured the text in a buffer that
-   doubled up to 64 KB, so on glibc too a formatted text longer than 65,535
-   characters was empty; it now has no such ceiling, as on Windows.
+   the text is the same but for one thing (with glibc 2.37 and later; 2.36 and
+   older also refused a `%c` of `WEOF`, which the layer writes, as 2.37 does): the
+   layer measured the text in a buffer that doubled up to 64 KB, so on glibc too a
+   formatted text longer than 65,535 characters was empty; it now has no such
+   ceiling, as on Windows. On musl every format measured is made in less time than
+   `vswprintf` took; on glibc a short one takes 1.4 to 2.0 times as long as
+   `vswprintf` took there, 0.27 microseconds more at most.
 
 And one thing that was the test machine's, not musl's: the backup tests need
 7-Zip, which the CI image has and a bare Alpine container has not, so the suite's

@@ -30,7 +30,9 @@
 // each check that fails, then one for the whole, and a non-zero exit on a failure.
 // Well under a second.
 
+#include <climits>
 #include <cstdarg>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -59,28 +61,39 @@ namespace
       }
    }
 
+   // A wide character's value, its code unit as an unsigned number.
+   unsigned int CodeUnit(const std::wstring &text, size_t i)
+   {
+      return (unsigned int) text[i];
+   }
+
+   // U+ and a value in hexadecimal, of four digits at least.
+   std::string CodePointName(unsigned int value)
+   {
+      char name[16];
+      const int written = snprintf(name, sizeof(name), "U+%04X", value);
+      if (written <= 0 || (size_t) written >= sizeof(name))
+         return "U+?";
+      return std::string(name, (size_t) written);
+   }
+
    // The text as ASCII, a character outside it as its code point; a long one cut
    // after its first 40 characters, with its length.
    std::string Show(const std::wstring &text)
    {
       std::string shown;
-      size_t count = 0;
-      for (wchar_t c : text)
+      for (size_t i = 0; i < text.size(); i++)
       {
-         if (count++ == 40)
+         if (i == 40)
          {
             shown += "... (" + std::to_string(text.size()) + " characters)";
             break;
          }
-         const unsigned int unit = (unsigned int) c;
+         const unsigned int unit = CodeUnit(text, i);
          if (unit >= 0x20 && unit < 0x7F)
             shown.push_back((char) unit);
          else
-         {
-            char hex[16];
-            snprintf(hex, sizeof(hex), "<U+%04X>", unit);
-            shown += hex;
-         }
+            shown += "<" + CodePointName(unit) + ">";
       }
       return shown;
    }
@@ -91,8 +104,9 @@ namespace
    }
 
    // What String::Format calls - _vscwprintf for the length, then _vstprintf into a
-   // buffer of that length - and the C library's own vswprintf, over the same
-   // arguments and the same rewritten format.
+   // buffer of that length, here through vswprintf_s, the layer's name for the same
+   // call - and the C library's own vswprintf, over the same arguments and the same
+   // rewritten format.
    int Ours(std::wstring &out, const wchar_t *format, ...)
    {
       va_list arguments;
@@ -105,7 +119,7 @@ namespace
       if (needed >= 0)
       {
          std::vector<wchar_t> buffer((size_t) needed + 1, L'\0');
-         written = _vstprintf(buffer.data(), buffer.size(), format, copy);
+         written = vswprintf_s(buffer.data(), buffer.size(), format, copy);
          if (written >= 0)
             out.assign(buffer.data(), (size_t) written);
          if (written != needed)
@@ -178,7 +192,8 @@ main(int /*argc*/, char * /*argv*/[])
 {
    // Each line as it is made: a C library whose vswprintf ends the process on a
    // null %s (musl's) must not take the lines before it with it.
-   setvbuf(stdout, nullptr, _IOLBF, 0);
+   if (setvbuf(stdout, nullptr, _IOLBF, 0) != 0)
+      printf("      stdout could not be made line-buffered: the lines before an end of the process may be lost\n");
    printf("      the C library: %s\n", kGlibc ? "glibc" : "not glibc");
 
    // Every value a wchar_t holds that is not ASCII, in each of the places a wide
@@ -188,8 +203,7 @@ main(int /*argc*/, char * /*argv*/[])
    for (unsigned int value : values)
    {
       const wchar_t c = (wchar_t) value;
-      char name[32];
-      snprintf(name, sizeof(name), "U+%04X", value);
+      const std::string name = CodePointName(value);
 
       const std::wstring argument = std::wstring(L"x") + c + L"y";
       Check(Wide(Formatted(_T("[%s] %d"), argument.c_str(), 7)) == L"[" + argument + L"] 7",
@@ -249,6 +263,15 @@ main(int /*argc*/, char * /*argv*/[])
    Same("the lengths", L"%hd|%hhd|%ld|%lu|%lld|%llu|%I64d|%I64u|%Iu|%zu|%jd|%td", (int) 70000, (int) 300, -5000000000L, 5000000000UL,
       -9000000000000000000LL, 18000000000000000000ULL, -5000000000LL, 5000000000ULL, (size_t) 5000000000ULL, (size_t) 77,
       (intmax_t) -1, (ptrdiff_t) -2);
+   // Every integer is read as the type its length names and written as a long long:
+   // h and hh cut to a short or a char, as printf cuts them, signed and unsigned.
+   Same("h and hh cut a value", L"%hd|%hhd|%hu|%hhu|%hx|%hhX|%hi|%hhi|%ho", (int) -70000, (int) -129, 4000000000U, 511U,
+      0xFFFF8000U, 0x1FFU, (int) 32768, (int) 128, 0x12345U);
+   Same("the extremes of each length", L"%ld|%lu|%lld|%llu|%jd|%ju|%zd|%zu|%td|%tu", LONG_MIN, ULONG_MAX, LLONG_MIN, ULLONG_MAX,
+      INTMAX_MIN, UINTMAX_MAX, (ssize_t) -5, SIZE_MAX, PTRDIFF_MIN, (size_t) 7);
+   Same("a flag given twice", L"[%--5d|%++d|%  d|%00#8x|%##o]", 1, 2, 3, 255U, 8U);
+   // Longer than the 128 characters the formatter writes a number into first.
+   Same("a number wider than a short buffer", L"[%200d|%-150.140x|%130.3f|%.135d]", 42, 0xABCU, 2.5, -7);
    Same("the reals", L"%f|%.3f|%10.2f|%-10.2f|%e|%E|%g|%G|%a|%Lf|%lf", 3.14159, 2.0 / 3, -1.5, 1.5, 12345.678, 0.000123, 1e20,
       1e-5, 1.0, (long double) 2.5, 0.1);
    Same("a * width and precision", L"[%*d|%-*d|%.*f|%*.*s|%*s]", 6, 42, -6, 42, 2, 3.14159, 8, 3, ascii, -12, ascii);

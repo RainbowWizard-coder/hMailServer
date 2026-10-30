@@ -119,8 +119,8 @@ add_compile_options(
 #
 # An undefined behaviour stops the run rather than being printed and passed
 # over, so a finding fails the job that ran it: the linux-sanitize CI job,
-# which builds this directory and runs snmp-tests and workqueue-teardown-tests
-# in it.
+# which builds this directory and runs snmp-tests, workqueue-teardown-tests and
+# string-format-tests in it.
 option(HM_SANITIZE "Build with -fsanitize=address,undefined, for the test programs" OFF)
 if(HM_SANITIZE)
    add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer)
@@ -559,7 +559,8 @@ set_target_properties(script-binding-tests PROPERTIES OUTPUT_NAME script-binding
 # SP 800-38A, HMAC-SHA-256-192 and the SHA-256 key localisation against values
 # computed independently. No database, no configuration, no socket, no network.
 # Not installed; a bench tool. Built under HM_SANITIZE (above), it is one of the
-# programs the linux-sanitize CI job runs (workqueue-teardown-tests is the other).
+# programs the linux-sanitize CI job runs (workqueue-teardown-tests and
+# string-format-tests are the others).
 add_executable(snmp-tests ${SERVER_DIR}/platform/snmp_tests_main.cpp)
 target_link_libraries(snmp-tests PRIVATE hmailserver_core)
 set_target_properties(snmp-tests PROPERTIES OUTPUT_NAME snmp-tests)
@@ -1125,8 +1126,10 @@ set_target_properties(live-log-tests PROPERTIES OUTPUT_NAME live-log-tests)
 # characters logged through the Logger's default format, its event log and its
 # backup log and read back. Up to 6.3.7 musl's vswprintf made nothing of such a
 # format, and on Alpine every such log line was empty. Linux only: on Windows the
-# C runtime formats. A scratch directory of its own; no database or network.
-# Under a second. Not installed; a bench tool.
+# C runtime formats. Built under HM_SANITIZE (above) this is the third program the
+# linux-sanitize CI job runs, which holds the formatter and the format rewriters
+# to reading no further than they may. A scratch directory of its own; no
+# database or network. Under a second. Not installed; a bench tool.
 add_executable(string-format-tests ${SERVER_DIR}/platform/string_format_tests_main.cpp)
 target_link_libraries(string-format-tests PRIVATE hmailserver_core)
 set_target_properties(string-format-tests PROPERTIES OUTPUT_NAME string-format-tests)
