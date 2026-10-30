@@ -150,6 +150,17 @@
                        refused, exit code 7, with the remedy (R3);
      link-admin-only   the same given the list the remedy gives it: installed
                        through, its target hardened (R3);
+     relative-link     -InstallDirectory three folders below a drive's root, the
+                       topmost (C:\hm-relbase) made by the administrator with
+                       permissions of its own and the one below it a directory
+                       symbolic link whose relative name starts with a separator
+                       (mklink /D <link> \hm-reltarget), which Windows takes from
+                       the root of the link's volume, the link given the
+                       administrators' list: setup makes the program folder where
+                       Windows takes the link to lead, C:\hm-reltarget\hMailServer,
+                       and installs there, exit 0, nothing made at
+                       C:\hm-relbase\hm-reltarget (R3); the tip before check 8 took
+                       the link to lead there and ended with 12;
      bin-link-user     the program folder made by the administrator and Bin a
                        junction hmsmokeuser owns: refused, exit code 7 (R3);
      held-open         the program folder and an empty Bin, inheriting from the
@@ -333,7 +344,7 @@ param(
    [switch] $WeakParent,
    [ValidateSet('', 'precreated-admin', 'precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open',
                 'settings-user', 'events-link', 'volume-root', 'weak-above', 'weak-above-remedied', 'dac-handle', 'held-full', 'copy-fails',
-                'data-user', 'stale-entry', 'named-entry', 'service-entry', 'emptied-earlier', 'stale-folder', 'mysql-user', 'mysql-link')]
+                'data-user', 'stale-entry', 'named-entry', 'service-entry', 'emptied-earlier', 'stale-folder', 'mysql-user', 'mysql-link', 'relative-link')]
    [string] $FolderCase = '',
    [string] $Components = '',
    [switch] $HardenedBeforeFiles
@@ -2958,6 +2969,9 @@ function Test-ProgramFolderMadeWithItsPermissions([string] $Phase, [string] $Cla
 # name ends in the leaf (check 8 of R1 to R4, 28 October 2026).
 function Get-MadeProgramFolderPattern([string] $App) {
    $path = [regex]::Escape($App)
+   # relative-link's program folder is made where its symbolic link leads (check 8 of
+   # R1 to R4).
+   if ($State.ContainsKey('AppReal') -and $State.AppReal) { $path = $path + '|' + [regex]::Escape($State.AppReal) }
    $leaf = [regex]::Escape('\' + (Split-Path -Leaf $App))
    return "Setup made (?:$path|\\\\\?\\Volume\{[0-9a-fA-F-]+\}(?:\\[^\\]+)*$leaf) with permissions of its own"
 }
@@ -3250,6 +3264,34 @@ function New-FolderCase {
          New-Junction $app $LinkTarget
          "$app a junction to $LinkTarget made by the administrator, its list as the folder above handed it: $(Get-LinkList $app)"
       }
+      'relative-link' {
+         # A directory symbolic link on the program folder's way whose relative name starts
+         # with a separator: Windows takes it from the root of the link's volume, while the
+         # folder the link is in joined to the name, as GetFullPathName reads it, names a
+         # folder beside the link (check 8 of R1 to R4, 28 October 2026). The link and the
+         # folders on both sides of it are the administrators' alone, so that the walk
+         # goes through it and nothing but where it leads decides.
+         $via = Split-Path -Parent $app
+         $base = Split-Path -Parent $via
+         $root = (Split-Path -Qualifier $app) + '\'
+         if ((Split-Path -Parent $base) -ne $root) { throw "-InstallDirectory $app is not three folders below the root of its drive: relative-link makes the two between" }
+         $target = Join-Path $root 'hm-reltarget'
+         foreach ($folder in @($base, $target)) {
+            New-Item -ItemType Directory -Force -Path $folder | Out-Null
+            Set-SmokeProgramFolderOwnList $folder
+         }
+         $answer = Invoke-Native ('mklink /D "' + $via + '" "\hm-reltarget"')
+         if ($answer.ExitCode -ne 0) { throw "mklink /D $via \hm-reltarget returned $($answer.ExitCode): $($answer.Output)" }
+         $made = Get-Item -LiteralPath $via -Force
+         if ($made.LinkType -ne 'SymbolicLink' -or @($made.Target)[0] -ne '\hm-reltarget') { throw "$via is not a symbolic link whose name is \hm-reltarget: $($made.LinkType) $(@($made.Target)[0])" }
+         foreach ($arguments in @(@($via, '/L', '/setowner', '*S-1-5-32-544'), @($via, '/L', '/inheritance:r', '/grant:r', '*S-1-5-18:F', '*S-1-5-32-544:F', '*S-1-5-32-545:RX'))) {
+            $answer = @(& icacls.exe @arguments 2>&1)
+            if ($LASTEXITCODE -ne 0) { throw "icacls $($arguments -join ' ') returned ${LASTEXITCODE}: $($answer -join ' ')" }
+         }
+         $State.AppReal = Join-Path $target (Split-Path -Leaf $app)
+         $State.AppWrong = Join-Path $base 'hm-reltarget'
+         "$base and $target made by the administrator with permissions of their own; $via a symbolic link to \hm-reltarget, which Windows takes to $target, its list the administrators' alone: $(Get-LinkList $via)"
+      }
       'link-admin-only' {
          New-LinkTarget $LinkTarget
          New-Junction $app $LinkTarget
@@ -3476,7 +3518,7 @@ function Invoke-SetupForExitCode([string] $Path, [string[]] $Arguments, [string]
 # anything was installed.
 $FocusedCases = @('precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open',
                   'settings-user', 'events-link', 'volume-root', 'weak-above', 'weak-above-remedied', 'dac-handle', 'held-full', 'copy-fails', 'data-user', 'stale-entry',
-                  'named-entry', 'service-entry', 'emptied-earlier', 'stale-folder', 'mysql-user', 'mysql-link')
+                  'named-entry', 'service-entry', 'emptied-earlier', 'stale-folder', 'mysql-user', 'mysql-link', 'relative-link')
 # The cases whose folders another account could change before the installer - their
 # permissions, or what is in one that holds something - which setup hardens and then
 # refuses until Windows has restarted (work item 78, check 4 of R1 to R4, 27 October
@@ -3927,6 +3969,18 @@ function Invoke-FocusedRun([string] $Version) {
                $writers = @(Get-BroadReplacers $State.AboveMade)
                if ($writers.Count -gt 0) { throw "$($State.AboveMade) lets a group of every user rename it, remove what is in it or change who may: $($writers -join ', ')" }
                "$app installed below $($State.AboveMade), which no group of every user may rename, empty or change who may"
+            })
+      }
+      'relative-link' {
+         [void] (Test-Step "case ${FolderCase}: setup made the program folder where Windows takes the symbolic link to lead, $($State.AppReal), and installed there, nothing made where the folder the link is in joined to its name would lead (work item 78, R3)" {
+               if (Test-Path -LiteralPath $State.AppWrong) { throw "$($State.AppWrong) was made: the link was taken to lead below the folder it is in" }
+               if (-not (Test-Path -LiteralPath (Join-Path $State.AppReal 'Bin\hMailServer.exe'))) { throw "$($State.AppReal)\Bin holds no hMailServer.exe" }
+               $moment = Get-FolderMoment $State.AppReal
+               if ($moment.Error) { throw "the permissions of $($State.AppReal) could not be read: $($moment.Error)" }
+               if (-not $moment.Protected -or $moment.Inherited -gt 0) { throw "$($State.AppReal) inherits from the folder above: $($moment.Sddl)" }
+               if ($moment.Owner -ne 'S-1-5-32-544') { throw "$($State.AppReal) is owned by $($moment.Owner)" }
+               if (-not (Select-String -LiteralPath $log -Pattern ('Setup made ' + [regex]::Escape($State.AppReal) + ' with permissions of its own') -Quiet)) { throw "Inno's log does not say setup made $($State.AppReal)" }
+               "$($State.AppReal) made by setup, the Administrators', inheriting nothing, holding the installation; $($State.AppWrong) not there"
             })
       }
       'nested-new' {

@@ -1232,9 +1232,116 @@ begin
       FreeWindowsMemory(pDescriptor);
 end;
 
+// A full path cut into the root of its volume - C:\, or \\?\Volume{...}\ - and the
+// rest. A share's path, or one that is not full, is not: false, with Why.
+function SplitAtRoot(Path: String; var Root: String; var Rest: String; var Why: String): Boolean;
+var
+   close: Integer;
+   drive: Boolean;
+begin
+   Result := false;
+   Root := '';
+   Rest := '';
+   Why := '';
+   // Each character read only where the path is long enough: nested, not joined
+   // with and, so that nothing depends on how a condition is evaluated.
+   drive := false;
+   if Length(Path) >= 2 then
+      drive := Path[2] = ':';
+   if drive then
+   begin
+      Root := Copy(Path, 1, 2) + '\';
+      Rest := Copy(Path, 4, Length(Path));
+      if Length(Path) >= 3 then
+         if Path[3] <> '\' then
+         begin
+            Why := Path + ' is not a full path';
+            Exit;
+         end;
+      Result := true;
+   end
+   else if CompareText(Copy(Path, 1, 11), '\\?\Volume{') = 0 then
+   begin
+      close := Pos('}', Path);
+      if close = 0 then
+      begin
+         Why := Path + ' names no volume';
+         Exit;
+      end;
+      Root := Copy(Path, 1, close) + '\';
+      Rest := Copy(Path, close + 2, Length(Path));
+      Result := true;
+   end
+   else if Copy(Path, 1, 2) = '\\' then
+      Why := Path + ' is on a share of another computer, whose permissions that computer sets, and setup does not install there'
+   else
+      Why := Path + ' is not a full path';
+end;
+
+// Where a relative symbolic link leads, as Windows takes its name: from the root of
+// the link's volume when the name starts with a separator (mklink /D <link>
+// \<folder>), from the folder the link is in otherwise, each .. a folder up and never
+// above the root - ProtectedFile.cpp's LinkTarget_. A name that goes above the root is
+// not gone through: false, with Why (check 8 of R1 to R4, 28 October 2026: the full
+// path of the folder joined to a name with a leading separator, which Windows'
+// GetFullPathName reads as one separator, was taken for a folder below the link's).
+function RelativeLinkTarget(Link: String; Name: String; var Target: String; var Why: String): Boolean;
+var
+   szRoot: String;
+   szRest: String;
+   szPath: String;
+   szPart: String;
+   parts: TArrayOfString;
+   count: Integer;
+   index: Integer;
+   at: Integer;
+begin
+   Result := false;
+   Target := '';
+   if not SplitAtRoot(Link, szRoot, szRest, Why) then
+      Exit;
+   if Copy(Name, 1, 1) = '\' then
+      szPath := Name
+   else
+      szPath := szRest + '\..\' + Name;
+   szPath := szPath + '\';
+   count := 0;
+   SetArrayLength(parts, 0);
+   while szPath <> '' do
+   begin
+      at := Pos('\', szPath);
+      szPart := Copy(szPath, 1, at - 1);
+      szPath := Copy(szPath, at + 1, Length(szPath));
+      if szPart = '..' then
+      begin
+         if count = 0 then
+         begin
+            Why := 'it leads to ' + Name + ', above the root of its volume';
+            Exit;
+         end;
+         count := count - 1;
+      end
+      else if (szPart <> '') and (szPart <> '.') then
+      begin
+         if count = GetArrayLength(parts) then
+            SetArrayLength(parts, count + 1);
+         parts[count] := szPart;
+         count := count + 1;
+      end;
+   end;
+   Target := szRoot;
+   for index := 0 to count - 1 do
+   begin
+      if index > 0 then
+         Target := Target + '\';
+      Target := Target + parts[index];
+   end;
+   Result := true;
+end;
+
 // Where a link held open as itself says it leads (FSCTL_GET_REPARSE_POINT), as a
-// full path: C:\... or \\?\Volume{...}\..., a relative symbolic link's taken from
-// the folder the link is in - ProtectedFile.cpp's LinkTarget_. Not the folder an open
+// full path: C:\... or \\?\Volume{...}\..., a relative symbolic link's taken as
+// Windows takes it (RelativeLinkTarget) - ProtectedFile.cpp's LinkTarget_. Not the folder an open
 // through it ends at: that open follows every link after this one too, and each of
 // those is asked about in its turn. A link that leads to a share, or a reparse point
 // of another kind, is not gone through: false, with Why.
@@ -1298,7 +1405,10 @@ begin
    szName := Copy(buffer, start + (offset div 2), size div 2);
 
    if relative then
-      Target := ExpandFileName(AddBackslash(ExtractFileDir(Link)) + szName)
+   begin
+      if not RelativeLinkTarget(Link, szName, Target, Why) then
+         Exit;
+   end
    else if CompareText(Copy(szName, 1, 8), '\??\UNC\') = 0 then
    begin
       Why := 'it leads to \\' + Copy(szName, 9, Length(szName)) + ', a share, which setup does not install through';
@@ -1325,52 +1435,6 @@ begin
       if Target[Length(Target)] = '}' then
          Target := Target + '\';
    Result := true;
-end;
-
-// A full path cut into the root of its volume - C:\, or \\?\Volume{...}\ - and the
-// rest. A share's path, or one that is not full, is not: false, with Why.
-function SplitAtRoot(Path: String; var Root: String; var Rest: String; var Why: String): Boolean;
-var
-   close: Integer;
-   drive: Boolean;
-begin
-   Result := false;
-   Root := '';
-   Rest := '';
-   Why := '';
-   // Each character read only where the path is long enough: nested, not joined
-   // with and, so that nothing depends on how a condition is evaluated.
-   drive := false;
-   if Length(Path) >= 2 then
-      drive := Path[2] = ':';
-   if drive then
-   begin
-      Root := Copy(Path, 1, 2) + '\';
-      Rest := Copy(Path, 4, Length(Path));
-      if Length(Path) >= 3 then
-         if Path[3] <> '\' then
-         begin
-            Why := Path + ' is not a full path';
-            Exit;
-         end;
-      Result := true;
-   end
-   else if CompareText(Copy(Path, 1, 11), '\\?\Volume{') = 0 then
-   begin
-      close := Pos('}', Path);
-      if close = 0 then
-      begin
-         Why := Path + ' names no volume';
-         Exit;
-      end;
-      Root := Copy(Path, 1, close) + '\';
-      Rest := Copy(Path, close + 2, Length(Path));
-      Result := true;
-   end
-   else if Copy(Path, 1, 2) = '\\' then
-      Why := Path + ' is on a share of another computer, whose permissions that computer sets, and setup does not install there'
-   else
-      Why := Path + ' is not a full path';
 end;
 
 // Whether a path is the root of a volume - C:\, or \\?\Volume{...}\, where a mount point

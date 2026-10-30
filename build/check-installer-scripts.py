@@ -809,7 +809,7 @@ PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'Hold
                            'FoldersChangedLine', 'RestoreServiceStart', 'GetCustomSetupExitCode', 'IsServiceInstalled', 'OpenNamedService', 'CloseServiceAndManager',
                            'DataFolderIsAllowed', 'DatabaseFilesWhy', 'HardenDataFolder', 'AddRestartFolder', 'StaleEntryLetsOthers', 'HandsDownWriteTo',
                            'NoteStaleItem', 'StaleItemIn', 'TakenEntriesLetOthers', 'RestartRecordedForWalked', 'WalkedFinal', 'MakeFolderIn',
-                           'HardenDistrustedFolder', 'ProgramFolderWaitsForTheFiles')
+                           'HardenDistrustedFolder', 'ProgramFolderWaitsForTheFiles', 'RelativeLinkTarget')
 
 # Each decision of R1 to R4 held by its exact statement, so that a one-line change of
 # one is refused (the review of 26 October 2026 changed nineteen such lines, one at a
@@ -1189,8 +1189,18 @@ PROGRAM_FOLDER_STATEMENTS = (
     ('LinkTarget', 'a name past the end of the link\'s data, or an empty one, is taken, or the name is read from elsewhere',
      "bytes := returned; if ((offset div 2) + (size div 2) + start - 1 > (bytes div 2)) or (size = 0) then begin Why := ~; Exit; end; "
      "szName := Copy(buffer, start + (offset div 2), size div 2);"),
-    ('LinkTarget', 'a relative symbolic link is taken from setup\'s own folder rather than the folder the link is in',
-     "if relative then Target := ExpandFileName(AddBackslash(ExtractFileDir(Link)) + szName) else if"),
+    ('LinkTarget', 'a relative symbolic link is taken from setup\'s own folder rather than as Windows takes it (RelativeLinkTarget)',
+     "if relative then begin if not RelativeLinkTarget(Link, szName, Target, Why) then Exit; end else if"),
+    ('RelativeLinkTarget', 'a relative symbolic link is taken from a root other than its own volume\'s, or a link setup cannot name is taken '
+     '(check 8 of R1 to R4, 28 October 2026)',
+     "begin Result := false; Target := ''; if not SplitAtRoot(Link, szRoot, szRest, Why) then Exit;"),
+    ('RelativeLinkTarget', 'a relative symbolic link whose name starts with a separator is taken from the folder the link is in, not from the '
+     'root of its volume as Windows takes it, or one without from elsewhere than the folder the link is in (check 8 of R1 to R4)',
+     "if Copy(Name, 1, 1) = '\\' then szPath := Name else szPath := szRest + '\\..\\' + Name; szPath := szPath + '\\'; count := 0;"),
+    ('RelativeLinkTarget', 'a relative name that goes above the root of its volume is taken, or .. and . are read as folders (check 8 of R1 to R4)',
+     "if szPart = '..' then begin if count = 0 then begin Why := ~; Exit; end; count := count - 1; end else if (szPart <> '') and (szPart <> '.') then begin"),
+    ('RelativeLinkTarget', 'where a relative link leads is not made a full path from the root of its volume (check 8 of R1 to R4)',
+     "Target := szRoot; for index := 0 to count - 1 do begin if index > 0 then Target := Target + '\\'; Target := Target + parts[index]; end; Result := true; end;$"),
     ('LinkTarget', 'what a link leads to is not made a full path as Windows names it, a volume\'s root kept with its backslash',
      "else if Copy(szName, 1, 4) = '\\??\\' then begin Target := Copy(szName, 5, Length(szName)); if CompareText(Copy(Target, 1, 7), 'Volume{') = 0 then "
      "Target := '\\\\?\\' + Target; end else begin Why := ~; Exit; end; Target := RemoveBackslashUnlessRoot(Target); if Target = '' then begin Why := ~; Exit; end; "
@@ -1612,7 +1622,7 @@ PROGRAM_FOLDER_CODE = (
     ('LetsEveryUserWrite', 'f8c242f2bf668c73'),
     ('LinkIsAdministratorsAlone', 'c2c9823696671e05'),
     ('LinkRemedy', '421eb698557d16a3'),
-    ('LinkTarget', '0b2b7e365ebc3a70'),
+    ('LinkTarget', '78cb462e54e3b55c'),
     ('MadeParentCount', '98517a4e3b3fbbfe'),
     ('MadeParentOffset', '3298776306b79064'),
     ('MadeWhereNamed', '98d8f43dacc9751a'),
@@ -1635,6 +1645,7 @@ PROGRAM_FOLDER_CODE = (
     ('ProgramFolderWaitsForTheFiles', 'a89df9530e50e3d1'),
     ('RebuildFolderOfUntrustedOwner', 'dedaf61436fb3d03'),
     ('RecordRestartNeeded', '235f797c1cefa764'),
+    ('RelativeLinkTarget', 'e71b5f87fff8e5ca'),
     ('ReleaseHeldFolders', 'f8c80f82d876588b'),
     ('ReleasePlaceholders', '676d729ff0128f12'),
     ('RemakeEmptyFolder', 'f84455156da5337c'),
@@ -3247,7 +3258,7 @@ def negative_controls(texts):
         ('the rest of the path after a link not walked from where it leads',
          altered(texts, EXTENSION, "                     if szRest <> '' then\n                        szTarget := AddBackslash(szTarget) + szRest;\n", '')),
         ('a relative symbolic link taken from setup\'s own folder',
-         altered(texts, EXTENSION, 'Target := ExpandFileName(AddBackslash(ExtractFileDir(Link)) + szName)', 'Target := ExpandFileName(szName)')),
+         altered(texts, EXTENSION, '      if not RelativeLinkTarget(Link, szName, Target, Why) then\n         Exit;\n', '      Target := ExpandFileName(szName);\n')),
         ('where a link leads read from the name shown, not the substitute name',
          altered(texts, EXTENSION, '   offset := Ord(buffer[5]);\n   size := Ord(buffer[6]);', '   offset := Ord(buffer[7]);\n   size := Ord(buffer[8]);')),
         ('every item of Bin and ControlPanel taken for a file (bFolder false)',
@@ -3688,6 +3699,17 @@ def negative_controls(texts):
     # between PrepareToInstall and the look after the files that the rules above did not name - check 8's mutations8.py 8.01,
     # 8.02 and 8.04 to 8.07b, which passed the checker and compiled, and more.
     deinit = 'procedure DeinitializeSetup();\nbegin'
+    controls.append(('a relative symbolic link whose name starts with a separator taken from the folder the link is in, as GetFullPathName reads the '
+                     'joined path (check 8 of R1 to R4)',
+                     altered(texts, EXTENSION, "   if Copy(Name, 1, 1) = '\\' then\n      szPath := Name\n   else\n      szPath := szRest + '\\..\\' + Name;\n",
+                             "   szPath := szRest + '\\..\\' + Name;\n")))
+    controls.append(('a relative symbolic link that goes above the root of its volume taken at the root (check 8 of R1 to R4)',
+                     altered(texts, EXTENSION, "         if count = 0 then\n         begin\n            Why := 'it leads to ' + Name + ', above the root of its volume';\n"
+                             "            Exit;\n         end;\n         count := count - 1;\n",
+                             "         if count > 0 then\n            count := count - 1;\n")))
+    controls.append(('a relative symbolic link taken by GetFullPathName again, as before check 8 of R1 to R4',
+                     altered(texts, EXTENSION, '      if not RelativeLinkTarget(Link, szName, Target, Why) then\n         Exit;\n',
+                             '      Target := ExpandFileName(AddBackslash(ExtractFileDir(Link)) + szName);\n')))
     controls.append(('8.01 RegisterExtraCloseApplicationsResources, which Inno Setup runs after PrepareToInstall and before the files, running '
                      '/ProtectFolders (check 8 of R1 to R4)',
                      altered(texts, EXTENSION, deinit, 'procedure RegisterExtraCloseApplicationsResources();\nbegin\n   ProtectFolders();\nend;\n\n' + deinit)))

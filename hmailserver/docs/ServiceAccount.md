@@ -519,7 +519,11 @@ that a refusal here leaves a running server running:
   alone control it - its owner, the rights on it that change it or what it leads to,
   and who may remove it from the folder it is in, read through the handle that holds
   it: the rule `/ProtectFolders` and the live update hold a link to - and the path is
-  then walked again, the same way, from where the link says it leads. Any other link is
+  then walked again, the same way, from where the link says it leads. A relative
+  symbolic link is taken as Windows takes it, as the server's `ProtectedFile` does:
+  from the root of its volume when its name starts with a separator (`mklink /D <link>
+  \<folder>`), from the folder it is in otherwise, and one whose name goes above the
+  root of its volume is refused. Any other link is
   refused. So is a link an administrator made when the rights on it, those it inherits
   among them, let another account change it - such a link is not the administrators'
   alone. The

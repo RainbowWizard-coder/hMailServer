@@ -442,7 +442,9 @@ with `--check`).
   those it inherits among them, let another account change it. The refusal says how to make the link
   the administrators' alone (`icacls <link> /L /setowner *S-1-5-32-544`, then `/L /inheritance:r /grant:r` with SYSTEM
   and the Administrators full control and Users Read & execute) and to restart Windows before setup runs again; setup
-  then goes through it and on from where it leads, a mount point to a volume's root included. A folder on the way that
+  then goes through it and on from where it leads, a mount point to a volume's root included, and a relative
+  symbolic link taken as Windows takes it: from the root of its volume when its name starts with a separator, from
+  the folder it is in otherwise, and refused when its name goes above that root. A folder on the way that
   is not a link, the root of its volume included, is held to the rule the live update holds the folders above the
   program folder to: owned by SYSTEM, the Administrators or TrustedInstaller, and nobody else may rename it, remove
   what is in it or change who may; the refusal names the account and the `icacls` that takes the right away, and says
@@ -2716,7 +2718,7 @@ with `--check`).
   folders whole** ([work item 78](https://gitlab.com/hmailserver/hmailserver/-/work_items/78), R1 to R4): every
   constant of setup's `[Code]` to its value, defined once, the TrustedInstaller SID to the live update's; every
   Windows function and record the preparation reads and changes folders with to its declaration; and each routine its
-  entry points reach, 103 of them, but the two the rest of setup shares, which are named with why, to a digest of its
+  entry points reach, 104 of them, but the two the rest of setup shares, which are named with why, to a digest of its
   code, comments and white space aside, so that no change of one passes until it has been reviewed and its digest
   written in both (`python build/check-installer-scripts.py --digests` prints them as the tree is). Thirty-four more
   statements hold the helpers the decisions rely on, and `PrepareToInstallRefusal`, which the rest of setup shares,
@@ -2762,7 +2764,7 @@ with `--check`).
   look after the files, one more in `CurStepChanged`, and `#if 0` around `section_dirs.iss`'s `{app}` entry had passed
   both and compiled. The fixture reads an installer script as ISCC and the checker read it, a lone carriage return
   ending the line, where three one-line changes behind one - code after a `//` comment, `#if 0` around a `[Dirs]`
-  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 632. The smoke test's dac-handle case gives the program folder an
+  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 636. The smoke test's dac-handle case gives the program folder an
   entry of its own for the standard account, as an account could write one through `Everyone`'s right to change the
   permissions, and requires it dropped and named, and none for it after the restart; copy-fails runs the watch's
   check of the program folder as it was made, taking setup's line on the folder by the path its handle gives, as on
@@ -2774,7 +2776,9 @@ with `--check`).
   hardened and refused until a restart, then installed into with neither left changeable by `Users`; mysql-user, a
   program in `MySQL` another account owns, and mysql-link, a junction at `MySQL` only the administrators
   control, each in a program folder with permissions of its own, so that no restart rule decides first, are refused,
-  exit code 7, where the installer before check 7 of R1 to R4 installs.
+  exit code 7, where the installer before check 7 of R1 to R4 installs. relative-link, a directory symbolic link on the program
+  folder's way whose relative name starts with a separator, the administrators' alone, is installed through, the program
+  folder made where Windows takes the link to lead and nothing where the folder the link is in joined to its name would.
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put
   `hmailserver.service`, and with the live update `hmailserver-update.path` and `.service`, in `/usr/lib/systemd/system`
   whatever the install prefix, outside an install for any other prefix, which a Nix or Guix package, whose prefix is
