@@ -397,10 +397,14 @@ takes no path to change from the configuration.
   the key and certificate files the database names: a `CHECK` line when Users,
   Authenticated Users, Everyone, INTERACTIVE or another group of ordinary accounts may
   read it, with the two `icacls` that close it.
-* A key or certificate file in `Data\Certificates`, `Data\DKIM` or `Data\ACME` with
-  permissions of its own that such a group may read - a file *moved* there keeps the
-  permissions it had where it was: a `CHECK` line, and `icacls "<file>" /reset`, which
-  gives it the data folder's.
+* A key or certificate file in `Data\Certificates`, `Data\DKIM` or `Data\ACME`, or one
+  the configuration names in a folder of the program's own, that such a group may
+  read: by an entry of its own - a file *moved* there keeps the permissions it had
+  where it was - a `CHECK` line, and `icacls "<file>" /reset`, which gives it the
+  folder's; by an entry it inherits from a folder's own entry, a `CHECK` line naming
+  that folder and the `icacls /remove:g` that takes the entry away there, which
+  `/reset` of the file would not. `--report-only` says such a file by its folder's
+  line alone, never as a file outside the program's own folders.
 * An entry of one of the six's own that lets such a group read it, which only an
   administrator can have given: kept, and a `CHECK` line with the `icacls /remove:g`
   that takes it away.

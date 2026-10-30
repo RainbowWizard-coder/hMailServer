@@ -432,6 +432,19 @@ with `--check`).
   the Control Panel alone hardened before its files, was left with the entries of SYSTEM, the Administrators and
   Users alone. Found by the hMailServer project (Progressive Robot Ltd).
 
+- **Fixed: `hMailServer.exe /ProtectFolders` says a key or certificate file that a group of every user may read by
+  an entry it inherits as inheriting it** ([work item 78](https://gitlab.com/hmailserver/hmailserver/-/work_items/78),
+  R4). A file in `Data\Certificates`, `Data\DKIM` or `Data\ACME` that inherited such a group's Read from an entry of
+  the data folder's own, which the line on the data folder names, was said to have permissions of its own, as a
+  file moved there keeps them, with `icacls "<file>" /reset` as the remedy, which changes nothing; it is now said
+  as inheriting the entry from the folder whose own entry it is, with the `icacls "<folder>" /remove:g` that takes
+  it away there, and an entry of the file's own as before. A key file the configuration names in one of the
+  program's own folders is said the same way, and `--report-only` no longer says one as outside the program's own
+  folders: the line on its folder says who may read it. Since the release after 6.3.7 counts This Organization,
+  Local account, Authentication authority asserted identity, ALL SERVICES and a domain's Domain Users and Domain
+  Guests among the groups of every user, both lines could be written of a data folder an administrator had given one
+  of them. Found by the hMailServer project (Progressive Robot Ltd).
+
 - **Fixed: on Windows, setup refuses a junction, a symbolic link or a mount point on the way to the program folder,
   `Bin` or `ControlPanel` that anybody but SYSTEM, the Administrators and TrustedInstaller controls, and a folder on
   the way that another account may rename or empty** ([work item

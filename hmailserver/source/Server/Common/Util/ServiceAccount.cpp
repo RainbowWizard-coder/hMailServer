@@ -1435,9 +1435,10 @@ namespace HM
       }
 
       // The broad groups (IsBroad_) an allow entry that applies to what is at path
-      // gives one of the rights, each as its name and its SID. Empty when none
-      // has one, or when the permissions cannot be read.
-      std::vector<std::pair<String, String> > BroadWithRights_(const String &path, DWORD rights)
+      // gives one of the rights, each as its name and its SID - with ownOnly, by an
+      // entry of its own alone, not one it inherits. Empty when none has one, or
+      // when the permissions cannot be read.
+      std::vector<std::pair<String, String> > BroadWithRights_(const String &path, DWORD rights, bool ownOnly = false)
       {
          std::vector<std::pair<String, String> > who;
          Permissions_ permissions;
@@ -1463,6 +1464,8 @@ namespace HM
             const ACE_HEADER *header = (const ACE_HEADER *) entry;
             if (header->AceType != ACCESS_ALLOWED_ACE_TYPE || (header->AceFlags & INHERIT_ONLY_ACE) != 0)
                continue;
+            if (ownOnly && (header->AceFlags & INHERITED_ACE) != 0)
+               continue;
 
             const ACCESS_ALLOWED_ACE *allow = (const ACCESS_ALLOWED_ACE *) entry;
             if ((FileRights_(allow->Mask) & rights) == 0)
@@ -1480,6 +1483,14 @@ namespace HM
          }
 
          return who;
+      }
+
+      // The folder path is in, or nothing at a volume's root.
+      String ParentOf_(const String &path)
+      {
+         const String normal = Normalised_(path);
+         const int at = normal.ReverseFind(_T('\\'));
+         return at > 2 ? normal.Left(at) : String();
       }
 
       // The broad groups that may read what is at path - list a folder, read a
@@ -3130,10 +3141,61 @@ namespace HM
       // Each file or folder checked below once, by its full path.
       std::vector<String> checked;
 
-      // Key and certificate files in the data folder with permissions of their
-      // own that a broad group may read - one moved in from elsewhere keeps the
-      // permissions it had there, and the data folder's no longer reach it.
-      // Said, with the icacls that gives it the folder's.
+      // A key or certificate file in a folder of the program's own (top) that a broad
+      // group may read: by an entry of its own - one moved in from elsewhere keeps the
+      // permissions it had there, and the folder's no longer reach it - said with the
+      // icacls that gives it the folder's; by an entry it inherits, said with the
+      // folder whose own entry it is, said above, and the icacls that takes that away
+      // there, which /reset of the file would not (check 8 of R1 to R4, 28 October 2026:
+      // a file that inherited a group's Read from the data folder's own entry was said
+      // to have permissions of its own, its remedy /reset, which changes nothing).
+      auto sayKeyFile = [&](const String &file, const String &what, const String &top)
+      {
+         const std::vector<std::pair<String, String> > who = ReadableByBroad_(file);
+         if (who.empty())
+            return;
+         const std::vector<std::pair<String, String> > own = BroadWithRights_(file, FILE_READ_DATA, true);
+         std::vector<std::pair<String, String> > inherited;
+         for (const auto &entry : who)
+         {
+            bool mine = false;
+            for (const auto &one : own)
+               mine = mine || one.second.CompareNoCase(entry.second) == 0;
+            if (!mine)
+               inherited.push_back(entry);
+         }
+         if (!own.empty())
+         {
+            checks++;
+            SayLine_(true, Formatter::Format(_T("  CHECK           {0} - {1} {2} may read: its permissions are its own, as a file moved here from elsewhere keeps them. icacls \"{0}\" /reset gives it the folder's."),
+               file, what, NamesOf_(own)));
+         }
+         if (inherited.empty())
+            return;
+         String sids;
+         for (const auto &entry : inherited)
+            sids += _T(" *") + entry.second;
+         String holder;
+         for (String folder = ParentOf_(file); holder.IsEmpty() && !folder.IsEmpty() && IsUnder_(folder, top); folder = ParentOf_(folder))
+         {
+            for (const auto &entry : BroadWithRights_(folder, FILE_READ_DATA, true))
+            {
+               for (const auto &one : inherited)
+                  if (one.second.CompareNoCase(entry.second) == 0)
+                     holder = folder;
+            }
+         }
+         checks++;
+         if (!holder.IsEmpty())
+            SayLine_(true, Formatter::Format(_T("  CHECK           {0} - {1} {2} may read, by an entry it inherits from {3}, whose own entry it is. If they should not: icacls \"{3}\" /remove:g{4} takes it away there; icacls \"{0}\" /reset would not."),
+               file, what, NamesOf_(inherited), holder, sids));
+         else
+            SayLine_(true, Formatter::Format(_T("  CHECK           {0} - {1} {2} may read, by an entry it inherits from a folder above it. If they should not: icacls \"{0}\" /inheritance:d, then icacls \"{0}\" /remove:g{3}"),
+               file, what, NamesOf_(inherited), sids));
+      };
+
+      // Key and certificate files in the data folder that a broad group may read
+      // (sayKeyFile).
       if (!options.reportOnly)
       {
          const String data = FileUtilities::Combine(program, _T("Data"));
@@ -3147,12 +3209,7 @@ namespace HM
             for (const String &file : FilesIn_(folder))
             {
                checked.push_back(Resolved_(file));
-               const std::vector<std::pair<String, String> > who = ReadableByBroad_(file);
-               if (who.empty())
-                  continue;
-               checks++;
-               SayLine_(true, Formatter::Format(_T("  CHECK           {0} - a key or certificate file {1} may read: its permissions are its own, as a file moved here from elsewhere keeps them. icacls \"{0}\" /reset gives it the data folder's."),
-                  file, NamesOf_(who)));
+               sayKeyFile(file, _T("a key or certificate file"), data);
             }
             if (folders[index].second < 2)
             {
@@ -3196,14 +3253,30 @@ namespace HM
          if (GetFileAttributesW(path.c_str()) == INVALID_FILE_ATTRIBUTES)
             continue;
 
+         // A file in a folder of the program's own is no file outside them: with
+         // --report-only that folder's line says who may read it now, and it is not
+         // said again; otherwise it is said as a key file there is (sayKeyFile; check 8
+         // of R1 to R4, 28 October 2026).
          bool covered = false;
+         String inside;
          for (const Secret_ &secret : secrets)
-            covered = covered || (secret.directory && IsUnder_(path, secret.path) && !item.isFile);
+         {
+            if (secret.directory && IsUnder_(path, secret.path))
+            {
+               covered = covered || !item.isFile || options.reportOnly;
+               inside = secret.path;
+            }
+         }
          for (const String &already : checked)
             covered = covered || SamePath_(already, path);
          if (covered)
             continue;
          checked.push_back(path);
+         if (!inside.IsEmpty())
+         {
+            sayKeyFile(path, item.what, inside);
+            continue;
+         }
 
          const std::vector<std::pair<String, String> > who = ReadableByBroad_(path);
          if (who.empty())
@@ -4127,6 +4200,23 @@ namespace HM
             FailGrant_(_T("An entry of its own for BUILTIN\\Users, given after /ProtectFolders, is not seen as letting Users read the folder."));
          if (ServiceAccount::Protect(secret, sid, true, false, detail, dropped) != ServiceAccount::GrantAlreadyThere || ReadableByBroad_(secret).empty())
             FailGrant_(_T("/ProtectFolders took away an entry of the folder's own that an administrator gave."));
+
+         // A key file made there now inherits Users' Read from that entry of the
+         // folder's own: told from one an entry of its own lets Users read, so that
+         // /ProtectFolders says the first by the folder whose own entry it is and
+         // the second by the file's own permissions (check 8 of R1 to R4, 28 October
+         // 2026: both were said as the file's own, the remedy /reset of the file).
+         const String inherits = FileUtilities::Combine(secret, _T("inherits.pem"));
+         const String owns = FileUtilities::Combine(secret, _T("owns.pem"));
+         if (!FileUtilities::WriteToFile(inherits, AnsiString("key")) || !FileUtilities::WriteToFile(owns, AnsiString("key")) ||
+             !SetDacl_(owns, _T("D:(A;;0x1200a9;;;BU)")))
+            FailGrant_(_T("The tester's key files for what /ProtectFolders says of them could not be made."));
+         if (ReadableByBroad_(inherits).empty() || !BroadWithRights_(inherits, FILE_READ_DATA, true).empty())
+            FailGrant_(_T("A key file that inherits Users' Read from the folder's own entry is not told as inheriting it."));
+         if (BroadWithRights_(owns, FILE_READ_DATA, true).empty())
+            FailGrant_(_T("A key file whose own entry lets Users read it is not told as having it of its own."));
+         if (BroadWithRights_(secret, FILE_READ_DATA, true).empty() || !SamePath_(ParentOf_(inherits), secret))
+            FailGrant_(_T("The folder whose own entry a key file inherits Users' Read from is not found above the file."));
       }
 
       // The allow entries for sid in a list, inherited or not, as mask and flags.
