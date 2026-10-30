@@ -2437,6 +2437,9 @@
   <data name="Calendar and contacts discovery (CalDAV / CardDAV)" xml:space="preserve">
     <value>Виявлення календарів і контактів (CalDAV / CardDAV)</value>
   </data>
+  <data name="Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders" xml:space="preserve">
+    <value>Викликати OnIMAPMessageMoved для кожного повідомлення, переміщеного між власними теками IMAP користувача</value>
+  </data>
   <data name="Can this server provision from the directory?" xml:space="preserve">
     <value>Чи може цей сервер створювати облікові записи з каталогу?</value>
   </data>

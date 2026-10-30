@@ -2867,6 +2867,8 @@ interface IInterfaceScripting : IDispatch
    [id(4), helpstring("Compiles the script in the event directory and returns the result.")] HRESULT CheckSyntax([out, retval] BSTR *pVal);
    [propget, id(5), helpstring("Path to the events directory")] HRESULT Directory([out, retval] BSTR *pVal);
    [propget, id(6), helpstring("The script file currently in use")] HRESULT CurrentScriptFile([out, retval] BSTR *pVal);
+   [propget, id(7), helpstring("Whether a committed IMAP MOVE or UID MOVE between two of the signed-in account's own folders raises the script's OnIMAPMessageMoved, once for each message moved, after the command and off the IMAP thread (GitLab work item #109). Off by default; with scripting off, or no such handler in the script, nothing is raised.")] HRESULT IMAPMessageMovedEvents([out, retval] VARIANT_BOOL *pVal);
+   [propput, id(7), helpstring("Whether a committed IMAP MOVE or UID MOVE between two of the signed-in account's own folders raises the script's OnIMAPMessageMoved, once for each message moved, after the command and off the IMAP thread (GitLab work item #109). Off by default; with scripting off, or no such handler in the script, nothing is raised.")] HRESULT IMAPMessageMovedEvents([in] VARIANT_BOOL newVal);
   
 };
 

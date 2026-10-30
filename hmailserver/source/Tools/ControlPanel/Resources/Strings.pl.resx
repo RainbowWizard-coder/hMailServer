@@ -2437,6 +2437,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Calendar and contacts discovery (CalDAV / CardDAV)" xml:space="preserve">
     <value>Wykrywanie kalendarza i kontaktów (CalDAV / CardDAV)</value>
   </data>
+  <data name="Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders" xml:space="preserve">
+    <value>Wywołuj OnIMAPMessageMoved dla każdej wiadomości przeniesionej między własnymi folderami IMAP użytkownika</value>
+  </data>
   <data name="Can this server provision from the directory?" xml:space="preserve">
     <value>Czy ten serwer może zakładać konta na podstawie katalogu?</value>
   </data>

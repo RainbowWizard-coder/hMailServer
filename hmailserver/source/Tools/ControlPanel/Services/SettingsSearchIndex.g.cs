@@ -35,6 +35,7 @@ namespace hMailServer.ControlPanel.Services
          new SettingEntry("When the endpoint cannot be reached", "BreachCheckUnreachableAction", "adminaccess", "Password", "Passwords found in published breaches"),
          new SettingEntry("Administrator UI language (third-party COM tools only)", "UserInterfaceLanguage", "advanced", "General", "General"),
          new SettingEntry("Archive folder (empty = archiving off)", "ArchiveDir", "advanced", "Copies of mail", "Message archiving"),
+         new SettingEntry("Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders", "Scripting.IMAPMessageMovedEvents", "advanced", "Scripting", "Scripting engine"),
          new SettingEntry("COM objects a script may create (empty = none beyond hMailServer's own)", "ScriptAllowedObjects", "advanced", "Scripting", "Scripting engine"),
          new SettingEntry("Default domain (for sign-ins without a domain)", "DefaultDomain", "advanced", "General", "General"),
          new SettingEntry("Enable server-side event scripts", "Scripting.Enabled", "advanced", "Scripting", "Scripting engine"),

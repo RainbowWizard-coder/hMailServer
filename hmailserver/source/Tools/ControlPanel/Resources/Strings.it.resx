@@ -2404,6 +2404,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Calendar and contacts discovery (CalDAV / CardDAV)" xml:space="preserve">
     <value>Individuazione di calendari e contatti (CalDAV / CardDAV)</value>
   </data>
+  <data name="Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders" xml:space="preserve">
+    <value>Chiama OnIMAPMessageMoved per ogni messaggio spostato tra le cartelle IMAP proprie di un utente</value>
+  </data>
   <data name="Can this server provision from the directory?" xml:space="preserve">
     <value>Questo server può effettuare il provisioning dalla directory?</value>
   </data>

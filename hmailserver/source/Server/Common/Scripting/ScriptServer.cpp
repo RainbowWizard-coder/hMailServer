@@ -260,6 +260,7 @@ namespace HM
             names.push_back(_T("HMAILSERVER_MESSAGE"));
             break;
          case ScriptServer::EventOnClientValidatePassword:
+         case ScriptServer::EventOnIMAPMessageMoved:
             names.push_back(_T("HMAILSERVER_ACCOUNT"));
             break;
          case ScriptServer::EventOnBackupCompleted:
@@ -290,6 +291,7 @@ namespace HM
       has_on_client_validate_password_(false),
       has_on_recipient_unknown_(false),
       has_on_too_many_invalid_comands_(false),
+      has_on_imap_message_moved_(false),
       scripts_loaded_(false),
       script_compiled_(false),
       refusal_reported_(false),
@@ -374,6 +376,26 @@ namespace HM
       boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
       return script_language_;
    }
+
+   bool
+   ScriptServer::HasHandler(Event e) const
+   {
+      if (e == EventCustom)
+         return false;
+
+      boost::lock_guard<boost::recursive_mutex> guard(state_mutex_);
+
+      String event_name;
+      return IsHandlerRegistered_(e, event_name);
+   }
+
+#ifdef HM_PLATFORM_POSIX
+   std::vector<String>
+   ScriptServer::JavaScriptObjectArguments(Event e)
+   {
+      return JavaScriptObjectArguments_(e);
+   }
+#endif
 
    // THE CALL TEXT, AND WHAT A VALUE MAY DO TO IT.
    //
@@ -867,6 +889,7 @@ namespace HM
             has_on_client_validate_password_ = false;
             has_on_recipient_unknown_ = false;
             has_on_too_many_invalid_comands_ = false;
+            has_on_imap_message_moved_ = false;
 
             scripts_loaded_ = true;
             script_compiled_ = false;
@@ -914,6 +937,7 @@ namespace HM
          bool on_client_validate_password = detect(_T("OnClientValidatePassword"));
          bool on_recipient_unknown = detect(_T("OnRecipientUnknown"));
          bool on_too_many_invalid_commands = detect(_T("OnTooManyInvalidCommands"));
+         bool on_imap_message_moved = detect(_T("OnIMAPMessageMoved"));
 
          if (!detection_failure.IsEmpty())
          {
@@ -955,6 +979,7 @@ namespace HM
          has_on_client_validate_password_ = on_client_validate_password;
          has_on_recipient_unknown_ = on_recipient_unknown;
          has_on_too_many_invalid_comands_ = on_too_many_invalid_commands;
+         has_on_imap_message_moved_ = on_imap_message_moved;
 
          scripts_loaded_ = true;
          script_compiled_ = true;
@@ -1457,6 +1482,11 @@ namespace HM
          if (!has_on_too_many_invalid_comands_)
             return false;
          event_name = _T("OnTooManyInvalidCommands");
+         break;
+      case EventOnIMAPMessageMoved:
+         if (!has_on_imap_message_moved_)
+            return false;
+         event_name = _T("OnIMAPMessageMoved");
          break;
       case EventCustom:
          // Not gated by a flag: the caller names the procedure to run.

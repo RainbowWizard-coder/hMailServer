@@ -2404,6 +2404,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Calendar and contacts discovery (CalDAV / CardDAV)" xml:space="preserve">
     <value>Detectie van agenda en contacten (CalDAV / CardDAV)</value>
   </data>
+  <data name="Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders" xml:space="preserve">
+    <value>OnIMAPMessageMoved aanroepen voor elk bericht dat tussen de eigen IMAP-mappen van een gebruiker wordt verplaatst</value>
+  </data>
   <data name="Can this server provision from the directory?" xml:space="preserve">
     <value>Kan deze server vanuit de directory inrichten?</value>
   </data>

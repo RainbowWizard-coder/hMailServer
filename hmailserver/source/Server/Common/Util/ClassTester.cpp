@@ -124,6 +124,7 @@
 #include "../../IMAP/IMAPFetch.h"
 #include "../../IMAP/IMAPThread.h"
 #include "../../IMAP/IMAPCommandRangeAction.h"
+#include "../../IMAP/IMAPMoveDispatch.h"
 #include "../../IMAP/IMAPStore.h"
 #include "../../IMAP/IMAPSearchParser.h"
 #include "LegacyBlowfish.h"
@@ -383,6 +384,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing ScriptWatchdog\n"));
       ScriptWatchdogTester scriptWatchdogTester;
       scriptWatchdogTester.Test();
+
+      // What a committed IMAP MOVE hands on (IMAPMoveDispatch): which moves raise
+      // OnIMAPMessageMoved, one event per message whose original was removed and
+      // none for a COPY, the queue's bound, and the call and the values a handler
+      // is given. imap-move-event-tests runs it on Linux, with a JavaScript
+      // handler.
+      OutputDebugString(_T("hMailServer: Testing IMAPMoveDispatch\n"));
+      IMAPMoveDispatchTester imapMoveDispatchTester;
+      imapMoveDispatchTester.Test();
 
       // What a domain does to a message: the rule that decides whether a sender
       // is outside, the tag that rule produces, and the reply-chain guard on the

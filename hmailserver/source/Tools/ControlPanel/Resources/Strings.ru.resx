@@ -2437,6 +2437,9 @@ Control Panel может читать файлы сообщений только
   <data name="Calendar and contacts discovery (CalDAV / CardDAV)" xml:space="preserve">
     <value>Обнаружение календарей и контактов (CalDAV / CardDAV)</value>
   </data>
+  <data name="Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders" xml:space="preserve">
+    <value>Вызывать OnIMAPMessageMoved для каждого сообщения, перемещённого между собственными папками IMAP пользователя</value>
+  </data>
   <data name="Can this server provision from the directory?" xml:space="preserve">
     <value>Может ли этот сервер создавать учётные записи из каталога?</value>
   </data>

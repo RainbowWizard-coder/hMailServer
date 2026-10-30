@@ -72,14 +72,16 @@ namespace HM
 
       if (result.GetResult() == IMAPResult::ResultOK)
       {
-         // The copies are there to stay: spamd may be taught of them now.
-         pMove->GiveLessons();
-
          // RFC 6851 section 4.3: COPYUID in an untagged OK BEFORE the EXPUNGE
          // responses, not in the tagged OK after them - a client would otherwise
          // be told a message is gone before it learns where it went.
          pMove->SendUIDPlusResponse(pConnection);
          pMove->ExpungeMovedMessages(pConnection);
+
+         // The copies are there to stay and the originals gone: spamd may be
+         // taught of them, and OnIMAPMessageMoved raised for them, now - both
+         // queued, off this thread (IMAPMoveDispatch::Committed).
+         pMove->DispatchCommitted();
 
          // After MOVE's own EXPUNGE responses, which number what it moved as the
          // client numbers it: what other sessions expunged meanwhile, held back

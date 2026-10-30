@@ -137,6 +137,7 @@ HelpWikiBaseUrl server
 hostname server
 IMAPHierarchyDelimiter server
 ImapMasterUser server
+IMAPMessageMovedEvents server
 IMAPProxyProtocolEnabled server
 IMAPProxyProtocolTrustedIPs server
 imappublicfoldername server

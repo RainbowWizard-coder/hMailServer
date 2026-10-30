@@ -612,6 +612,20 @@ add_executable(stopped-servers-tests ${SERVER_DIR}/platform/stopped_servers_test
 target_link_libraries(stopped-servers-tests PRIVATE hmailserver_core)
 set_target_properties(stopped-servers-tests PROPERTIES OUTPUT_NAME stopped-servers-tests)
 
+# ---------------------------------------------------------------- the IMAP move event
+#
+# What a committed IMAP MOVE hands on (IMAP/IMAPMoveDispatch.h) as a program of
+# its own, for the reason spf-tests is one: on Windows IMAPMoveDispatchTester,
+# which this program runs, runs inside the service through ClassTester, which
+# nothing reaches here. Which MOVEs raise OnIMAPMessageMoved and which do not, the
+# bounded queue the events wait in, the call text and the values a handler is
+# given, and a JavaScript handler called as the event calls it. No database,
+# configuration (but a scratch directory of its own) or network. Well under a
+# second. Not installed; a bench tool.
+add_executable(imap-move-event-tests ${SERVER_DIR}/platform/imap_move_event_tests_main.cpp)
+target_link_libraries(imap-move-event-tests PRIVATE hmailserver_core)
+set_target_properties(imap-move-event-tests PROPERTIES OUTPUT_NAME imap-move-event-tests)
+
 # ---------------------------------------------------------------- the backup index's XML
 #
 # XmlTreeTester (Common/Util/XmlTreeTester.h) as a program of its own, for the

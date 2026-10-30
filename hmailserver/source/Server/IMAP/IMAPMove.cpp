@@ -102,11 +102,28 @@ namespace HM
 
       // A move into or out of the user's own Junk folder is a lesson for spamd
       // (SpamAssassinLearnOnMove): decided here, and given, off this thread, once the
-      // command has succeeded (GiveLessons). A MOVE that fails takes this copy out
+      // command has succeeded (DispatchCommitted). A MOVE that fails takes this copy out
       // again (RollBack), and a lesson queued now would tell spamd of it all the same.
       bool spam = false;
       if (SpamAssassinLearner::IsLesson(pConnection->GetCurrentFolder(), pFolder, pDestinationOwner, spam))
          HoldLesson(pNewMessage, pDestinationOwner, spam);
+
+      // OnIMAPMessageMoved (IMAPMoveDispatch): decided once for the command, on its
+      // first message - one setting read when it is off - and, when the event is
+      // wanted, the message's UIDs and ids kept for it. It is raised for the
+      // messages whose originals ExpungeMovedMessages removes, once the command's
+      // work is done (DispatchCommitted), and for none if the MOVE fails.
+      IMAPMoveRecord &record = GetDispatchRecord();
+      IMAPMoveDispatch::PrepareMoveEvents(pConnection, pConnection->GetCurrentFolder(), pFolder, record);
+      if (record.events_wanted)
+      {
+         IMAPMoveRecord::Moved moved;
+         moved.source_uid = pOldMessage->GetUID();
+         moved.destination_uid = pNewMessage->GetUID();
+         moved.source_message_id = pOldMessage->GetID();
+         moved.message_id = pNewMessage->GetID();
+         record.moved.push_back(moved);
+      }
 
       // RFC 4315/6851 (UIDPLUS): remember the source/destination UIDs for the COPYUID
       // response - for a destination the user may read (RFC 4315 section 6).
@@ -225,6 +242,10 @@ namespace HM
          RecoverableStore::MoveScope moving;
          deleted_message_ids = messages->DeleteMessages(filter);
       }
+
+      // The moves whose originals are gone now: committed, source and all, for
+      // OnIMAPMessageMoved. One the delete left where it was is in both folders.
+      GetDispatchRecord().MarkSourcesRemoved(deleted_message_ids);
 
       // RFC 6851: the untagged EXPUNGE responses for the source folder - numbered by this
       // session's view, or as one VANISHED under QRESYNC (RFC 6851 3.3).

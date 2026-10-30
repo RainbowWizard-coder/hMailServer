@@ -2404,6 +2404,9 @@
   <data name="Calendar and contacts discovery (CalDAV / CardDAV)" xml:space="preserve">
     <value>日历和联系人发现（CalDAV / CardDAV）</value>
   </data>
+  <data name="Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders" xml:space="preserve">
+    <value>对在用户自己的 IMAP 文件夹之间移动的每封邮件调用 OnIMAPMessageMoved</value>
+  </data>
   <data name="Can this server provision from the directory?" xml:space="preserve">
     <value>本服务器能否从目录进行预配？</value>
   </data>

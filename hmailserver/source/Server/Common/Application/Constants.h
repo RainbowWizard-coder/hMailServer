@@ -41,6 +41,11 @@
 #define PROPERTY_SMTPRELAYER_PORT               _T("smtprelayerport")
 #define PROPERTY_USESCRIPTSERVER                _T("usescriptserver")
 #define PROPERTY_SCRIPTLANGUAGE                 _T("scriptlanguage")
+// The event script's OnIMAPMessageMoved, raised after each committed IMAP MOVE
+// and UID MOVE inside one account's own folders (IMAP/IMAPMoveDispatch.h,
+// GitLab work item #109). In hm_settings with its row created by
+// EnsureSettingDefaults_; off, which raises nothing and queues nothing.
+#define PROPERTY_IMAP_MESSAGE_MOVED_EVENTS      _T("IMAPMessageMovedEvents")
 #define PROPERTY_MAXMESSAGESIZE                 _T("maxmessagesize")
 #define PROPERTY_USECACHE                       _T("usecache")
 #define PROPERTY_DOMAINCACHETTL                 _T("domaincachettl")

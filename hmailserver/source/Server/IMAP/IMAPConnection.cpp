@@ -644,6 +644,7 @@ namespace HM
    IMAPConnection::Login(std::shared_ptr<const Account> account, int credential, const String &credentialName)
    {
       account_ = account;
+      signed_in_as_ = account->GetAddress();
 
       // A mailbox encrypted at rest reaches here only with its key open
       // (MailboxKeys::SessionRefusal, asked by every sign-in before this); the
@@ -704,6 +705,7 @@ namespace HM
 
       std::shared_ptr<const Account> account;
       SetAccount_(account);
+      signed_in_as_.Empty();
       mailbox_key_hold_.reset();
 
       SendAsciiData(goodbyeMessage);
@@ -724,6 +726,7 @@ namespace HM
       CloseCurrentFolder();
 
       account_.reset();
+      signed_in_as_.Empty();
       mailbox_key_hold_.reset();
       imap_folders_.reset();
       public_imap_folders_.reset();

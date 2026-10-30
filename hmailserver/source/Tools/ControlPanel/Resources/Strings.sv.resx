@@ -2404,6 +2404,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Calendar and contacts discovery (CalDAV / CardDAV)" xml:space="preserve">
     <value>Upptäckt av kalender och kontakter (CalDAV / CardDAV)</value>
   </data>
+  <data name="Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders" xml:space="preserve">
+    <value>Anropa OnIMAPMessageMoved för varje meddelande som flyttas mellan en användares egna IMAP-mappar</value>
+  </data>
   <data name="Can this server provision from the directory?" xml:space="preserve">
     <value>Kan den här servern provisionera från katalogen?</value>
   </data>

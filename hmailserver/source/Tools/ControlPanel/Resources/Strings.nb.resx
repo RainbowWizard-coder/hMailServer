@@ -2404,6 +2404,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Calendar and contacts discovery (CalDAV / CardDAV)" xml:space="preserve">
     <value>Kalender- og kontaktoppdagelse (CalDAV / CardDAV)</value>
   </data>
+  <data name="Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders" xml:space="preserve">
+    <value>Kall OnIMAPMessageMoved for hver melding som flyttes mellom en brukers egne IMAP-mapper</value>
+  </data>
   <data name="Can this server provision from the directory?" xml:space="preserve">
     <value>Kan denne serveren provisjonere fra katalogen?</value>
   </data>

@@ -5313,6 +5313,8 @@ namespace hMailServer.ControlPanel.Views
          var script = Card(L("Scripting engine"), L("Runs event scripts (OnAcceptMessage, OnDeliveryStart and others) from the Events folder; the script itself is edited on the Event scripts page. The engine reloads when you save."));
          script.Settings.Add(new ComBool { Path = "Scripting.Enabled", Label = L("Enable server-side event scripts") });
          script.Settings.Add(new ComText { Path = "Scripting.Language", Label = L("Language (VBScript, JScript or JavaScript)") });
+         // Off as shipped: a MOVE then records nothing for it and queues nothing.
+         script.Settings.Add(new ComBool { Path = "Scripting.IMAPMessageMovedEvents", Label = L("Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders") });
          var allowedObjects = new IniText
          {
             Path = "ScriptAllowedObjects",

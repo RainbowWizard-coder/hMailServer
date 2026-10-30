@@ -233,6 +233,10 @@ namespace RegressionTests.Shared
          if (_settings.Scripting.Enabled)
             _settings.Scripting.Enabled = false;
 
+         // OnIMAPMessageMoved off, as shipped, whatever IMAP.ImapMoveEvents left.
+         if (_settings.Scripting.IMAPMessageMovedEvents)
+            _settings.Scripting.IMAPMessageMovedEvents = false;
+
          if (_settings.MirrorEMailAddress != "")
             _settings.MirrorEMailAddress = "";
 

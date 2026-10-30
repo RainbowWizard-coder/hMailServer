@@ -1670,6 +1670,31 @@ with `--check`).
 
 ### Administration
 
+- **New: OnIMAPMessageMoved, an event script's handler for a committed IMAP MOVE (GitLab work item 109).** Called once
+  for each message an IMAP `MOVE` or `UID MOVE` moved between two folders of the account signed in, after the command
+  has done all of its work - the copy in the destination, the original taken out of the source - and off the IMAP
+  thread, with the account and thirteen values: the event's own id (a braced UUID), `MOVE` or `UID MOVE`, the user who
+  signed in (the account's own address, or the IMAP master user's when that user opened the mailbox), both folders'
+  ids, full names and `UIDVALIDITY`, the message's UID in each, and its id in the source and in the destination, in
+  VBScript and JScript on Windows and JavaScript on Linux. It is off as shipped and switched on by a new database
+  setting, `IMAPMessageMovedEvents` (COM `Settings.Scripting.IMAPMessageMovedEvents`, `imap_message_moved_events` in
+  `PUT /api/v1/settings/scripting`, and **Call OnIMAPMessageMoved for each message moved between a user's own IMAP
+  folders** on the Control Panel's Scripting tab); with it, scripting or the handler absent, a `MOVE` records
+  nothing for it and queues nothing. Nothing is raised for a `COPY` or a `UID COPY` - nor for a `COPY`, a `STORE` and
+  an `EXPUNGE`, which are not joined into a move - for a `MOVE` that fails and is rolled back, for a message whose
+  original could not be removed, or for a move into or out of a public folder or among another account's shared or
+  delegated folders. The IMAP thread only queues: the client's reply is the same with the setting on as off, and one
+  task of the asynchronous work queue fires the events in order, one at a time, outside every folder lock and
+  transaction, each handler under `ScriptTimeout`; a handler that fails is a Script Error in the ERROR log and changes
+  nothing of the move, and no event is fired twice. The queue holds 10,000 events in memory: past that the newest are
+  dropped with a line in the application log, and a restart of the service loses what is waiting
+  (hmailserver/docs/EventScripts.md). The `COPY` and `MOVE` commands hand SpamAssassinLearnOnMove's lessons on at the
+  same point, now one dispatch for both (`IMAP/IMAPMoveDispatch`), after a `MOVE`'s expunge where they were queued just
+  before it, and teach as they did. `imap-move-event-tests`, which debian/rules and the RPM spec run, holds the rules,
+  the queue's bound, the call text and the values, with a JavaScript handler, and ClassTester runs the same on Windows;
+  the regression fixture `IMAP.ImapMoveEvents` holds a VBScript `MOVE`, a JScript `UID MOVE`, a `COPY`, a failed
+  `MOVE`, the setting off, a failing handler, the master user and the reply to the client.
+
 - **New: the ACME certificate's state, and a check of it now, over REST and COM (GitLab work item 98).** `GET
   /api/v1/acme` (COM `Utilities.GetAcmeStatus`) says what the server knows of the certificate ACME issues, from the
   file and this process, without asking the CA: its names, subject, issuer, serial and dates, whether it is deployed

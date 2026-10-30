@@ -82,8 +82,9 @@ namespace HM
 
       if (result.GetResult() == IMAPResult::ResultOK)
       {
-         // The copies are there to stay: spamd may be taught of them now.
-         pCopy->GiveLessons();
+         // The copies are there to stay: spamd may be taught of them now
+         // (IMAPMoveDispatch::Committed, which raises no move event for a COPY).
+         pCopy->DispatchCommitted();
 
          // A copy into the selected folder is this session's to report, before the
          // others are told and claim the copies' \Recent.

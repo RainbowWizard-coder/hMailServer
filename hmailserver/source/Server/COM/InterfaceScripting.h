@@ -62,6 +62,9 @@ public:
 
    STDMETHOD(get_Directory)(/*[out, retval]*/ BSTR *pVal);
    STDMETHOD(get_CurrentScriptFile)(/*[out, retval]*/ BSTR *pVal);
+
+   STDMETHOD(get_IMAPMessageMovedEvents)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_IMAPMessageMovedEvents)(/*[in]*/ VARIANT_BOOL newVal);
       
 
 private:

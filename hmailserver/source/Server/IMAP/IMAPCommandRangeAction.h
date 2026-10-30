@@ -7,6 +7,7 @@
 
 #include "IMAPCommand.h"
 #include "IMAPFolderView.h"
+#include "IMAPMoveDispatch.h"
 
 namespace HM
 {
@@ -47,9 +48,13 @@ namespace HM
       // conditional STORE (UNCHANGEDSINCE), or an empty string when not applicable.
       virtual String GetConditionalStoreResponseCode() { return _T(""); }
 
-      // The lessons for spamd that HoldLesson kept, queued now: what a COPY or a MOVE
-      // calls once it has succeeded, its copies there to stay.
-      void GiveLessons();
+      // What the command did handed on, now that it has succeeded and all of its
+      // work is done - its copies there to stay and, for a MOVE, the originals
+      // expunged: the lessons HoldLesson kept and the moves IMAPMove recorded, to
+      // IMAPMoveDispatch::Committed, the one place both go through. COPY, UID
+      // COPY, MOVE and UID MOVE call it last; a command that failed calls
+      // ForgetLessons instead (its RollBack does).
+      void DispatchCommitted();
 
    protected:
 
@@ -77,12 +82,20 @@ namespace HM
 
       // SpamAssassinLearnOnMove's lesson of a copy into or out of the Junk folder
       // (SpamAssassinLearner::IsLesson), kept until the command has succeeded
-      // (GiveLessons) rather than queued as the copy is made: a COPY or a MOVE that
+      // (DispatchCommitted) rather than queued as the copy is made: a COPY or a MOVE that
       // fails takes its copies out again, and a lesson queued as each copy was made
       // told spamd of a move that never happened. A command that fails forgets them
       // (ForgetLessons).
       void HoldLesson(std::shared_ptr<Message> copy, std::shared_ptr<const Account> destinationOwner, bool spam);
       void ForgetLessons();
+
+      // The record DispatchCommitted hands on: the lessons, and a MOVE's moves for
+      // OnIMAPMessageMoved, which IMAPMove fills (IMAPMoveDispatch::PrepareMoveEvents,
+      // IMAPMoveRecord::MarkSourcesRemoved). ForgetLessons forgets both.
+      IMAPMoveRecord &GetDispatchRecord() { return dispatch_record_; }
+
+      // Which command this is, as the record names it: COPY or MOVE, and UID or not.
+      virtual IMAPMoveRecord::Operation GetDispatchOperation() { return is_uid_ ? IMAPMoveRecord::OperationUidCopy : IMAPMoveRecord::OperationCopy; }
 
       // What a copy or a move into folder carries (RFC 4314 section 4): the flags the
       // user may set there - \Seen with the 's' right, \Deleted with 't', and \Draft,
@@ -105,14 +118,7 @@ namespace HM
       std::vector<unsigned int> uidplus_dest_uids_;
       unsigned int uidplus_dest_uidvalidity_;
 
-      struct Lesson_
-      {
-         std::shared_ptr<Message> copy;
-         std::shared_ptr<const Account> destination_owner;
-         bool spam = false;
-      };
-
-      std::vector<Lesson_> lessons_;
+      IMAPMoveRecord dispatch_record_;
 
    };
 

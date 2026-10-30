@@ -2404,6 +2404,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Calendar and contacts discovery (CalDAV / CardDAV)" xml:space="preserve">
     <value>Kalenterin ja yhteystietojen löytö (CalDAV / CardDAV)</value>
   </data>
+  <data name="Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders" xml:space="preserve">
+    <value>Kutsu OnIMAPMessageMoved jokaiselle viestille, joka siirretään käyttäjän omien IMAP-kansioiden välillä</value>
+  </data>
   <data name="Can this server provision from the directory?" xml:space="preserve">
     <value>Voiko tämä palvelin provisioida hakemistosta?</value>
   </data>

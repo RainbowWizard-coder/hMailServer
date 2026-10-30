@@ -203,3 +203,40 @@ STDMETHODIMP InterfaceScripting::get_CurrentScriptFile(BSTR *pVal)
 }
 
 
+
+STDMETHODIMP InterfaceScripting::get_IMAPMessageMovedEvents(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!ini_file_settings_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetIMAPMessageMovedEvents() ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceScripting::put_IMAPMessageMovedEvents(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!ini_file_settings_)
+         return GetAccessDenied();
+
+      // Read by every MOVE as it moves its first message, so a change applies to
+      // the next MOVE; what is already queued is fired only while it stays on
+      // (IMAPMoveDispatch::Fire).
+      config_->SetIMAPMessageMovedEvents(newVal == VARIANT_TRUE);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}

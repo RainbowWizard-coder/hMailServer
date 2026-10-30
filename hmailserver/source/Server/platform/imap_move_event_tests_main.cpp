@@ -1,0 +1,93 @@
+// https://www.progressiverobot.com
+// Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+// What a committed IMAP MOVE hands on, as a program of its own, for the reason
+// spf-tests is one: IMAPMoveDispatchTester (IMAP/IMAPMoveDispatch.h), which on
+// Windows runs inside the server through ClassTester, which nothing reaches
+// here. It holds the rules of OnIMAPMessageMoved - raised for a MOVE or a UID
+// MOVE between two of the session account's own folders, with the setting,
+// scripting and the handler all on, once for each message whose original the
+// expunge removed, and never for a COPY, a failed MOVE, a public folder or
+// another account's folders - the bounded queue the events wait in (the newest
+// dropped when it is full, one drainer at a time), the call text the Windows
+// engines are handed, and the values a handler is given; and here, where the
+// event scripts are JavaScript, a handler called as the event calls it, reading
+// every one of them.
+//
+// A scratch configuration directory of its own under the system's temp
+// directory (the Logger and the ini singletons want one), removed at the end.
+// No database and no network. One line either way; a non-zero exit on failure.
+// Well under a second.
+
+#include <cstdio>
+#include <fstream>
+#include <stdexcept>
+#include <string>
+#include <unistd.h>
+
+#include <boost/filesystem.hpp>
+
+#include "../Common/Application/IniFileSettings.h"
+#include "../IMAP/IMAPMoveDispatch.h"
+
+namespace
+{
+   int Fail(const boost::filesystem::path &scratch, const char *why)
+   {
+      printf("FAIL  the IMAP move event: %s\n", why);
+      boost::system::error_code ignored;
+      boost::filesystem::remove_all(scratch, ignored);
+      return 1;
+   }
+}
+
+int
+main(int /*argc*/, char * /*argv*/[])
+{
+   boost::system::error_code error;
+   const boost::filesystem::path scratch = boost::filesystem::temp_directory_path(error) /
+      ("hm-imap-move-event-tests-" + std::to_string((long long) ::getpid()));
+   if (!error)
+      boost::filesystem::create_directories(scratch, error);
+   if (error)
+   {
+      printf("FAIL  the IMAP move event: no scratch directory could be made under the system's temp directory\n");
+      return 1;
+   }
+
+   const boost::filesystem::path file = scratch / "hMailServer.ini";
+   const std::string directory = scratch.string();
+   {
+      std::ofstream ini(file.string().c_str(), std::ios::out | std::ios::trunc);
+      ini << "[Directories]\n"
+          << "ProgramFolder=" << directory << "\n"
+          << "DataFolder=" << directory << "\n"
+          << "LogFolder=" << directory << "\n"
+          << "TempFolder=" << directory << "\n"
+          << "EventFolder=" << directory << "\n"
+          << "DatabaseFolder=" << directory << "\n";
+      if (!ini)
+         return Fail(scratch, "the scratch hMailServer.ini could not be written");
+   }
+
+   HM::IniFileSettings::Instance()->SetInitializationFile(HM::String(file.string().c_str()));
+   HM::IniFileSettings::Instance()->LoadSettings();
+
+   try
+   {
+      HM::IMAPMoveDispatchTester tester;
+      tester.Test();
+   }
+   catch (const std::exception &failure)
+   {
+      return Fail(scratch, failure.what());
+   }
+
+   boost::filesystem::remove_all(scratch, error);
+
+   printf("ok    the IMAP move event: raised for a committed MOVE or UID MOVE between the session account's own folders, once for each message whose original was removed, "
+          "and not for a COPY, a failed MOVE, a public folder, another account's folders or any switch off; the queue holds its bound and drops the newest; "
+          "the VBScript and JScript calls quote every text; a JavaScript handler is given the account and the thirteen values\n");
+   return 0;
+}

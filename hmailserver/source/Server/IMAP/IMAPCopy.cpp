@@ -101,7 +101,7 @@ namespace HM
 
       // A copy into or out of the user's own Junk folder is a lesson for spamd
       // (SpamAssassinLearnOnMove): decided here, and given, off this thread, once the
-      // command has succeeded (GiveLessons). A COPY that fails takes this copy out
+      // command has succeeded (DispatchCommitted). A COPY that fails takes this copy out
       // again (RollBack), and a lesson queued now would tell spamd of it all the same.
       bool spam = false;
       if (SpamAssassinLearner::IsLesson(pConnection->GetCurrentFolder(), pFolder, pDestinationOwner, spam))

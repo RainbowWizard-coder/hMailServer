@@ -277,6 +277,13 @@ namespace HM
       void Login(std::shared_ptr<const Account> account, int credential, const String &credentialName);
       void Logout(const String &goodbyeMessage);
 
+      // Who signed in: the account's own address, which Login sets, or the IMAP
+      // master user's, which AUTHENTICATE sets after Login when the master user
+      // opened this account's mailbox. Empty while not authenticated. The user an
+      // event script is told acted (OnIMAPMessageMoved, IMAPMoveDispatch).
+      void SetSignedInAs(const String &name) { signed_in_as_ = name; }
+      String GetSignedInAs() const { return signed_in_as_; }
+
       // RFC 8437: returns the session to the not-authenticated state without
       // disconnecting - every trace of the user discarded, TLS and the ENABLEd
       // extensions kept.
@@ -367,6 +374,7 @@ namespace HM
 
       bool AnswerCommand(std::shared_ptr<IMAPClientCommand> command);
       std::shared_ptr<const Account> account_;
+      String signed_in_as_;
 
       // The session's hold on its account's mailbox key, when the mailbox is
       // encrypted at rest (Common/Util/MailboxKeys.h): the key stays open for

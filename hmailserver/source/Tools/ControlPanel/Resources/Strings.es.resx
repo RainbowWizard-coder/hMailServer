@@ -2404,6 +2404,9 @@ Los detalles completos se escribieron en:
   <data name="Calendar and contacts discovery (CalDAV / CardDAV)" xml:space="preserve">
     <value>Descubrimiento de calendario y contactos (CalDAV / CardDAV)</value>
   </data>
+  <data name="Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders" xml:space="preserve">
+    <value>Llamar a OnIMAPMessageMoved por cada mensaje movido entre las carpetas IMAP propias de un usuario</value>
+  </data>
   <data name="Can this server provision from the directory?" xml:space="preserve">
     <value>¿Puede este servidor aprovisionar desde el directorio?</value>
   </data>

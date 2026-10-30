@@ -42,7 +42,13 @@ namespace HM
          EventOnClientLogon = 1014,
          EventOnClientValidatePassword = 1015,
          EventOnRecipientUnknown = 1016,
-         EventOnTooManyInvalidCommands = 1017
+         EventOnTooManyInvalidCommands = 1017,
+
+         // A committed IMAP MOVE or UID MOVE inside one account's own folders,
+         // once for each message it moved, fired off the IMAP thread after the
+         // command's work is done (IMAP/IMAPMoveDispatch.h) while the
+         // IMAPMessageMovedEvents setting is on.
+         EventOnIMAPMessageMoved = 1018
       };
 
       ScriptServer(void);
@@ -68,6 +74,22 @@ namespace HM
       // caller that builds its call as source text builds it for this language,
       // never for the setting's. Empty until a script has been loaded.
       String GetLoadedLanguage() const;
+
+      // Whether the script in force declares the handler of e - what FireEvent
+      // asks before it runs anything - for a caller that would otherwise make an
+      // event's objects, or queue it, for nothing: the IMAP move event
+      // (IMAPMoveDispatch) asks it on the IMAP thread, so that a script without
+      // OnIMAPMessageMoved costs a MOVE nothing. False for EventCustom, which no
+      // handler flag gates.
+      bool HasHandler(Event e) const;
+
+#ifdef HM_PLATFORM_POSIX
+      // The objects the JavaScript handler of e is called with, in order, before
+      // the values its caller adds (ScriptArgument): the table FireEvent hands
+      // ScriptBinding::CallHandler, for a tester that calls a handler as an event
+      // would be called (IMAPMoveDispatchTester).
+      static std::vector<String> JavaScriptObjectArguments(Event e);
+#endif
 
       // A value made safe to stand between the quotes of a JScript string literal,
       // '...' or "...", in the call text the Windows engines are handed - a
@@ -281,6 +303,7 @@ namespace HM
       bool has_on_client_validate_password_;
       bool has_on_recipient_unknown_;
       bool has_on_too_many_invalid_comands_;
+      bool has_on_imap_message_moved_;
 
       // Whether a script has ever been loaded successfully. Used only to tell an
       // administrator whether a rejected load left a working script in force or

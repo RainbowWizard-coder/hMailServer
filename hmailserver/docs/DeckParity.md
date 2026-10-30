@@ -10,9 +10,9 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 
 | Measure | Count |
 |---|---|
-| COM properties the desktop program writes | 517 |
-| of them writable over REST | 507 |
-| of them reachable from a Deck view | 507 |
+| COM properties the desktop program writes | 518 |
+| of them writable over REST | 508 |
+| of them reachable from a Deck view | 508 |
 | missing over REST | 10 |
 | over REST but not reached by any Deck view | 0 |
 | assignments left out of the count | 5 |
@@ -525,6 +525,7 @@ Every COM property the desktop program writes, the page that writes it, the REST
 | Property | Desktop page | REST route | Deck view |
 |---|---|---|---|
 | `Enabled` | ServerSettingsView | `PUT /api/v1/accounts/{address}/mailbox-encryption` (name, scope unknown)<br>`POST /api/v1/warmup` (name, scope unknown)<br>`PUT /api/v1/warmup/{id}` (name, scope unknown)<br>`POST /api/v1/webhooks` (name, scope unknown)<br>`PUT /api/v1/webhooks/{name}` (name, scope unknown)<br>`PUT /api/v1/settings/scripting` (setter)<br>`PUT /api/v1/settings/push` (name, scope unknown) | backup, domains, queue, settings, webhooks |
+| `IMAPMessageMovedEvents` | ServerSettingsView | `PUT /api/v1/settings/scripting` (setter) | backup, settings |
 | `Language` | ServerSettingsView | `PUT /api/v1/settings/scripting` (setter) | backup, settings |
 
 ### DomainAlias
@@ -1153,7 +1154,7 @@ Every POST, PUT and PATCH route in the OpenAPI document and the settings tables,
 | `POST /api/v1/settings/profiles/{name}/apply` | ? | `confirm`, `confirmation_needed`, `diff_token`, `hm_settings`, `manage_settings` | yes |
 | `PUT /api/v1/settings/push` | ? | `enabled`, `loopback_http_for_tests`, `max_attempts`, `max_devices_per_account`, `subject`, `time_to_live_seconds`, `vapid_private_key` | yes |
 | `POST /api/v1/settings/push/vapid` | ? | `vapid_public_key` | yes |
-| `PUT /api/v1/settings/scripting` | Scripting | `enabled`, `language` | yes |
+| `PUT /api/v1/settings/scripting` | Scripting | `enabled`, `imap_message_moved_events`, `language` | yes |
 | `POST /api/v1/settings/scripting/check` | Scripting | - | yes |
 | `POST /api/v1/settings/scripting/reload` | Scripting | - | yes |
 | `POST /api/v1/setup/sample-domain` | ? | `manage_server`, `sample_domain_id` | yes |

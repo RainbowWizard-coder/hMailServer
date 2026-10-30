@@ -2404,6 +2404,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Calendar and contacts discovery (CalDAV / CardDAV)" xml:space="preserve">
     <value>Calendar and contacts discovery (CalDAV / CardDAV)</value>
   </data>
+  <data name="Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders" xml:space="preserve">
+    <value>Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders</value>
+  </data>
   <data name="Can this server provision from the directory?" xml:space="preserve">
     <value>Can this server provision from the directory?</value>
   </data>

@@ -1218,6 +1218,7 @@ EXIT 0
     <ClCompile Include="..\Imap\IMAPConnection.cpp" />
     <ClCompile Include="..\Imap\IMAPCopy.cpp" />
     <ClCompile Include="..\Imap\IMAPMove.cpp" />
+    <ClCompile Include="..\Imap\IMAPMoveDispatch.cpp" />
     <ClCompile Include="..\Imap\IMAPFetch.cpp" />
     <ClCompile Include="..\Imap\IMAPFetchParser.cpp" />
     <ClCompile Include="..\IMAP\IMAPFolderContainer.cpp" />
@@ -2100,6 +2101,7 @@ EXIT 0
     <ClInclude Include="..\Imap\IMAPConnection.h" />
     <ClInclude Include="..\Imap\IMAPCopy.h" />
     <ClInclude Include="..\Imap\IMAPMove.h" />
+    <ClInclude Include="..\Imap\IMAPMoveDispatch.h" />
     <ClInclude Include="..\Imap\IMAPFetch.h" />
     <ClInclude Include="..\Imap\IMAPFetchParser.h" />
     <ClInclude Include="..\IMAP\IMAPFolderContainer.h" />

@@ -185,12 +185,13 @@ namespace HM
 
          if (result.GetResult() == IMAPResult::ResultOK)
          {
-            // The copies are there to stay: spamd may be taught of them now.
-            pMove->GiveLessons();
-
             // RFC 6851 section 4.3, as for MOVE: COPYUID before the expunges.
             pMove->SendUIDPlusResponse(pConnection);
             pMove->ExpungeMovedMessages(pConnection);
+
+            // As for MOVE: the lessons and the move events, queued now that the
+            // originals are gone.
+            pMove->DispatchCommitted();
             pConnection->SubmitDelayedChangeNotification();
             pConnection->SendAsciiData(sTag + " OK UID MOVE completed\r\n");
          }
@@ -524,9 +525,9 @@ namespace HM
       if (result.GetResult() == IMAPResult::ResultOK)
       {
          // A UID COPY's copies are there to stay: spamd may be taught of them now,
-         // as for COPY.
+         // as for COPY (IMAPMoveDispatch::Committed; a COPY raises no move event).
          if (copy)
-            copy->GiveLessons();
+            copy->DispatchCommitted();
 
          // A UID COPY into the selected folder reports its copies to this session
          // first, as COPY does.

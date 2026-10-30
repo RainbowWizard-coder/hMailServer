@@ -41,6 +41,11 @@ namespace HM
       // UID MOVE call it when DoForMails has failed, and expunge nothing.
       void RollBack(std::shared_ptr<IMAPConnection> pConnection);
 
+   protected:
+
+      // MOVE, or UID MOVE: what IMAPMoveDispatch raises OnIMAPMessageMoved for.
+      virtual IMAPMoveRecord::Operation GetDispatchOperation() { return GetIsUID() ? IMAPMoveRecord::OperationUidMove : IMAPMoveRecord::OperationMove; }
+
    private:
 
       // The destination and the copies made in it, so that a later message that

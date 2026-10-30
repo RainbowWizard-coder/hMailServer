@@ -2404,6 +2404,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Calendar and contacts discovery (CalDAV / CardDAV)" xml:space="preserve">
     <value>Takvim ve kişi keşfi (CalDAV / CardDAV)</value>
   </data>
+  <data name="Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders" xml:space="preserve">
+    <value>Bir kullanıcının kendi IMAP klasörleri arasında taşınan her ileti için OnIMAPMessageMoved çağrılsın</value>
+  </data>
   <data name="Can this server provision from the directory?" xml:space="preserve">
     <value>Bu sunucu dizinden sağlama yapabilir mi?</value>
   </data>

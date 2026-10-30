@@ -2415,6 +2415,9 @@
   <data name="Calendar and contacts discovery (CalDAV / CardDAV)" xml:space="preserve">
     <value>カレンダーと連絡先の検出 (CalDAV / CardDAV)</value>
   </data>
+  <data name="Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders" xml:space="preserve">
+    <value>ユーザー自身の IMAP フォルダー間で移動したメッセージごとに OnIMAPMessageMoved を呼び出す</value>
+  </data>
   <data name="Can this server provision from the directory?" xml:space="preserve">
     <value>このサーバーはディレクトリからプロビジョニングできますか?</value>
   </data>

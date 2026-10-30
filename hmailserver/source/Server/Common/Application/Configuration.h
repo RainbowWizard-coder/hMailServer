@@ -157,6 +157,14 @@ namespace HM
       void SetUseScriptServer(bool newVal);
       bool GetUseScriptServer() const;
 
+      // Whether a committed IMAP MOVE or UID MOVE inside one account's own
+      // folders raises the event script's OnIMAPMessageMoved, once for each
+      // message, off the IMAP thread (IMAP/IMAPMoveDispatch.h). Off by default;
+      // with scripting off, or no such handler in the script, nothing is raised
+      // whatever it says.
+      void SetIMAPMessageMovedEvents(bool newVal);
+      bool GetIMAPMessageMovedEvents() const;
+
       void SetKeepFilesOpen(bool newVal);
       bool GetKeepFilesOpen() const;
 

@@ -489,7 +489,13 @@ namespace HM
       {
          const String master = ObjectCache::Instance()->GetDomainAliases()->ApplyAliasesOnAddress(authcid);
          if (pAccount->GetAddress().CompareNoCase(master) != 0)
+         {
             RecordMasterUserSession(pConnection->GetRemoteEndpointAddress(), master, pAccount);
+
+            // The master user is who acts in this session, in the mailbox of the
+            // account it opened: what an event script is told (OnIMAPMessageMoved).
+            pConnection->SetSignedInAs(master);
+         }
       }
 
       String sResponse = pArgument->Tag() + " OK LOGIN completed\r\n";

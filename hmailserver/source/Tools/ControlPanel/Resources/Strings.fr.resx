@@ -2404,6 +2404,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Calendar and contacts discovery (CalDAV / CardDAV)" xml:space="preserve">
     <value>Découverte des calendriers et contacts (CalDAV / CardDAV)</value>
   </data>
+  <data name="Call OnIMAPMessageMoved for each message moved between a user's own IMAP folders" xml:space="preserve">
+    <value>Appeler OnIMAPMessageMoved pour chaque message déplacé entre les propres dossiers IMAP d'un utilisateur</value>
+  </data>
   <data name="Can this server provision from the directory?" xml:space="preserve">
     <value>Ce serveur peut-il provisionner depuis l'annuaire ?</value>
   </data>

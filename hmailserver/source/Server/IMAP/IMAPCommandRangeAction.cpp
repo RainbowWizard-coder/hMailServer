@@ -14,7 +14,6 @@
 
 #include "IMAPStore.h"
 #include "IMAPListLookup.h"
-#include "../Common/AntiSpam/SpamAssassin/SpamAssassinLearner.h"
 #include "../Common/Util/Parsing/StringParser.h"
 
 #include <algorithm>
@@ -375,26 +374,29 @@ namespace HM
    void
    IMAPCommandRangeAction::HoldLesson(std::shared_ptr<Message> copy, std::shared_ptr<const Account> destinationOwner, bool spam)
    {
-      Lesson_ lesson;
+      IMAPMoveRecord::Lesson lesson;
       lesson.copy = copy;
       lesson.destination_owner = destinationOwner;
       lesson.spam = spam;
-      lessons_.push_back(lesson);
+      dispatch_record_.lessons.push_back(lesson);
    }
 
    void
-   IMAPCommandRangeAction::GiveLessons()
+   IMAPCommandRangeAction::DispatchCommitted()
    {
-      for (const Lesson_ &lesson : lessons_)
-         SpamAssassinLearner::Teach(lesson.copy, lesson.destination_owner, lesson.spam);
+      dispatch_record_.operation = GetDispatchOperation();
 
-      lessons_.clear();
+      // Queues, and nothing more: the lessons for spamd and the move events run
+      // later, on the asynchronous work queue.
+      IMAPMoveDispatch::Committed(dispatch_record_);
    }
 
    void
    IMAPCommandRangeAction::ForgetLessons()
    {
-      lessons_.clear();
+      // The lessons and a MOVE's moves alike: a command that failed took its
+      // copies out again, and nothing is told of them.
+      dispatch_record_.Clear();
    }
 
    void

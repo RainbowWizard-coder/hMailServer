@@ -328,6 +328,7 @@
     <Compile Include="IMAP\CopyAndAppendRules.cs" />
     <Compile Include="IMAP\SelectedFolderReports.cs" />
     <Compile Include="IMAP\MasterUserImpersonation.cs" />
+    <Compile Include="IMAP\ImapMoveEvents.cs" />
     <Compile Include="Infrastructure\SqlLayerErrorHandling.cs" />
     <Compile Include="Infrastructure\WorkQueueLifecycle.cs" />
     <Compile Include="Infrastructure\IniSettingsMirror.cs" />

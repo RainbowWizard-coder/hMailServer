@@ -251,6 +251,12 @@ namespace HM
       // address, as it always was, until an administrator chooses otherwise.
       settings.EnsureLong(PROPERTY_AUTOBAN_WIDEN_BY_REVERSE_NAME, 0);
 
+      // The event script's OnIMAPMessageMoved (IMAP/IMAPMoveDispatch.h, GitLab
+      // work item #109): off, as the work item asks, so that a MOVE raises
+      // nothing and queues nothing until an administrator switches it on. Every
+      // MOVE reads it once.
+      settings.EnsureLong(PROPERTY_IMAP_MESSAGE_MOVED_EVENTS, 0);
+
       // The reputation watch: on, the four lists that answer an ordinary resolver
       // for nothing, and no address of its own. Schema 6049 seeds the same three
       // rows; these are here for the same reason the syslog sink's are, because a
@@ -1458,6 +1464,18 @@ namespace HM
       }
 
       GetSettings()->SetBool(PROPERTY_USESCRIPTSERVER, false);
+   }
+
+   bool
+   Configuration::GetIMAPMessageMovedEvents() const
+   {
+      return GetSettings()->GetBool(PROPERTY_IMAP_MESSAGE_MOVED_EVENTS);
+   }
+
+   void
+   Configuration::SetIMAPMessageMovedEvents(bool newVal)
+   {
+      GetSettings()->SetBool(PROPERTY_IMAP_MESSAGE_MOVED_EVENTS, newVal);
    }
 
    bool

@@ -18,7 +18,7 @@ but no engine runs it and nothing in it is checked. Switching scripting on - the
 Control Panel, COM's `Scripting.Enabled`, `PUT /api/v1/settings/scripting` or the
 environment - loads the file before the switch takes effect, and so does
 every load while it is on: on every engine loading a file runs its code outside
-functions, once to compile it and once more for each of the fifteen handlers looked
+functions, once to compile it and once more for each of the sixteen handlers looked
 for. Keep that code to declarations. A top level that throws, or runs past the
 timeout, is reported then as a load that failed (HM5016, HM5710 or HM5021).
 
@@ -110,7 +110,7 @@ parameter. As a global it is `null` where the event names the object and has non
 the message of an SMTP event fired before `MAIL FROM` - and **not defined at all**
 where the event does not name it: the message of an external download that failed,
 and `Result` in `OnClientLogon`, `OnRecipientUnknown`, `OnTooManyInvalidCommands`,
-`OnDeliveryFailed` and `OnError`. Reading an undefined global throws a
+`OnDeliveryFailed`, `OnError` and `OnIMAPMessageMoved`. Reading an undefined global throws a
 `ReferenceError`, so a handler reads its parameter, or asks `typeof`.
 
 | Handler | Called with | What `Result.Value` does |
@@ -130,6 +130,7 @@ and `Result` in `OnClientLogon`, `OnRecipientUnknown`, `OnTooManyInvalidCommands
 | `OnBackupCompleted()` | nothing | nothing |
 | `OnBackupFailed(reason)` | the reason | nothing |
 | `OnError(severity, code, source, description)` | the error, as the ERROR log has it | nothing |
+| `OnIMAPMessageMoved(account, eventId, operation, user, ...)` | the account, and thirteen values about one message an IMAP `MOVE` moved - see [below](#onimapmessagemoved-a-message-moved-between-a-users-folders) | nothing: the move has happened; the event has no `Result` |
 | a rule's "Run script function" | the message | nothing; a function the file does not define is a Script Error |
 
 A `554` from `OnHELO`, `OnAcceptMessage` or `OnSMTPData` counts towards the session's
@@ -158,6 +159,95 @@ listener reads (`SMTPProxyProtocolEnabled`, `IMAPProxyProtocolEnabled`,
 `POP3ProxyProtocolEnabled` and their lists of trusted peers), its `client.IPAddress`
 is therefore the balancer's; `OnHELO`, `OnClientLogon` and the events after them
 are given the client the header named.
+
+### OnIMAPMessageMoved: a message moved between a user's folders
+
+Called once for each message an IMAP `MOVE` or `UID MOVE` (RFC 6851) moved between
+two folders of the account signed in, after the command has done all of its work,
+and off the IMAP thread - GitLab work item #109. It is off as shipped, and switched
+on by the database setting `IMAPMessageMovedEvents`: `Settings.Scripting.IMAPMessageMovedEvents`
+over COM, `"imap_message_moved_events"` in `PUT /api/v1/settings/scripting` over
+REST, and **Call OnIMAPMessageMoved for each message moved between a user's own IMAP
+folders** on the Control Panel's Advanced settings page, on the Scripting
+tab. It is raised only while that setting and scripting are both on and the script
+in force declares `OnIMAPMessageMoved`; with any of the three off, a `MOVE` records
+nothing for it and queues nothing.
+
+```vb
+Sub OnIMAPMessageMoved(oAccount, sEventId, sOperation, sUser, _
+                       iSourceFolderId, sSourceFolder, iSourceUidValidity, iSourceUid, _
+                       iDestinationFolderId, sDestinationFolder, iDestinationUidValidity, iDestinationUid, _
+                       iSourceMessageId, iMessageId)
+   EventLog.Write(sUser & " moved " & oAccount.Address & "'s message " & iMessageId & _
+                  " from " & sSourceFolder & " to " & sDestinationFolder)
+End Sub
+```
+
+```js
+function OnIMAPMessageMoved(account, eventId, operation, user,
+                            sourceFolderId, sourceFolder, sourceUidValidity, sourceUid,
+                            destinationFolderId, destinationFolder, destinationUidValidity, destinationUid,
+                            sourceMessageId, messageId) {
+   EventLog.Write(user + ' moved ' + account.Address + "'s message " + messageId +
+                  ' from ' + sourceFolder + ' to ' + destinationFolder);
+}
+```
+
+| Parameter | What it is |
+|---|---|
+| `account` | the account that owns both folders, read from the database as the event is fired (the [Account](#account-onclientvalidatepassword-onimapmessagemoved) object) |
+| `eventId` | text: this event's own id, a braced UUID made as it is fired; no two events share one, and no event is fired twice |
+| `operation` | text: `MOVE` or `UID MOVE` |
+| `user` | text: who signed in to the session that moved it - the account's own address, or the IMAP master user's (`IMAPMasterUser`) when that user opened the account's mailbox |
+| `sourceFolderId`, `destinationFolderId` | numbers: the two folders' ids, as `IMAPFolder.ID` gives them |
+| `sourceFolder`, `destinationFolder` | text: the two folders' full names as `LIST` gives them, decoded, with the hierarchy delimiter between the levels (`INBOX`, `Archive.2026`), as they were at the move |
+| `sourceUidValidity`, `destinationUidValidity` | numbers: each folder's `UIDVALIDITY`, as `SELECT`, `STATUS` and `COPYUID` give it |
+| `sourceUid`, `destinationUid` | numbers: the message's UID in the folder it left and in the one it went to - the pair `COPYUID` reports |
+| `sourceMessageId` | number: the message's id in the folder it left - the `Message.ID` it had there, which `OnDeliverMessage` gave it if it was delivered there. That row is gone now |
+| `messageId` | number: its id now, in the destination. A move makes the message a new row, with a new id |
+
+**Which moves.** A `MOVE` or a `UID MOVE` that succeeded, and for each of its
+messages only once the copy is in the destination and the original has been taken
+out of the source; a message whose original the expunge could not remove is in
+both folders, and is not reported. The events of one command come in the order it
+moved the messages. Nothing is raised for:
+
+- a `COPY` or a `UID COPY`, nor for a `COPY` followed by a `STORE` of `\Deleted` and
+  an `EXPUNGE` - three commands the server does not join into a move, however a
+  client meant them;
+- a `MOVE` that failed: it answers `NO`, takes its copies out of the destination
+  again and leaves every original where it was (RFC 6851 3.3);
+- a move into or out of a public folder, or between two folders of another account
+  that it shares or delegates to the user signed in, or into such a folder: the event
+  is only ever about the account's own folders, and names that account.
+
+A `MOVE` into the folder that is selected - `MOVE 1 INBOX` with `INBOX` open - is a
+move like any other: the message has a new UID there, and a new id.
+
+**How it runs.** Nothing runs on the IMAP thread but the queueing: the command
+answers the client exactly as it does with the setting off, and before the event is
+fired. The events wait in one queue in memory, and one task of the asynchronous work
+queue fires them, one at a time and in order, outside every folder lock and
+transaction; each handler runs under the script timeout (`ScriptTimeout`), as every
+event's does. A handler cannot change the move: it has happened. A handler that
+throws or runs past the timeout is reported as any handler is - a Script Error in the
+ERROR log - and the next event is fired; no event is ever fired again.
+
+**What can be lost, and when.** The queue holds at most 10,000 events. When it is
+full - a handler slower than the moves it is told of - the newest are dropped,
+rather than a client being made to wait, and the application log says how many, once
+for each command. The queue is held in memory only: a restart of the service loses
+whatever is still waiting. A stop and start of the servers inside the running
+service (`Application.Reinitialize`) keeps it, and it is fired after the next move
+that raises the event. Events still waiting when the setting is switched off are
+not fired; one whose account has been deleted meanwhile is not fired either, and the
+application log says so.
+
+**Beside SpamAssassin's lessons.** A `COPY` or a `MOVE` into or out of the Junk
+folder that teaches SpamAssassin (`SpamAssassinLearnOnMove`) hands its lessons on at
+the same point, after the command's work, through the same dispatch
+(`IMAP/IMAPMoveDispatch.h`). The two are independent: either may be on without the
+other, and a `COPY` still teaches as it always has.
 
 On JavaScript the values - a password, a recipient, an error's description - are
 handed to the handler as values, with `JS_Call`. VBScript and JScript are handed
@@ -321,7 +411,7 @@ the message through `Result`; the account's own settings are the administrator's
 through COM, REST and the Control Panel, and its password is a secret the handler
 has no use for.
 
-### Account (OnClientValidatePassword)
+### Account (OnClientValidatePassword, OnIMAPMessageMoved)
 
 | Member | COM | JavaScript |
 |---|---|---|
@@ -331,6 +421,9 @@ has no use for.
 | `Password`, `SignaturePlainText`, `SignatureHTML`, `VacationMessageExpires`, `VacationMessageExpiresDate`, `VacationMessageBeginDate`, `VacationMessageAbortSpamFlagged`, `VacationMessageDays`, `VacationInternalSubject`, `VacationInternalMessage`, `VacationMessageInternalOnly`, `ForwardAbortSpamFlagged`, `SieveScript`, `SpamMarkThreshold`, `SpamDeleteThreshold`, `RoleName`, `RoleDomains`, `OpenPGPPublish`, `DirectoryTitle`, `DirectoryDepartment`, `DirectoryPhone`, `DirectoryMobile`, `DirectoryOffice`, `DirectoryOptOut`, `DirectoryNote`, `DirectoryPhoto`, `SettingOverride(name)` | read/write | **not on JavaScript** |
 | `InUseReason`, `LastMove`, `Size`, `Messages`, `FetchAccounts`, `Rules`, `IMAPFolders`, `QuotaUsed`, `PushSubscriptionCount`, `LastLogonTime`, `AppPasswords`, `TOTPEnabled`, `RolePermissions`, `OpenPGPKeys`, `RecoveryAddress`, `RecoveryAddressVerified`, `RecoveryCodesUnused`, `DirectoryPhotoType`, `EffectiveSetting(name)`, `EffectiveSettingSource(name)` | read | **not on JavaScript** |
 | `MoveTo`, `Save`, `DeleteMessages`, `ValidatePassword`, `UnlockMailbox`, `RemovePushSubscriptions`, `Delete`, `EnrolTOTP`, `DisableTOTP`, `ExportMessages`, `ExportArchive`, `GetDevices`, `RevokeDevice`, `ClearRecoveryAddress`, `ClearRecoveryCodes` | method | **not on JavaScript** |
+
+`OnIMAPMessageMoved` is given the account that owns the folders a message was moved
+between, read from the database as the event is fired, with the same members.
 
 This one is thinner than COM on purpose. The account is the one a password is being
 checked for, and what the handler decides is `Result.Value`; the properties that
