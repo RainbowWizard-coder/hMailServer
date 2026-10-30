@@ -358,6 +358,8 @@ SOURCE_TESTERS_LEFT_OUT = {
     "database-transaction-tests": "it needs a database: given no configuration it says SKIPPED and tests nothing",
     "http-server-tests": "it serves and asks on a loopback socket, which the Debian build's offline.c refuses",
     "network-deadline-tests": "it holds connections on loopback sockets to their deadlines, which offline.c refuses",
+    "rspamd-learn-tests": "it sends lessons to a stand-in Rspamd controller on a loopback socket, which offline.c refuses; "
+                          "move-learning-tests, which the lists run, holds the rules and the request without one",
     "clamd-socket-tests": "it binds Unix sockets of its own under the temporary directory, and the lists hold the "
                           "testers that need no socket",
     "root-command-tests": "most of it needs root, which a distribution's build does not run as",

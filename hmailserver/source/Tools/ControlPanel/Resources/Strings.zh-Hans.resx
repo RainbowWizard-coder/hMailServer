@@ -399,6 +399,9 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>来自身份验证器应用的验证码，需与此账户的密码一并使用。它适用于确实能够输入验证码的场合 - 控制面板和 API。邮件客户端无法出示验证码，因此一旦启用此项，它们就必须改用应用密码。</value>
   </data>
+  <data name="A copy into or out of Junk teaches as a move does" xml:space="preserve">
+    <value>复制到垃圾邮件文件夹或从中复制出来，与移动一样进行教学</value>
+  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>把某个域或某个账户的邮件副本发往一个地址：作为附有该邮件的信封报告，或者作为邮件本身。</value>
   </data>
@@ -500,6 +503,9 @@
   </data>
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>被标记的邮件在外观上不会有任何变化：没有 X-hMailServer-Spam 标头，没有原因标头，也没有主题前缀，因此邮件客户端无从据以归类。内部的垃圾邮件标志仍会设置，这会对做了相应配置的账户抑制自动回复和转发。</value>
+  </data>
+  <data name="A message a user moves into their Junk folder is taught to the spam filter as spam, and one moved out of it as not spam. SpamAssassin learns while its switch above is on; Rspamd learns through its controller, into the statistics of the mailbox's owner." xml:space="preserve">
+    <value>用户移入其垃圾邮件文件夹的邮件会作为垃圾邮件教给垃圾邮件过滤器，移出的邮件则作为非垃圾邮件。SpamAssassin 在上方的开关打开时学习；Rspamd 通过其控制器学习，计入邮箱所有者的统计。</value>
   </data>
   <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
     <value>超过此大小的邮件会直接放行，不再送交引擎，因为通过网络发送大附件的代价大于答案的价值。0 表示取消该上限，对于运行在本机上的引擎这是合理的。</value>
@@ -5358,6 +5364,9 @@
   <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
     <value>筛选行：地址、任意字词或 session=42</value>
   </data>
+  <data name="Filter that learns" xml:space="preserve">
+    <value>学习的过滤器</value>
+  </data>
   <data name="Find organisational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>通过 DNS 树遍历查找组织域（RFC 9989）</value>
   </data>
@@ -5453,6 +5462,9 @@
   </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>例如 http://127.0.0.1:11333/checkv2。目前仅支持纯 HTTP，因此引擎应当位于本机或您信任的网络上 - 整封邮件都会发送给它。</value>
+  </data>
+  <data name="For example http://127.0.0.1:11334, the controller on this machine. Plain http is accepted to this machine only; a controller elsewhere is reached over https, its certificate verified." xml:space="preserve">
+    <value>例如 http://127.0.0.1:11334，即本机上的控制器。未加密的 http 只接受发往本机；其他位置的控制器通过 https 访问，并验证其证书。</value>
   </data>
   <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
     <value>例如 partner.example，或用 .example 表示该域及其下所有子域；用逗号或空格分隔。</value>
@@ -6496,6 +6508,9 @@
   </data>
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>最新 {0}；峰值 {1}</value>
+  </data>
+  <data name="Learning from the Junk folder" xml:space="preserve">
+    <value>从垃圾邮件文件夹学习</value>
   </data>
   <data name="Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>两个框都留空则保留已经设置的密码短语。服务器不会把密码短语交还给任何人，本程序也不例外，因此请把它保存在备份旁边以外的地方：还原时需要它，密码短语一旦丢失，存档中的任何内容都无人能够恢复。</value>
@@ -10550,6 +10565,15 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Routes" xml:space="preserve">
     <value>路由</value>
   </data>
+  <data name="Rspamd" xml:space="preserve">
+    <value>Rspamd</value>
+  </data>
+  <data name="Rspamd classifier (a per-user one)" xml:space="preserve">
+    <value>Rspamd 分类器 (按用户的分类器)</value>
+  </data>
+  <data name="Rspamd controller address" xml:space="preserve">
+    <value>Rspamd 控制器地址</value>
+  </data>
   <data name="Rule action" xml:space="preserve">
     <value>规则操作</value>
   </data>
@@ -14492,6 +14516,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>查找 {0} 超时。请检查名称，以及本机能否访问 DNS 服务器。</value>
+  </data>
+  <data name="Timeout for one lesson (seconds)" xml:space="preserve">
+    <value>每次教学的超时 (秒)</value>
   </data>
   <data name="Timeout for the whole exchange (seconds)" xml:space="preserve">
     <value>整个交换过程的超时 (秒)</value>

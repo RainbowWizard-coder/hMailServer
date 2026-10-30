@@ -5,6 +5,7 @@
 
 #include "stdafx.h"
 #include "AntiSpamConfiguration.h"
+#include "RspamdLearner.h"
 
 #include "../BO/SURBLServers.h"
 #include "../BO/DNSBlackLists.h"
@@ -642,10 +643,93 @@ namespace HM
       GetSettings_()->SetLong(PROPERTY_SPAMASSASSIN_PORT, newVal);
    }
 
-   int 
-   AntiSpamConfiguration::GetSpamAssassinPort() 
+   int
+   AntiSpamConfiguration::GetSpamAssassinPort()
    {
       return GetSettings_()->GetLong(PROPERTY_SPAMASSASSIN_PORT);
+   }
+
+   int
+   AntiSpamConfiguration::GetMoveLearningBackend()
+   {
+      // A row edited by hand to something else is SpamAssassin, the default,
+      // never a backend nobody chose.
+      const long value = GetSettings_()->GetLong(PROPERTY_MOVE_LEARNING_BACKEND);
+      return value == 1 ? 1 : 0;
+   }
+
+   void
+   AntiSpamConfiguration::SetMoveLearningBackend(int newVal)
+   {
+      GetSettings_()->SetLong(PROPERTY_MOVE_LEARNING_BACKEND, newVal == 1 ? 1 : 0);
+      RspamdLearner::ForgetReports();
+   }
+
+   bool
+   AntiSpamConfiguration::GetMoveLearningFromCopy()
+   {
+      return GetSettings_()->GetBool(PROPERTY_MOVE_LEARNING_FROM_COPY);
+   }
+
+   void
+   AntiSpamConfiguration::SetMoveLearningFromCopy(bool newVal)
+   {
+      GetSettings_()->SetBool(PROPERTY_MOVE_LEARNING_FROM_COPY, newVal);
+   }
+
+   String
+   AntiSpamConfiguration::GetRspamdControllerUrl()
+   {
+      return GetSettings_()->GetString(PROPERTY_RSPAMD_CONTROLLER_URL);
+   }
+
+   void
+   AntiSpamConfiguration::SetRspamdControllerUrl(const String &newVal)
+   {
+      String url = newVal;
+      url.Trim();
+      GetSettings_()->SetString(PROPERTY_RSPAMD_CONTROLLER_URL, url);
+      RspamdLearner::ForgetReports();
+   }
+
+   String
+   AntiSpamConfiguration::GetRspamdControllerPassword()
+   {
+      return GetSettings_()->GetString(PROPERTY_RSPAMD_CONTROLLER_PASSWORD);
+   }
+
+   void
+   AntiSpamConfiguration::SetRspamdControllerPassword(const String &newVal)
+   {
+      GetSettings_()->SetString(PROPERTY_RSPAMD_CONTROLLER_PASSWORD, newVal);
+      RspamdLearner::ForgetReports();
+   }
+
+   String
+   AntiSpamConfiguration::GetRspamdClassifier()
+   {
+      return GetSettings_()->GetString(PROPERTY_RSPAMD_CLASSIFIER);
+   }
+
+   void
+   AntiSpamConfiguration::SetRspamdClassifier(const String &newVal)
+   {
+      String name = newVal;
+      name.Trim();
+      GetSettings_()->SetString(PROPERTY_RSPAMD_CLASSIFIER, name);
+      RspamdLearner::ForgetReports();
+   }
+
+   int
+   AntiSpamConfiguration::GetRspamdTimeoutSeconds()
+   {
+      return GetSettings_()->GetLong(PROPERTY_RSPAMD_TIMEOUT_SECONDS);
+   }
+
+   void
+   AntiSpamConfiguration::SetRspamdTimeoutSeconds(int newVal)
+   {
+      GetSettings_()->SetLong(PROPERTY_RSPAMD_TIMEOUT_SECONDS, newVal);
    }
 
    int 

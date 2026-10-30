@@ -125,6 +125,7 @@
 #include "../../IMAP/IMAPThread.h"
 #include "../../IMAP/IMAPCommandRangeAction.h"
 #include "../../IMAP/IMAPMoveDispatch.h"
+#include "../AntiSpam/MoveLearningTester.h"
 #include "../../IMAP/IMAPStore.h"
 #include "../../IMAP/IMAPSearchParser.h"
 #include "LegacyBlowfish.h"
@@ -393,6 +394,17 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing IMAPMoveDispatch\n"));
       IMAPMoveDispatchTester imapMoveDispatchTester;
       imapMoveDispatchTester.Test();
+
+      // Learning from the Junk folder (MoveLearning, RspamdLearner): which copies
+      // are lessons and which way, for each backend, the Junk folder beside a Spam
+      // one, the Rspamd request and what each answer means, the lesson queue's
+      // bound; and the request sent to a stand-in controller on a loopback port
+      // of its own. move-learning-tests and rspamd-learn-tests run the two halves
+      // on Linux.
+      OutputDebugString(_T("hMailServer: Testing MoveLearning\n"));
+      MoveLearningTester moveLearningTester;
+      moveLearningTester.TestRules();
+      moveLearningTester.TestStandIn();
 
       // What a domain does to a message: the rule that decides whether a sender
       // is outside, the tag that rule produces, and the reply-chain guard on the

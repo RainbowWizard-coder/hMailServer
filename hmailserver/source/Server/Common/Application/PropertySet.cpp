@@ -390,6 +390,12 @@ namespace HM
       if (sPropertyName == PROPERTY_SANDBOX_TOKEN)
          return true;
 
+      // The password this server's lessons carry to Rspamd's controller
+      // (AntiSpam/RspamdLearner.h). Whoever holds it may teach that controller,
+      // and reconfigure it where the password is also its enable password.
+      if (sPropertyName == PROPERTY_RSPAMD_CONTROLLER_PASSWORD)
+         return true;
+
       // The SNMP agent's two passwords and its community (Util/SnmpAgent.h).
       // Whoever holds the passwords can read everything the agent serves as its
       // user; whoever holds the community, while SNMPv2c is on, can read it too.
@@ -480,6 +486,16 @@ namespace HM
             continue;
          }
 
+         // Nor the password of Rspamd's controller (AntiSpam/RspamdLearner.h), on
+         // the sandbox token's terms: a credential for a service outside this
+         // server that no interface reads back. After a restore it is entered
+         // again; left out, a restore leaves the one this server holds.
+         if (String(oProperty->GetName()).CompareNoCase(PROPERTY_RSPAMD_CONTROLLER_PASSWORD) == 0)
+         {
+            iterProperty++;
+            continue;
+         }
+
          // Nor the SNMP agent's (Util/SnmpAgent.h): its two passwords and its
          // community, which are credentials no interface reads back, on the
          // sandbox token's terms; and its engine seed and every engine's boot
@@ -565,6 +581,10 @@ namespace HM
          // Nor the sandbox's token, which XMLStore leaves out too: the token
          // this server holds stays until an administrator enters another.
          if (sName.CompareNoCase(PROPERTY_SANDBOX_TOKEN) == 0)
+            continue;
+
+         // Nor the password of Rspamd's controller, which XMLStore leaves out too.
+         if (sName.CompareNoCase(PROPERTY_RSPAMD_CONTROLLER_PASSWORD) == 0)
             continue;
 
          // Nor the SNMP agent's secrets and records, which XMLStore leaves out:

@@ -211,6 +211,20 @@ public:
    STDMETHOD(get_SurblTooManyDomainsScore)(/*[out, retval]*/ long *pVal);
    STDMETHOD(put_SurblTooManyDomainsScore)(/*[in]*/ long newVal);
 
+   // Learning from the Junk folder (Common/AntiSpam/MoveLearning.h): the backend,
+   // whether a COPY teaches, and Rspamd's controller.
+   STDMETHOD(get_MoveLearningBackend)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_MoveLearningBackend)(/*[in]*/ long newVal);
+   STDMETHOD(get_MoveLearningFromCopy)(/*[out, retval]*/ VARIANT_BOOL *pVal);
+   STDMETHOD(put_MoveLearningFromCopy)(/*[in]*/ VARIANT_BOOL newVal);
+   STDMETHOD(get_RspamdControllerUrl)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_RspamdControllerUrl)(/*[in]*/ BSTR newVal);
+   STDMETHOD(SetRspamdControllerPassword)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_RspamdClassifier)(/*[out, retval]*/ BSTR *pVal);
+   STDMETHOD(put_RspamdClassifier)(/*[in]*/ BSTR newVal);
+   STDMETHOD(get_RspamdTimeoutSeconds)(/*[out, retval]*/ long *pVal);
+   STDMETHOD(put_RspamdTimeoutSeconds)(/*[in]*/ long newVal);
+
 private:
 
    HM::Configuration* config_;

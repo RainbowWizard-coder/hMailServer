@@ -626,6 +626,26 @@ add_executable(imap-move-event-tests ${SERVER_DIR}/platform/imap_move_event_test
 target_link_libraries(imap-move-event-tests PRIVATE hmailserver_core)
 set_target_properties(imap-move-event-tests PROPERTIES OUTPUT_NAME imap-move-event-tests)
 
+# ---------------------------------------------------------------- learning from the Junk folder
+#
+# MoveLearningTester (Common/AntiSpam/MoveLearningTester.h) as two programs of
+# their own, for the reason spf-tests is one: on Windows ClassTester runs it inside
+# the service. move-learning-tests holds the rules - which copies are lessons and
+# which way, for SpamAssassin and for Rspamd, the Junk folder beside a Spam folder,
+# the Rspamd request a lesson makes and what each of the controller's answers
+# means, the lesson queue's bound - with no database, socket or network, so the
+# source packages' builds run it. rspamd-learn-tests sends the request with the
+# server's own client to a stand-in controller on a loopback port of its own,
+# which those builds refuse, so they leave it out as they leave out
+# http-server-tests; about three seconds. Not installed; bench tools.
+add_executable(move-learning-tests ${SERVER_DIR}/platform/move_learning_tests_main.cpp)
+target_link_libraries(move-learning-tests PRIVATE hmailserver_core)
+set_target_properties(move-learning-tests PROPERTIES OUTPUT_NAME move-learning-tests)
+
+add_executable(rspamd-learn-tests ${SERVER_DIR}/platform/rspamd_learn_tests_main.cpp)
+target_link_libraries(rspamd-learn-tests PRIVATE hmailserver_core)
+set_target_properties(rspamd-learn-tests PROPERTIES OUTPUT_NAME rspamd-learn-tests)
+
 # ---------------------------------------------------------------- the backup index's XML
 #
 # XmlTreeTester (Common/Util/XmlTreeTester.h) as a program of its own, for the

@@ -156,6 +156,30 @@ namespace HM
       int GetSpamAssassinPort();
       void SetSpamAssassinPort(int bNewVal);
 
+      // Learning from a user's IMAP moves into and out of their Junk folder
+      // (MoveLearning.h). The backend: MoveLearning::BackendSpamAssassin (0, the
+      // default, which SpamAssassinLearnOnMove switches on as it always has) or
+      // MoveLearning::BackendRspamd (1). A value that is neither reads as 0.
+      int GetMoveLearningBackend();
+      void SetMoveLearningBackend(int newVal);
+
+      // Whether a COPY or a UID COPY into or out of Junk teaches as a MOVE does,
+      // for either backend. On by default, as a COPY always has.
+      bool GetMoveLearningFromCopy();
+      void SetMoveLearningFromCopy(bool newVal);
+
+      // Rspamd's controller (RspamdLearner.h): its URL, the password its Password
+      // header carries - kept protected, never read back over COM or REST - the
+      // classifier a lesson names, and the seconds one request may take.
+      String GetRspamdControllerUrl();
+      void SetRspamdControllerUrl(const String &newVal);
+      String GetRspamdControllerPassword();
+      void SetRspamdControllerPassword(const String &newVal);
+      String GetRspamdClassifier();
+      void SetRspamdClassifier(const String &newVal);
+      int GetRspamdTimeoutSeconds();
+      void SetRspamdTimeoutSeconds(int newVal);
+
       int GetAntiSpamMaxSizeKB();
       void SetAntiSpamMaxSizeKB(int newVal);
 

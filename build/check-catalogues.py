@@ -251,7 +251,7 @@ OTHER_SCRIPTS = {"ja", "zh-Hans", "ru", "uk"}
 # shortcut lists of those languages' own software.
 SAME_IN_EVERY_SCRIPT = {
    "Azure Blob Storage", "NCSA Common Log Format", "Control Panel", "hMailServer Control Panel", "Control Deck",
-   "Relaxed", "Simple", "Sieve", "Expunge", "Web  ", "OK",
+   "Relaxed", "Simple", "Sieve", "Expunge", "Web  ", "OK", "Rspamd",
    "Del", "Enter", "Esc", "Ins",
 }
 

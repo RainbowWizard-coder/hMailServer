@@ -4,7 +4,7 @@
 // Copyright (c) 2010 Martin Knafve / hMailServer.com.
 
 #include "stdafx.h"
-#include "../Common/AntiSpam/SpamAssassin/SpamAssassinLearner.h"
+#include "../Common/AntiSpam/MoveLearning.h"
 #include "IMAPMove.h"
 #include "IMAPConnection.h"
 #include "../Common/BO/Message.h"
@@ -100,13 +100,15 @@ namespace HM
       destination_folder_ = pFolder;
       copied_message_ids_.insert(pNewMessage->GetID());
 
-      // A move into or out of the user's own Junk folder is a lesson for spamd
-      // (SpamAssassinLearnOnMove): decided here, and given, off this thread, once the
-      // command has succeeded (DispatchCommitted). A MOVE that fails takes this copy out
-      // again (RollBack), and a lesson queued now would tell spamd of it all the same.
+      // A move into or out of the user's own Junk folder is a lesson for the spam
+      // filter (MoveLearning.h): decided here, and given, off this thread, once the
+      // command has succeeded and its originals are expunged (DispatchCommitted). A
+      // MOVE that fails takes this copy out again (RollBack), and a lesson queued now
+      // would tell the filter of it all the same.
       bool spam = false;
-      if (SpamAssassinLearner::IsLesson(pConnection->GetCurrentFolder(), pFolder, pDestinationOwner, spam))
-         HoldLesson(pNewMessage, pDestinationOwner, spam);
+      int backend = 0;
+      if (MoveLearning::IsLesson(pConnection, pConnection->GetCurrentFolder(), pFolder, pDestinationOwner, false, spam, backend))
+         HoldLesson(pNewMessage, pDestinationOwner, spam, backend);
 
       // OnIMAPMessageMoved (IMAPMoveDispatch): decided once for the command, on its
       // first message - one setting read when it is off - and, when the event is

@@ -402,6 +402,9 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Код із застосунку-автентифікатора, потрібний разом із паролем цього облікового запису. Він діє там, де код справді можна ввести, — у Панелі керування та в API. Поштові клієнти не вміють його надавати, тому після ввімкнення вони мають натомість використовувати пароль програми.</value>
   </data>
+  <data name="A copy into or out of Junk teaches as a move does" xml:space="preserve">
+    <value>Копіювання до папки небажаної пошти або з неї навчає так само, як переміщення</value>
+  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>Копія пошти домену або одного облікового запису, надіслана на адресу: як звіт про конверт із вкладеним повідомленням або як саме повідомлення.</value>
   </data>
@@ -503,6 +506,9 @@
   </data>
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>Позначене повідомлення не змінюється жодним помітним чином: ані заголовка X-hMailServer-Spam, ані заголовка з причиною, ані префікса теми, тож поштовому клієнту немає за чим сортувати. Внутрішній прапорець спаму все одно встановлюється, і він пригнічує автовідповіді та пересилання для облікових записів, налаштованих відповідним чином.</value>
+  </data>
+  <data name="A message a user moves into their Junk folder is taught to the spam filter as spam, and one moved out of it as not spam. SpamAssassin learns while its switch above is on; Rspamd learns through its controller, into the statistics of the mailbox's owner." xml:space="preserve">
+    <value>Повідомлення, яке користувач переміщує до своєї папки небажаної пошти, передається спам-фільтру для навчання як спам, а переміщене з неї як не спам. SpamAssassin навчається, поки ввімкнено його перемикач вище; Rspamd навчається через свій контролер, у статистику власника поштової скриньки.</value>
   </data>
   <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
     <value>Повідомлення, більше за це значення, пропускається без надсилання до рушія, бо передавати велике вкладення мережею дорожче, ніж вартує сама відповідь. 0 знімає обмеження, що є розумним для рушія на цьому ж комп’ютері.</value>
@@ -5440,6 +5446,9 @@
   <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
     <value>Фільтр рядків: адреса, будь-які слова або session=42</value>
   </data>
+  <data name="Filter that learns" xml:space="preserve">
+    <value>Фільтр, що навчається</value>
+  </data>
   <data name="Find organisational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Знаходити організаційні домени обходом дерева DNS (RFC 9989)</value>
   </data>
@@ -5535,6 +5544,9 @@
   </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Наприклад http://127.0.0.1:11333/checkv2. Поки що лише простий HTTP, тому рушій має бути на цьому комп'ютері або в мережі, якій ви довіряєте - йому надсилається все повідомлення.</value>
+  </data>
+  <data name="For example http://127.0.0.1:11334, the controller on this machine. Plain http is accepted to this machine only; a controller elsewhere is reached over https, its certificate verified." xml:space="preserve">
+    <value>Наприклад, http://127.0.0.1:11334, контролер на цій машині. Незашифрований http приймається лише до цієї машини; до контролера деінде підключаються через https із перевіркою сертифіката.</value>
   </data>
   <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
     <value>Наприклад, partner.example або .example для домену й усього під ним; розділяйте їх комами або пробілами.</value>
@@ -6578,6 +6590,9 @@
   </data>
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>Останнє {0}; пік {1}</value>
+  </data>
+  <data name="Learning from the Junk folder" xml:space="preserve">
+    <value>Навчання за папкою небажаної пошти</value>
   </data>
   <data name="Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>Залиште обидва поля порожніми, щоб зберегти вже задану парольну фразу. Сервер ніколи не повертає її - ні цій програмі, ні будь-кому іншому - тож тримайте її не поруч із резервними копіями: відновлення її запитує, а з архіву із втраченою парольною фразою ніхто нічого не відновить.</value>
@@ -10671,6 +10686,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Routes" xml:space="preserve">
     <value>Маршрути</value>
   </data>
+  <data name="Rspamd" xml:space="preserve">
+    <value>Rspamd</value>
+  </data>
+  <data name="Rspamd classifier (a per-user one)" xml:space="preserve">
+    <value>Класифікатор Rspamd (свій для кожного користувача)</value>
+  </data>
+  <data name="Rspamd controller address" xml:space="preserve">
+    <value>Адреса контролера Rspamd</value>
+  </data>
   <data name="Rule action" xml:space="preserve">
     <value>Дія правила</value>
   </data>
@@ -14682,6 +14706,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>Сплив час очікування під час пошуку {0}. Перевірте ім'я і те, що цей комп'ютер може дістатися до DNS-сервера.</value>
+  </data>
+  <data name="Timeout for one lesson (seconds)" xml:space="preserve">
+    <value>Тайм-аут одного уроку (секунди)</value>
   </data>
   <data name="Timeout for the whole exchange (seconds)" xml:space="preserve">
     <value>Час очікування всього обміну (секунди)</value>

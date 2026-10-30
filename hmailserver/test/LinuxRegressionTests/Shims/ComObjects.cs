@@ -2097,6 +2097,50 @@ namespace hMailServer
          set { SettingsApi.Put(SettingsApi.AntiSpam, "spamassassin_merge_score", value); }
       }
 
+      // Learning from the Junk folder (docs/JunkFolderLearning.md). The backend is
+      // a number over COM and a word over REST: 0 spamassassin, 1 rspamd; any
+      // other number is sent as itself, which the route refuses as COM does.
+      public int MoveLearningBackend
+      {
+         get { return SettingsApi.GetString(SettingsApi.AntiSpam, "move_learning_backend") == "rspamd" ? 1 : 0; }
+         set
+         {
+            if (value == 0 || value == 1)
+               SettingsApi.Put(SettingsApi.AntiSpam, "move_learning_backend", value == 1 ? "rspamd" : "spamassassin", true);
+            else
+               SettingsApi.Put(SettingsApi.AntiSpam, "move_learning_backend", value);
+         }
+      }
+
+      public bool MoveLearningFromCopy
+      {
+         get { return SettingsApi.GetBool(SettingsApi.AntiSpam, "move_learning_from_copy"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "move_learning_from_copy", value); }
+      }
+
+      public string RspamdControllerUrl
+      {
+         get { return SettingsApi.GetString(SettingsApi.AntiSpam, "rspamd_controller_url"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "rspamd_controller_url", value, true); }
+      }
+
+      public void SetRspamdControllerPassword(string password)
+      {
+         SettingsApi.Put(SettingsApi.AntiSpam, "rspamd_controller_password", password, true);
+      }
+
+      public string RspamdClassifier
+      {
+         get { return SettingsApi.GetString(SettingsApi.AntiSpam, "rspamd_classifier"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "rspamd_classifier", value, true); }
+      }
+
+      public int RspamdTimeoutSeconds
+      {
+         get { return SettingsApi.GetInt(SettingsApi.AntiSpam, "rspamd_timeout_seconds"); }
+         set { SettingsApi.Put(SettingsApi.AntiSpam, "rspamd_timeout_seconds", value); }
+      }
+
       public int TarpitCount
       {
          get { return SettingsApi.GetInt(SettingsApi.AntiSpam, "tarpit_count"); }

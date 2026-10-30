@@ -829,7 +829,9 @@ Administration and monitoring:
                                  ; as spam and one moved out of it as ham: spamc's TELL with Set: local, into the
                                  ; Bayes store the verdicts come from, named for the mailbox owner when
                                  ; SpamAssassinUserFromRecipient is on. Off by default: spamd refuses TELL unless
-                                 ; started with --allow-tell
+                                 ; started with --allow-tell. Only while the database setting MoveLearningBackend
+                                 ; is SpamAssassin (the default; Rspamd is the other), and a COPY teaches only
+                                 ; while MoveLearningFromCopy is on (the default): hmailserver/docs/JunkFolderLearning.md
    OutboundPipelining=1          ; RFC 2920 on the delivery client: when the remote advertises PIPELINING, send
                                  ; MAIL FROM, every RCPT TO and the data command in one flight and read the
                                  ; replies back in order. 0 = one command per reply, as before

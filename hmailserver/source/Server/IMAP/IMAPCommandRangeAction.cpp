@@ -372,12 +372,13 @@ namespace HM
    }
 
    void
-   IMAPCommandRangeAction::HoldLesson(std::shared_ptr<Message> copy, std::shared_ptr<const Account> destinationOwner, bool spam)
+   IMAPCommandRangeAction::HoldLesson(std::shared_ptr<Message> copy, std::shared_ptr<const Account> destinationOwner, bool spam, int backend)
    {
       IMAPMoveRecord::Lesson lesson;
       lesson.copy = copy;
       lesson.destination_owner = destinationOwner;
       lesson.spam = spam;
+      lesson.backend = backend;
       dispatch_record_.lessons.push_back(lesson);
    }
 

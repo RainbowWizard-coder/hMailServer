@@ -402,6 +402,9 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Kód z ověřovací aplikace, vyžadovaný spolu s heslem tohoto účtu. Uplatní se tam, kde lze kód skutečně zadat – v Control Panelu a v API. Poštovní klienti kód předat neumějí, takže jakmile je toto zapnuto, musí místo něj používat heslo aplikace.</value>
   </data>
+  <data name="A copy into or out of Junk teaches as a move does" xml:space="preserve">
+    <value>Kopie do složky nevyžádané pošty nebo z ní učí stejně jako přesun</value>
+  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>Kopie pošty domény nebo jednoho účtu, odeslaná na adresu – jako zpráva o obálce s připojenou zprávou, nebo jako zpráva samotná.</value>
   </data>
@@ -503,6 +506,9 @@
   </data>
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>Označená zpráva se nijak viditelně nemění: žádná hlavička X-hMailServer-Spam, žádná hlavička s důvodem a žádná předpona předmětu, takže poštovní klient nemá podle čeho třídit. Interní příznak spamu se přesto nastaví, což u takto nastavených účtů potlačí automatické odpovědi a přeposílání.</value>
+  </data>
+  <data name="A message a user moves into their Junk folder is taught to the spam filter as spam, and one moved out of it as not spam. SpamAssassin learns while its switch above is on; Rspamd learns through its controller, into the statistics of the mailbox's owner." xml:space="preserve">
+    <value>Zprávu, kterou uživatel přesune do své složky nevyžádané pošty, se filtr spamu naučí jako spam, a zprávu přesunutou ven jako ne-spam. SpamAssassin se učí, když je zapnutý jeho přepínač výše; Rspamd se učí přes svůj řadič, do statistik vlastníka schránky.</value>
   </data>
   <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
     <value>Zpráva nad touto hranicí projde, aniž by byla odeslána do enginu, protože poslat velkou přílohu přes síť stojí víc, než kolik ta odpověď vydá. 0 strop ruší, což je rozumné u enginu na tomto počítači.</value>
@@ -5440,6 +5446,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
     <value>Filtrovat řádky: adresa, libovolná slova nebo session=42</value>
   </data>
+  <data name="Filter that learns" xml:space="preserve">
+    <value>Filtr, který se učí</value>
+  </data>
   <data name="Find organisational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Hledat organizační domény procházením stromu DNS (RFC 9989)</value>
   </data>
@@ -5535,6 +5544,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Například http://127.0.0.1:11333/checkv2. Zatím jen prosté HTTP, takže engine by měl být na tomto počítači nebo v síti, které důvěřujete - posílá se mu celá zpráva.</value>
+  </data>
+  <data name="For example http://127.0.0.1:11334, the controller on this machine. Plain http is accepted to this machine only; a controller elsewhere is reached over https, its certificate verified." xml:space="preserve">
+    <value>Například http://127.0.0.1:11334, řadič na tomto počítači. Prosté http je přijato jen k tomuto počítači; řadič jinde se oslovuje přes https s ověřeným certifikátem.</value>
   </data>
   <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
     <value>Například partner.example, nebo .example pro doménu a vše pod ní; oddělujte je čárkami nebo mezerami.</value>
@@ -6578,6 +6590,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>Poslední {0}; špička {1}</value>
+  </data>
+  <data name="Learning from the Junk folder" xml:space="preserve">
+    <value>Učení ze složky nevyžádané pošty</value>
   </data>
   <data name="Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>Necháte-li obě pole prázdná, zůstane zachováno již nastavené heslo. Server ho nikdy nevrátí - ani tomuto programu, ani nikomu jinému - proto je uchovejte jinde než vedle záloh: obnovení si o ně řekne a z archivu, jehož heslo se ztratilo, nelze obnovit nic.</value>
@@ -10671,6 +10686,15 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Routes" xml:space="preserve">
     <value>Trasy</value>
   </data>
+  <data name="Rspamd" xml:space="preserve">
+    <value>Rspamd</value>
+  </data>
+  <data name="Rspamd classifier (a per-user one)" xml:space="preserve">
+    <value>Klasifikátor Rspamd (pro jednotlivé uživatele)</value>
+  </data>
+  <data name="Rspamd controller address" xml:space="preserve">
+    <value>Adresa řadiče Rspamd</value>
+  </data>
   <data name="Rule action" xml:space="preserve">
     <value>Akce pravidla</value>
   </data>
@@ -14682,6 +14706,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>Vypršel čas při hledání {0}. Zkontrolujte název a to, že tento počítač dosáhne na server DNS.</value>
+  </data>
+  <data name="Timeout for one lesson (seconds)" xml:space="preserve">
+    <value>Časový limit jedné lekce (sekundy)</value>
   </data>
   <data name="Timeout for the whole exchange (seconds)" xml:space="preserve">
     <value>Timeout pro celou výměnu (sekundy)</value>

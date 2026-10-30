@@ -167,6 +167,30 @@ namespace RegressionTests.AntiSpam
       }
 
       [Test]
+      [Description("MoveLearningFromCopy governs SpamAssassin too: off, a COPY into Junk tells spamd nothing, and a MOVE still teaches as it did.")]
+      public void ACopyTellsNothingWhileMoveLearningFromCopyIsOff()
+      {
+         _settings.AntiSpam.MoveLearningFromCopy = false;
+         try
+         {
+            ImapClientSimulator client = DeliverOneAndOpenTheInbox();
+            Assert.IsTrue(client.Copy(1, "Junk"), "COPY into Junk");
+            System.Threading.Thread.Sleep(1500);
+            Assert.AreEqual(1, _spamd.Requests.Count, "Only the scan at delivery: the COPY told spamd nothing.");
+
+            string response = client.SendSingleCommand("A14 MOVE 1 Junk");
+            StringAssert.Contains("A14 OK", response);
+            client.Disconnect();
+
+            AssertTell(_spamd.WaitForRequest(1), "spam");
+         }
+         finally
+         {
+            _settings.AntiSpam.MoveLearningFromCopy = true;
+         }
+      }
+
+      [Test]
       [Description("Off by default: without the setting a move into Junk sends spamd nothing.")]
       public void OffByDefaultNothingIsSent()
       {

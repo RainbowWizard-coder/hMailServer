@@ -243,11 +243,12 @@ that raises the event. Events still waiting when the setting is switched off are
 not fired; one whose account has been deleted meanwhile is not fired either, and the
 application log says so.
 
-**Beside SpamAssassin's lessons.** A `COPY` or a `MOVE` into or out of the Junk
-folder that teaches SpamAssassin (`SpamAssassinLearnOnMove`) hands its lessons on at
-the same point, after the command's work, through the same dispatch
+**Beside the spam filter's lessons.** A `COPY` or a `MOVE` into or out of the Junk
+folder that teaches the spam filter - SpamAssassin (`SpamAssassinLearnOnMove`) or
+Rspamd, as `MoveLearningBackend` chooses (JunkFolderLearning.md) - hands its lessons
+on at the same point, after the command's work, through the same dispatch
 (`IMAP/IMAPMoveDispatch.h`). The two are independent: either may be on without the
-other, and a `COPY` still teaches as it always has.
+other, and a `COPY` teaches while `MoveLearningFromCopy` is on, as it always has.
 
 On JavaScript the values - a password, a recipient, an error's description - are
 handed to the handler as values, with `JS_Call`. VBScript and JScript are handed

@@ -60,6 +60,7 @@
 #endif
 #include "../AntiSpam/QuarantineStore.h"
 #include "../AntiSpam/QuarantineReview.h"
+#include "../AntiSpam/MoveLearning.h"
 #include "../AntiSpam/SpamAssassin/SpamAssassinLearner.h"
 #include "../BO/IMAPFolders.h"
 #include "../BO/IMAPFolder.h"
@@ -17545,8 +17546,10 @@ namespace HM
       // Learned for the destination folder's owner, as IMAP MOVE does: a
       // delegate filing into a shared mailbox is a lesson about that mailbox,
       // and the message's file is in that owner's store.
+      // The backend the administrator chose (AntiSpam/MoveLearning.h): for
+      // SpamAssassin exactly SpamAssassinLearner::LearnFromMove, as before.
       std::shared_ptr<const Account> owner = CacheContainer::Instance()->GetAccount(destination->GetAccountID());
-      SpamAssassinLearner::LearnFromMove(source, destination, copy, owner ? owner : account);
+      MoveLearning::LearnFromMove(source, destination, copy, owner ? owner : account, account);
    }
 
    namespace

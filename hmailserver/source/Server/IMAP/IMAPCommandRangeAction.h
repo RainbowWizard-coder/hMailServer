@@ -80,13 +80,13 @@ namespace HM
       // again: GetUIDPlusResponseCode is then empty.
       void ForgetCopyUids();
 
-      // SpamAssassinLearnOnMove's lesson of a copy into or out of the Junk folder
-      // (SpamAssassinLearner::IsLesson), kept until the command has succeeded
+      // The lesson of a copy into or out of the Junk folder, for the backend it
+      // was decided for (MoveLearning::IsLesson), kept until the command has succeeded
       // (DispatchCommitted) rather than queued as the copy is made: a COPY or a MOVE that
       // fails takes its copies out again, and a lesson queued as each copy was made
       // told spamd of a move that never happened. A command that fails forgets them
       // (ForgetLessons).
-      void HoldLesson(std::shared_ptr<Message> copy, std::shared_ptr<const Account> destinationOwner, bool spam);
+      void HoldLesson(std::shared_ptr<Message> copy, std::shared_ptr<const Account> destinationOwner, bool spam, int backend);
       void ForgetLessons();
 
       // The record DispatchCommitted hands on: the lessons, and a MOVE's moves for

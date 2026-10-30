@@ -62,6 +62,7 @@
 #include "PstImportPath.h"
 #include "CompromiseDetector.h"
 #include "../AntiVirus/Sandbox.h"
+#include "../AntiSpam/RspamdLearner.h"
 #include "SnmpAgent.h"
 #include "SessionPolicies.h"
 #include "SamlSignIn.h"
@@ -270,6 +271,14 @@ namespace
    AntiSpamConfiguration &AntiSpam() { return Configuration::Instance()->GetAntiSpamConfiguration(); }
    AntiVirusConfiguration &AntiVirus() { return Configuration::Instance()->GetAntiVirusConfiguration(); }
    IniFileSettings *Ini() { return IniFileSettings::Instance(); }
+
+   // The backends learning from the Junk folder can teach (AntiSpam/MoveLearning.h).
+   const Word MoveLearningBackendWords[] =
+   {
+      { "spamassassin", 0 },
+      { "rspamd", 1 },
+      { nullptr, 0 }
+   };
 
    // The words the ports and routes use for eConnectionSecurity, in the order
    // the Control Panel lists them.
@@ -1860,6 +1869,31 @@ namespace
       { "spamassassin_merge_score", KindBoolean, ReadWrite, EffectNow, nullptr,
         "Whether SpamAssassin's own score is added instead of spamassassin_score.",
         ROW_FLAG(AntiSpam().GetSpamAssassinMergeScore()), ROW_SET(AntiSpam().SetSpamAssassinMergeScore(v.flag)), ROW_NO_CHECK },
+      // Learning from a user's moves into and out of their Junk folder
+      // (AntiSpam/MoveLearning.h, GitLab work item #108).
+      { "move_learning_backend", KindEnum, ReadWrite, EffectNow, MoveLearningBackendWords,
+        "The backend that learns from a user's moves into and out of their Junk folder: spamassassin, the default, which the SpamAssassinLearnOnMove key of hMailServer.ini switches on as it always has, or rspamd, the controller below. A lesson is a committed MOVE or UID MOVE, and a COPY while move_learning_from_copy is on, between two of one account's own folders, into Junk (spam) or out of it (ham); for rspamd the account signed in must own both folders.",
+        ROW_NUMBER(AntiSpam().GetMoveLearningBackend()), ROW_SET(AntiSpam().SetMoveLearningBackend((int) v.number)), ROW_NO_CHECK },
+      { "move_learning_from_copy", KindBoolean, ReadWrite, EffectNow, nullptr,
+        "Whether an IMAP COPY or UID COPY into or out of the Junk folder teaches as a MOVE does, for either backend. On by default, as a COPY always has; off, only a MOVE, a UID MOVE and the webmail's move teach.",
+        ROW_FLAG(AntiSpam().GetMoveLearningFromCopy()), ROW_SET(AntiSpam().SetMoveLearningFromCopy(v.flag)), ROW_NO_CHECK },
+      { "rspamd_controller_url", KindString, ReadWrite, EffectNow, nullptr,
+        "The address of Rspamd's controller, such as http://127.0.0.1:11334: https, its certificate verified, or plain http to this machine only, with no user name, password, query or fragment. Empty teaches Rspamd nothing; stored trimmed.",
+        ROW_TEXT(AntiSpam().GetRspamdControllerUrl()), ROW_SET(AntiSpam().SetRspamdControllerUrl(v.text)),
+        [] (const Value &v) -> String { String url = v.text; url.Trim(); return RspamdLearner::UrlProblem(url, _T("rspamd_controller_url")); } },
+      { "rspamd_controller_password", KindString, WriteOnly, EffectNow, nullptr,
+        "The password the controller's lessons carry in their Password header, which Rspamd checks against its enable_password, or its password when it has none: visible ASCII, at most 128 characters. Stored protected, never emitted and left out of the backup archive; empty sends none.",
+        nullptr, ROW_SET(AntiSpam().SetRspamdControllerPassword(v.text)),
+        [] (const Value &v) -> String { return RspamdLearner::PasswordStoreProblem(v.text, _T("rspamd_controller_password")); },
+        nullptr, PROPERTY_RSPAMD_CONTROLLER_PASSWORD },
+      { "rspamd_classifier", KindString, ReadWrite, EffectNow, nullptr,
+        "The Rspamd classifier a lesson teaches, named in its Classifier header: a per-user classifier (per_user = true), whose statistics are kept for the mailbox owner each lesson names in Deliver-To. Empty teaches nothing, since Rspamd would teach every classifier, the global one among them.",
+        ROW_TEXT(AntiSpam().GetRspamdClassifier()), ROW_SET(AntiSpam().SetRspamdClassifier(v.text)),
+        [] (const Value &v) -> String { String name = v.text; name.Trim(); return RspamdLearner::ClassifierProblem(name, _T("rspamd_classifier")); } },
+      { "rspamd_timeout_seconds", KindInteger, ReadWrite, EffectNow, nullptr,
+        "How long one lesson to Rspamd may take, the connection and the answer together: 1 to 300 seconds, 15 by default.",
+        ROW_NUMBER(AntiSpam().GetRspamdTimeoutSeconds()), ROW_SET(AntiSpam().SetRspamdTimeoutSeconds((int) v.number)),
+        [] (const Value &v) -> String { return RspamdLearner::TimeoutProblem((long) v.number, _T("rspamd_timeout_seconds")); } },
       { "tarpit_count", KindInteger, ReadWrite, EffectNow, nullptr,
         "The recipient count in one session after which each further RCPT TO is delayed; 0 is off. Kept in hMailServer.ini.",
         ROW_NUMBER(Ini()->GetSmtpTarpitCount()),

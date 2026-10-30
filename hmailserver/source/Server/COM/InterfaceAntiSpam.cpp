@@ -12,6 +12,7 @@
 #include "../Common/AntiSpam/SpamAssassin/SpamAssassinTestConnect.h"
 
 #include "../Common/AntiSpam/AntiSpamConfiguration.h"
+#include "../Common/AntiSpam/RspamdLearner.h"
 #include "../Common/AntiSpam/DomainPolicyList.h"
 #include "../Common/Util/Unicode.h"
 #include "../Common/Application/IniFileSettings.h"
@@ -2119,6 +2120,221 @@ STDMETHODIMP InterfaceAntiSpam::RemoveDomainPolicyListEntry(long ID, VARIANT_BOO
 
       *Removed = found ? VARIANT_TRUE : VARIANT_FALSE;
 
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_MoveLearningBackend(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetMoveLearningBackend();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_MoveLearningBackend(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      // 0, SpamAssassin, or 1, Rspamd: anything else is no backend.
+      if (newVal != 0 && newVal != 1)
+         return COMError::GenerateError("MoveLearningBackend is 0 (SpamAssassin) or 1 (Rspamd).");
+
+      config_->GetAntiSpamConfiguration().SetMoveLearningBackend((int) newVal);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_MoveLearningFromCopy(VARIANT_BOOL *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetMoveLearningFromCopy() ? VARIANT_TRUE : VARIANT_FALSE;
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_MoveLearningFromCopy(VARIANT_BOOL newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      config_->GetAntiSpamConfiguration().SetMoveLearningFromCopy(newVal == VARIANT_TRUE);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_RspamdControllerUrl(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetRspamdControllerUrl().AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_RspamdControllerUrl(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      HM::String url = newVal;
+      url.Trim();
+
+      const HM::String problem = HM::RspamdLearner::UrlProblem(url, _T("RspamdControllerUrl"));
+      if (!problem.IsEmpty())
+         return COMError::GenerateError(problem);
+
+      config_->GetAntiSpamConfiguration().SetRspamdControllerUrl(url);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::SetRspamdControllerPassword(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      const HM::String password = newVal;
+      const HM::String problem = HM::RspamdLearner::PasswordStoreProblem(password, _T("RspamdControllerPassword"));
+      if (!problem.IsEmpty())
+         return COMError::GenerateError(problem);
+
+      config_->GetAntiSpamConfiguration().SetRspamdControllerPassword(password);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_RspamdClassifier(BSTR *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetRspamdClassifier().AllocSysString();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_RspamdClassifier(BSTR newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      HM::String classifier = newVal;
+      classifier.Trim();
+
+      const HM::String problem = HM::RspamdLearner::ClassifierProblem(classifier, _T("RspamdClassifier"));
+      if (!problem.IsEmpty())
+         return COMError::GenerateError(problem);
+
+      config_->GetAntiSpamConfiguration().SetRspamdClassifier(classifier);
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::get_RspamdTimeoutSeconds(long *pVal)
+{
+   try
+   {
+      if (!config_)
+         return GetAccessDenied();
+
+      *pVal = config_->GetAntiSpamConfiguration().GetRspamdTimeoutSeconds();
+      return S_OK;
+   }
+   catch (...)
+   {
+      return COMError::GenerateGenericMessage();
+   }
+}
+
+STDMETHODIMP InterfaceAntiSpam::put_RspamdTimeoutSeconds(long newVal)
+{
+   try
+   {
+      HM::AuditScope auditScope(GetAuditActor());
+
+      if (!config_)
+         return GetAccessDenied();
+
+      const HM::String problem = HM::RspamdLearner::TimeoutProblem(newVal, _T("RspamdTimeoutSeconds"));
+      if (!problem.IsEmpty())
+         return COMError::GenerateError(problem);
+
+      config_->GetAntiSpamConfiguration().SetRspamdTimeoutSeconds((int) newVal);
       return S_OK;
    }
    catch (...)

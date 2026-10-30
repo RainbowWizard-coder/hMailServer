@@ -410,6 +410,9 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>認証アプリが生成するコードで、このアカウントのパスワードと併せて必要になります。適用されるのは、実際にコードを入力できる場所、つまりコントロールパネルと API です。メール クライアントはコードを提示できないため、これを有効にした後は、代わりにアプリ パスワードを使用する必要があります。</value>
   </data>
+  <data name="A copy into or out of Junk teaches as a move does" xml:space="preserve">
+    <value>「迷惑メール」 フォルダーへの、またはそこからのコピーも移動と同じように学習させる</value>
+  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>ドメインのメール、または 1 つのアカウントのメールの写しを、あるアドレスへ送ります。メールを添付したエンベロープ報告として送るか、メールそのものとして送ります。</value>
   </data>
@@ -511,6 +514,9 @@
   </data>
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>マークされたメッセージは、目に見える形では一切変更されません。X-hMailServer-Spam ヘッダーも、理由のヘッダーも、件名のプレフィックスも付かないため、メール クライアントには振り分けの手掛かりがありません。内部的なスパム フラグは設定されるので、そのように構成されたアカウントでは自動応答と転送が抑止されます。</value>
+  </data>
+  <data name="A message a user moves into their Junk folder is taught to the spam filter as spam, and one moved out of it as not spam. SpamAssassin learns while its switch above is on; Rspamd learns through its controller, into the statistics of the mailbox's owner." xml:space="preserve">
+    <value>ユーザーが「迷惑メール」 フォルダーに移動したメッセージはスパムとして、そこから移動したメッセージはスパムではないものとしてスパム フィルターに学習させます。SpamAssassin は上のスイッチがオンのときに学習し、Rspamd はコントローラーを通じてメールボックスの所有者の統計に学習します。</value>
   </data>
   <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
     <value>これを超えるメッセージは、大きな添付ファイルをネットワーク越しに送るコストが答えに見合わないため、エンジンに送られずにそのまま通過します。0 を指定すると上限がなくなり、エンジンがこのコンピューター上にある場合には妥当な選択です。</value>
@@ -5369,6 +5375,9 @@
   <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
     <value>行を絞り込む: アドレス、任意の語、または session=42</value>
   </data>
+  <data name="Filter that learns" xml:space="preserve">
+    <value>学習するフィルター</value>
+  </data>
   <data name="Find organisational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>DNS ツリー ウォークで組織ドメインを検出する (RFC 9989)</value>
   </data>
@@ -5464,6 +5473,9 @@
   </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>例: http://127.0.0.1:11333/checkv2。現時点では平文の HTTP のみなので、エンジンはこのコンピューター上か、信頼できるネットワーク上に置いてください。メッセージ全体がそこに送られます。</value>
+  </data>
+  <data name="For example http://127.0.0.1:11334, the controller on this machine. Plain http is accepted to this machine only; a controller elsewhere is reached over https, its certificate verified." xml:space="preserve">
+    <value>例: http://127.0.0.1:11334 (このマシン上のコントローラー)。暗号化されない http はこのマシン宛てにのみ使えます。別の場所のコントローラーには https で接続し、証明書を検証します。</value>
   </data>
   <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
     <value>例: partner.example、または .example でそのドメインと配下すべて。コンマまたは空白で区切ります。</value>
@@ -6507,6 +6519,9 @@
   </data>
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>最新 {0}、ピーク {1}</value>
+  </data>
+  <data name="Learning from the Junk folder" xml:space="preserve">
+    <value>「迷惑メール」 フォルダーからの学習</value>
   </data>
   <data name="Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>両方の欄を空のままにすると、すでに設定されているパスフレーズがそのまま残ります。サーバーはパスフレーズを返しません。このプログラムにも、ほかの誰にも返しません。バックアップの隣以外の場所に保管してください: 復元のときに必要になり、パスフレーズを失ったアーカイブからは誰も何も取り出せません。</value>
@@ -10561,6 +10576,15 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Routes" xml:space="preserve">
     <value>ルート</value>
   </data>
+  <data name="Rspamd" xml:space="preserve">
+    <value>Rspamd</value>
+  </data>
+  <data name="Rspamd classifier (a per-user one)" xml:space="preserve">
+    <value>Rspamd の分類器 (ユーザーごとのもの)</value>
+  </data>
+  <data name="Rspamd controller address" xml:space="preserve">
+    <value>Rspamd コントローラーのアドレス</value>
+  </data>
   <data name="Rule action" xml:space="preserve">
     <value>ルールのアクション</value>
   </data>
@@ -14503,6 +14527,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>{0} の検索がタイムアウトしました。名前と、このコンピューターが DNS サーバーに到達できることを確認してください。</value>
+  </data>
+  <data name="Timeout for one lesson (seconds)" xml:space="preserve">
+    <value>各学習のタイムアウト (秒)</value>
   </data>
   <data name="Timeout for the whole exchange (seconds)" xml:space="preserve">
     <value>やり取り全体のタイムアウト (秒)</value>

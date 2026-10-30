@@ -80,6 +80,9 @@ LISTED = {
    "COM/InterfaceMessage.cpp": (2,
       "Message.Filename answers the stored file's path, which is a container when the store compresses "
       "(docs/MessageStore.md says so); Message.Save rewrites the message through MessageData::Write"),
+   "Common/AntiSpam/RspamdLearner.cpp": (1,
+      "Rspamd's controller is sent the message's original bytes, read through MessageStore::ReadAll and sized by "
+      "MessageStore::FileSize64, after MessageStore::IsEncrypted has refused a message of a mailbox encrypted at rest"),
    "Common/AntiSpam/SpamAssassin/SpamAssassinLearner.cpp": (1,
       "spamd is handed a plain file by path, through MessageStore::PlainFileFor - which writes none for a message of a "
       "mailbox encrypted at rest, so such a move teaches spamd nothing"),

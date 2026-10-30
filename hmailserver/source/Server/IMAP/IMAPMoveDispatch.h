@@ -33,14 +33,16 @@ namespace HM
          OperationUidMove = 3
       };
 
-      // SpamAssassinLearnOnMove's lesson of one copy into or out of the Junk
-      // folder (SpamAssassinLearner::IsLesson), decided as the copy is made.
+      // The lesson of one copy into or out of the Junk folder
+      // (MoveLearning::IsLesson), decided as the copy is made, for the backend
+      // chosen then (MoveLearning::Backend).
       class Lesson
       {
       public:
          std::shared_ptr<Message> copy;
          std::shared_ptr<const Account> destination_owner;
          bool spam = false;
+         int backend = 0;
       };
 
       // One message a MOVE moved: its UID in the folder it left and in the one it
@@ -155,12 +157,14 @@ namespace HM
    // THE POST-COMMIT DISPATCH POINT. A COPY or a MOVE does its work on the IMAP
    // thread - each copy written, and for a MOVE the originals expunged - and then,
    // once and only when it has succeeded, hands what it did to Committed. Nothing
-   // is done there but queueing: the lessons of SpamAssassinLearnOnMove go to the
-   // asynchronous work queue as they always have (SpamAssassinLearner::Teach), and
-   // the move events to the bounded queue above, whose drainer fires them on the
-   // asynchronous work queue too, outside every folder lock and transaction. A
-   // learning backend added later is added here, beside the lessons, so that the
-   // IMAP commands keep calling one thing.
+   // is done there but queueing: the lessons of learning from the Junk folder
+   // (Common/AntiSpam/MoveLearning.h) go, for SpamAssassin, to the asynchronous
+   // work queue as they always have (SpamAssassinLearner::Teach), and for Rspamd
+   // to its bounded queue (RspamdLearner::Queue), whose drainer sends them on the
+   // asynchronous work queue; the move events go to the bounded queue above,
+   // whose drainer fires them on the asynchronous work queue too - all of it
+   // outside every folder lock and transaction, so that the IMAP commands keep
+   // calling one thing.
    //
    // OnIMAPMessageMoved (GitLab work item #109) is raised for a committed MOVE or
    // UID MOVE - never for a COPY or a UID COPY, and never inferred from a COPY, a

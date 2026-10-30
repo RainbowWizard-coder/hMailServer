@@ -3222,6 +3222,30 @@ namespace hMailServer.ControlPanel.Views
          // (review finding F263). The old name is among the page's search aliases.
          Tab(L("Content filters")).Cards.Add(sa);
 
+         // Learning from the Junk folder (Common/AntiSpam/MoveLearning.h): which
+         // filter is taught by a user's moves into and out of Junk, whether a COPY
+         // teaches, and Rspamd's controller. SpamAssassin is the default and still
+         // needs its own switch above; Rspamd needs the address and a classifier.
+         var learning = Card(L("Learning from the Junk folder"),
+            L("A message a user moves into their Junk folder is taught to the spam filter as spam, and one moved out of it as not spam. SpamAssassin learns while its switch above is on; Rspamd learns through its controller, into the statistics of the mailbox's owner."));
+         learning.Settings.Add(new ComCombo
+         {
+            Path = "AntiSpam.MoveLearningBackend",
+            Label = L("Filter that learns"),
+            Options = new (int, string)[] { (0, L("SpamAssassin")), (1, L("Rspamd")) }
+         });
+         learning.Settings.Add(new ComBool { Path = "AntiSpam.MoveLearningFromCopy", Label = L("A copy into or out of Junk teaches as a move does") });
+         learning.Settings.Add(new ComText
+         {
+            Path = "AntiSpam.RspamdControllerUrl",
+            Label = L("Rspamd controller address"),
+            Blurb = L("For example http://127.0.0.1:11334, the controller on this machine. Plain http is accepted to this machine only; a controller elsewhere is reached over https, its certificate verified.")
+         });
+         learning.Settings.Add(new ComPassword { Path = "AntiSpam.SetRspamdControllerPassword", MethodName = "SetRspamdControllerPassword", Label = L("Password (leave empty to keep current)") });
+         learning.Settings.Add(new ComText { Path = "AntiSpam.RspamdClassifier", Label = L("Rspamd classifier (a per-user one)") });
+         learning.Settings.Add(new ComText { Path = "AntiSpam.RspamdTimeoutSeconds", Label = L("Timeout for one lesson (seconds)"), Numeric = true });
+         Tab(L("Content filters")).Cards.Add(learning);
+
          var hook = Card(L("External filtering engine (rspamd and anything else that speaks HTTP)"),
             L("Hands every accepted message to an engine over HTTP and uses the score it returns. The message is the request body and the envelope, connecting address and HELO travel as request headers, which is what rspamd's own check endpoint already expects - so pointing this at rspamd needs no adapter, and pointing it at something you wrote yourself needs only a program that answers JSON."));
          hook.Settings.Add(new IniText

@@ -399,6 +399,9 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Ein Code aus einer Authenticator-App, der zusätzlich zum Passwort dieses Kontos verlangt wird. Er gilt dort, wo ein Code tatsächlich eingegeben werden kann - Control Panel und API. Mailclients können keinen vorlegen, also müssen sie, sobald dies eingeschaltet ist, stattdessen ein App-Passwort verwenden.</value>
   </data>
+  <data name="A copy into or out of Junk teaches as a move does" xml:space="preserve">
+    <value>Eine Kopie in den Junk-Ordner oder aus ihm lehrt wie eine Verschiebung</value>
+  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>Eine Kopie der Post einer Domain oder eines einzelnen Kontos, an eine Adresse gesendet - als Umschlagbericht mit angehängter Nachricht oder als die Nachricht selbst.</value>
   </data>
@@ -500,6 +503,9 @@
   </data>
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>Eine markierte Nachricht wird in keiner sichtbaren Weise verändert: kein X-hMailServer-Spam-Header, kein Begründungs-Header und kein Betreffpräfix, ein Mailclient hat also nichts, wonach er einsortieren könnte. Das interne Spam-Flag wird trotzdem gesetzt, was automatische Antworten und Weiterleitungen für entsprechend konfigurierte Konten unterdrückt.</value>
+  </data>
+  <data name="A message a user moves into their Junk folder is taught to the spam filter as spam, and one moved out of it as not spam. SpamAssassin learns while its switch above is on; Rspamd learns through its controller, into the statistics of the mailbox's owner." xml:space="preserve">
+    <value>Eine Nachricht, die ein Benutzer in seinen Junk-Ordner verschiebt, wird dem Spamfilter als Spam beigebracht, und eine, die er daraus verschiebt, als kein Spam. SpamAssassin lernt, solange sein Schalter oben eingeschaltet ist; Rspamd lernt über seinen Controller, in die Statistik des Postfachinhabers.</value>
   </data>
   <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
     <value>Eine Nachricht über dieser Größe wird durchgelassen, ohne an die Engine geschickt zu werden, weil ein großer Anhang über das Netz mehr kostet, als die Antwort wert ist. 0 hebt die Obergrenze auf, was für eine Engine auf diesem Rechner vernünftig ist.</value>
@@ -5358,6 +5364,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
     <value>Zeilen filtern: eine Adresse, beliebige Wörter oder session=42</value>
   </data>
+  <data name="Filter that learns" xml:space="preserve">
+    <value>Filter, der lernt</value>
+  </data>
   <data name="Find organisational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Organisationsdomains per DNS-Tree-Walk finden (RFC 9989)</value>
   </data>
@@ -5453,6 +5462,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Zum Beispiel http://127.0.0.1:11333/checkv2. Vorerst nur einfaches HTTP, die Engine sollte also auf diesem Rechner oder in einem Netz sein, dem Sie vertrauen - die ganze Nachricht wird an sie gesendet.</value>
+  </data>
+  <data name="For example http://127.0.0.1:11334, the controller on this machine. Plain http is accepted to this machine only; a controller elsewhere is reached over https, its certificate verified." xml:space="preserve">
+    <value>Zum Beispiel http://127.0.0.1:11334, der Controller auf diesem Rechner. Unverschlüsseltes http wird nur zu diesem Rechner angenommen; ein Controller anderswo wird über https erreicht, sein Zertifikat geprüft.</value>
   </data>
   <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
     <value>Zum Beispiel partner.example, oder .example für die Domain und alles darunter; trennen Sie sie durch Kommas oder Leerzeichen.</value>
@@ -6496,6 +6508,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   </data>
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>Aktuell {0}; Spitze {1}</value>
+  </data>
+  <data name="Learning from the Junk folder" xml:space="preserve">
+    <value>Lernen aus dem Junk-Ordner</value>
   </data>
   <data name="Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>Lassen Sie beide Felder leer, um die bereits gesetzte Passphrase zu behalten. Der Server gibt sie nie zurück - weder diesem Programm noch sonst jemandem - bewahren Sie sie also woanders auf als neben den Sicherungen: eine Wiederherstellung fragt danach, und aus einem Archiv, dessen Passphrase verloren ist, kann niemand mehr etwas holen.</value>
@@ -10550,6 +10565,15 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Routes" xml:space="preserve">
     <value>Routen</value>
   </data>
+  <data name="Rspamd" xml:space="preserve">
+    <value>Rspamd</value>
+  </data>
+  <data name="Rspamd classifier (a per-user one)" xml:space="preserve">
+    <value>Rspamd-Klassifikator (einer pro Benutzer)</value>
+  </data>
+  <data name="Rspamd controller address" xml:space="preserve">
+    <value>Adresse des Rspamd-Controllers</value>
+  </data>
   <data name="Rule action" xml:space="preserve">
     <value>Regelaktion</value>
   </data>
@@ -14492,6 +14516,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>Zeitüberschreitung beim Nachschlagen von {0}. Prüfen Sie den Namen und ob dieser Rechner einen DNS-Server erreichen kann.</value>
+  </data>
+  <data name="Timeout for one lesson (seconds)" xml:space="preserve">
+    <value>Zeitlimit für eine Lektion (Sekunden)</value>
   </data>
   <data name="Timeout for the whole exchange (seconds)" xml:space="preserve">
     <value>Timeout für den gesamten Austausch (Sekunden)</value>

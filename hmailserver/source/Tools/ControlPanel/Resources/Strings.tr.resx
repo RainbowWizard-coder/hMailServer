@@ -399,6 +399,9 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Bir kimlik doğrulayıcı uygulamadan gelen ve bu hesabın parolasının yanı sıra istenen kod. Yalnızca bir kodun gerçekten girilebildiği yerlerde geçerlidir - Denetim Masası ve API. Posta istemcileri kod sunamaz; bu nedenle bu açıldığında onların bunun yerine bir uygulama parolası kullanması gerekir.</value>
   </data>
+  <data name="A copy into or out of Junk teaches as a move does" xml:space="preserve">
+    <value>Gereksiz klasörüne ya da oradan yapılan bir kopya, taşıma gibi öğretir</value>
+  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>Bir etki alanının ya da tek bir hesabın postasının bir adrese gönderilen kopyası: iletinin eklendiği bir zarf raporu olarak ya da iletinin kendisi olarak.</value>
   </data>
@@ -500,6 +503,9 @@
   </data>
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>İşaretlenen bir ileti görünür hiçbir biçimde değiştirilmez: X-hMailServer-Spam başlığı, gerekçe başlığı ve konu ön eki yoktur; dolayısıyla posta istemcisinin dosyalama yapacağı bir şey olmaz. Dahili spam bayrağı yine de ayarlanır ve bu, öyle yapılandırılmış hesaplarda otomatik yanıtları ve iletmeyi bastırır.</value>
+  </data>
+  <data name="A message a user moves into their Junk folder is taught to the spam filter as spam, and one moved out of it as not spam. SpamAssassin learns while its switch above is on; Rspamd learns through its controller, into the statistics of the mailbox's owner." xml:space="preserve">
+    <value>Bir kullanıcının Gereksiz klasörüne taşıdığı ileti spam filtresine spam olarak, oradan dışarı taşıdığı ise spam değil olarak öğretilir. SpamAssassin, yukarıdaki anahtarı açıkken öğrenir; Rspamd ise denetleyicisi aracılığıyla posta kutusu sahibinin istatistiklerine öğrenir.</value>
   </data>
   <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
     <value>Bunun üzerindeki bir ileti motora gönderilmeden geçirilir, çünkü büyük bir eki ağ üzerinden göndermek yanıtın değerinden daha pahalıya mal olur. 0, üst sınırı kaldırır; bu da bu makinede çalışan bir motor için makuldür.</value>
@@ -5358,6 +5364,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
     <value>Satırları süz: bir adres, herhangi sözcükler veya session=42</value>
   </data>
+  <data name="Filter that learns" xml:space="preserve">
+    <value>Öğrenen filtre</value>
+  </data>
   <data name="Find organisational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Kuruluş etki alanlarını DNS ağacında yürüyerek bul (RFC 9989)</value>
   </data>
@@ -5453,6 +5462,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Örneğin http://127.0.0.1:11333/checkv2. Şimdilik yalnızca düz HTTP; bu yüzden motor bu makinede ya da güvendiğiniz bir ağda olmalı - iletinin tamamı ona gönderilir.</value>
+  </data>
+  <data name="For example http://127.0.0.1:11334, the controller on this machine. Plain http is accepted to this machine only; a controller elsewhere is reached over https, its certificate verified." xml:space="preserve">
+    <value>Örneğin http://127.0.0.1:11334, bu makinedeki denetleyici. Şifresiz http yalnızca bu makineye kabul edilir; başka yerdeki bir denetleyiciye https ile, sertifikası doğrulanarak ulaşılır.</value>
   </data>
   <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
     <value>Örneğin partner.example veya etki alanı ve altındaki her şey için .example; bunları virgül veya boşlukla ayırın.</value>
@@ -6496,6 +6508,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>Son {0}; en yüksek {1}</value>
+  </data>
+  <data name="Learning from the Junk folder" xml:space="preserve">
+    <value>Gereksiz klasöründen öğrenme</value>
   </data>
   <data name="Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>Zaten ayarlı olan parola ifadesini korumak için iki kutuyu da boş bırakın. Sunucu onu asla geri vermez - ne bu programa ne de başka birine - bu yüzden yedeklerin yanında değil, başka bir yerde saklayın: geri yükleme onu ister ve parola ifadesi kaybolmuş bir arşivden hiç kimse hiçbir şey kurtaramaz.</value>
@@ -10550,6 +10565,15 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Routes" xml:space="preserve">
     <value>Rotalar</value>
   </data>
+  <data name="Rspamd" xml:space="preserve">
+    <value>Rspamd</value>
+  </data>
+  <data name="Rspamd classifier (a per-user one)" xml:space="preserve">
+    <value>Rspamd sınıflandırıcısı (kullanıcı başına bir tane)</value>
+  </data>
+  <data name="Rspamd controller address" xml:space="preserve">
+    <value>Rspamd denetleyicisinin adresi</value>
+  </data>
   <data name="Rule action" xml:space="preserve">
     <value>Kural eylemi</value>
   </data>
@@ -14492,6 +14516,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>{0} aranırken zaman aşımı oldu. Adı ve bu makinenin bir DNS sunucusuna ulaşabildiğini denetleyin.</value>
+  </data>
+  <data name="Timeout for one lesson (seconds)" xml:space="preserve">
+    <value>Bir dersin zaman aşımı (saniye)</value>
   </data>
   <data name="Timeout for the whole exchange (seconds)" xml:space="preserve">
     <value>Tüm alışveriş için zaman aşımı (saniye)</value>

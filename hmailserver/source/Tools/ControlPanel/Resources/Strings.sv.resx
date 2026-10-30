@@ -399,6 +399,9 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>En kod från en autentiseringsapp, som krävs tillsammans med det här kontots lösenord. Den gäller där en kod faktiskt kan anges - Kontrollpanelen och API:et. E-postklienter kan inte visa upp en, så när detta är på måste de använda ett applösenord i stället.</value>
   </data>
+  <data name="A copy into or out of Junk teaches as a move does" xml:space="preserve">
+    <value>En kopia till eller från skräppostmappen lär som en flytt</value>
+  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>En kopia av en domäns post, eller av ett kontos, skickad till en adress - som en kuvertrapport med meddelandet bifogat, eller som själva meddelandet.</value>
   </data>
@@ -500,6 +503,9 @@
   </data>
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>Ett markerat meddelande ändras inte på något synligt sätt: inget X-hMailServer-Spam-huvud, inget orsakshuvud och inget ämnesprefix, så en e-postklient har inget att sortera på. Den interna skräppostflaggan sätts ändå, vilket undertrycker autosvar och vidarebefordran för konton som konfigurerats så.</value>
+  </data>
+  <data name="A message a user moves into their Junk folder is taught to the spam filter as spam, and one moved out of it as not spam. SpamAssassin learns while its switch above is on; Rspamd learns through its controller, into the statistics of the mailbox's owner." xml:space="preserve">
+    <value>Ett meddelande som en användare flyttar till sin skräppostmapp lärs in i skräppostfiltret som skräppost, och ett som flyttas ut därifrån som inte skräppost. SpamAssassin lär sig medan dess brytare ovan är på; Rspamd lär sig via sin kontrollant, i statistiken för postlådans ägare.</value>
   </data>
   <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
     <value>Ett meddelande över detta släpps igenom utan att skickas till motorn, eftersom det kostar mer att skicka en stor bilaga över nätverket än svaret är värt. 0 tar bort taket, vilket är rimligt för en motor på den här datorn.</value>
@@ -5358,6 +5364,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
     <value>Filtrera rader: en adress, valfria ord eller session=42</value>
   </data>
+  <data name="Filter that learns" xml:space="preserve">
+    <value>Filter som lär sig</value>
+  </data>
   <data name="Find organisational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Hitta organisationsdomäner genom DNS-trädvandring (RFC 9989)</value>
   </data>
@@ -5453,6 +5462,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Till exempel http://127.0.0.1:11333/checkv2. Bara vanlig HTTP tills vidare, så motorn bör finnas på den här datorn eller i ett nätverk du litar på - hela meddelandet skickas till den.</value>
+  </data>
+  <data name="For example http://127.0.0.1:11334, the controller on this machine. Plain http is accepted to this machine only; a controller elsewhere is reached over https, its certificate verified." xml:space="preserve">
+    <value>Till exempel http://127.0.0.1:11334, kontrollanten på den här datorn. Okrypterad http godtas bara till den här datorn; en kontrollant på annat håll nås över https, med certifikatet verifierat.</value>
   </data>
   <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
     <value>Till exempel partner.example, eller .example för domänen och allt under den; skilj dem åt med kommatecken eller mellanslag.</value>
@@ -6496,6 +6508,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>Senaste {0}; topp {1}</value>
+  </data>
+  <data name="Learning from the Junk folder" xml:space="preserve">
+    <value>Inlärning från skräppostmappen</value>
   </data>
   <data name="Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>Lämna båda fälten tomma för att behålla lösenfrasen som redan är satt. Servern lämnar aldrig tillbaka den - varken till det här programmet eller till någon annan - så förvara den någon annanstans än bredvid säkerhetskopiorna: en återställning frågar efter den, och ur ett arkiv vars lösenfras är borta får ingen ut någonting.</value>
@@ -10550,6 +10565,15 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Perso
   <data name="Routes" xml:space="preserve">
     <value>Rutter</value>
   </data>
+  <data name="Rspamd" xml:space="preserve">
+    <value>Rspamd</value>
+  </data>
+  <data name="Rspamd classifier (a per-user one)" xml:space="preserve">
+    <value>Rspamd-klassificerare (en per användare)</value>
+  </data>
+  <data name="Rspamd controller address" xml:space="preserve">
+    <value>Adress till Rspamd-kontrollanten</value>
+  </data>
   <data name="Rule action" xml:space="preserve">
     <value>Regelåtgärd</value>
   </data>
@@ -14492,6 +14516,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>Tidsgränsen nåddes vid uppslagning av {0}. Kontrollera namnet, och att den här datorn kan nå en DNS-server.</value>
+  </data>
+  <data name="Timeout for one lesson (seconds)" xml:space="preserve">
+    <value>Tidsgräns för en lektion (sekunder)</value>
   </data>
   <data name="Timeout for the whole exchange (seconds)" xml:space="preserve">
     <value>Tidsgräns för hela utbytet (sekunder)</value>

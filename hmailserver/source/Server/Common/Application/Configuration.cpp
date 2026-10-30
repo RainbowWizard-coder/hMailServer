@@ -257,6 +257,20 @@ namespace HM
       // MOVE reads it once.
       settings.EnsureLong(PROPERTY_IMAP_MESSAGE_MOVED_EVENTS, 0);
 
+      // Learning from a user's moves into and out of their Junk folder
+      // (AntiSpam/MoveLearning.h, GitLab work item #108). SpamAssassin, which the
+      // [Settings] key SpamAssassinLearnOnMove switches on and is off as shipped,
+      // and a COPY teaching as it always has: a server that changes nothing
+      // learns, or does not, exactly as before. Rspamd's controller has no
+      // address, password or classifier until an administrator gives them, and
+      // its requests may take 15 seconds.
+      settings.EnsureLong(PROPERTY_MOVE_LEARNING_BACKEND, 0);
+      settings.EnsureLong(PROPERTY_MOVE_LEARNING_FROM_COPY, 1);
+      settings.EnsureString(PROPERTY_RSPAMD_CONTROLLER_URL, _T(""));
+      settings.EnsureString(PROPERTY_RSPAMD_CONTROLLER_PASSWORD, _T(""));
+      settings.EnsureString(PROPERTY_RSPAMD_CLASSIFIER, _T(""));
+      settings.EnsureLong(PROPERTY_RSPAMD_TIMEOUT_SECONDS, 15);
+
       // The reputation watch: on, the four lists that answer an ordinary resolver
       // for nothing, and no address of its own. Schema 6049 seeds the same three
       // rows; these are here for the same reason the syslog sink's are, because a

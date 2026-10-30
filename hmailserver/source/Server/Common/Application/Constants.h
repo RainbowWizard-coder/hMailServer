@@ -122,6 +122,21 @@
 #define PROPERTY_SPAMASSASSIN_HOST              _T("spamassassinhost")
 #define PROPERTY_SPAMASSASSIN_PORT              _T("spamassassinport")
 
+// Learning from a user's IMAP moves into and out of their Junk folder
+// (Common/AntiSpam/MoveLearning.h, GitLab work item #108). In hm_settings, each
+// row created by EnsureSettingDefaults_. The backend: 0, SpamAssassin, as the
+// [Settings] key SpamAssassinLearnOnMove has always switched it on; 1, Rspamd's
+// controller. Whether a COPY (and a UID COPY) into or out of Junk teaches, for
+// either backend: 1, as a COPY always has. The controller's URL, its password
+// (protected at rest, never read back, left out of the backup), the classifier
+// a lesson names, and the seconds the whole request may take.
+#define PROPERTY_MOVE_LEARNING_BACKEND          _T("MoveLearningBackend")
+#define PROPERTY_MOVE_LEARNING_FROM_COPY        _T("MoveLearningFromCopy")
+#define PROPERTY_RSPAMD_CONTROLLER_URL          _T("RspamdControllerUrl")
+#define PROPERTY_RSPAMD_CONTROLLER_PASSWORD     _T("RspamdControllerPassword")
+#define PROPERTY_RSPAMD_CLASSIFIER              _T("RspamdClassifier")
+#define PROPERTY_RSPAMD_TIMEOUT_SECONDS         _T("RspamdTimeoutSeconds")
+
 #define PROPERTY_AS_DKIM_VERIFICATION_ENABLE          _T("ASDKIMVerificationEnabled")
 #define PROPERTY_AS_DKIM_VERIFICATION_FAILURE_SCORE   _T("ASDKIMVerificationFailureScore")
 

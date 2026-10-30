@@ -23,7 +23,9 @@
        than the server, which the Linux runs do not have beside them.
        Beside Shims/, the project's own files are the fixtures of what the Windows
        server refuses and so has no fixture for: AntiVirus/ClamdUnixSocket.cs, clamd
-       reached over its Unix socket, with a fake clamd of its own on one.
+       reached over its Unix socket, with a fake clamd of its own on one, and
+       AntiSpam/RspamdLive.cs, learning from the Junk folder taught to a real Rspamd
+       and read back from its Redis, skipped unless HMTEST_RSPAMD_PASSWORD is set.
        docs/RegressionEnvironment.md ("On Linux") says how to run this. -->
 
   <PropertyGroup>
@@ -173,6 +175,7 @@
     <Compile Include="..\RegressionTests\AntiSpam\FqdnRefusal.cs" Link="AntiSpam\FqdnRefusal.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\SurblEveryDomain.cs" Link="AntiSpam\SurblEveryDomain.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\SpamAssassinLearning.cs" Link="AntiSpam\SpamAssassinLearning.cs" />
+    <Compile Include="..\RegressionTests\AntiSpam\RspamdLearning.cs" Link="AntiSpam\RspamdLearning.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\SpamAssassinUserHeader.cs" Link="AntiSpam\SpamAssassinUserHeader.cs" />
     <Compile Include="..\RegressionTests\AntiSpam\SpamAssassinReturnPath.cs" Link="AntiSpam\SpamAssassinReturnPath.cs" />
     <Compile Include="..\RegressionTests\Domains\DomainDeleteCascade.cs" Link="Domains\DomainDeleteCascade.cs" />

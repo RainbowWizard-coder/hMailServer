@@ -399,6 +399,9 @@
   <data name="A code from an authenticator app, required alongside this account's password. It applies where a code can actually be entered - the Control Panel and the API. Mail clients cannot present one, so once this is on they must use an app password instead." xml:space="preserve">
     <value>Een code van een authenticator-app, vereist naast het wachtwoord van dit account. Het geldt waar een code daadwerkelijk kan worden ingevoerd - het Control Panel en de API. E-mailclients kunnen er geen tonen, dus zodra dit aanstaat moeten zij een app-wachtwoord gebruiken.</value>
   </data>
+  <data name="A copy into or out of Junk teaches as a move does" xml:space="preserve">
+    <value>Een kopie naar of uit de map Ongewenst leert net als een verplaatsing</value>
+  </data>
   <data name="A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself." xml:space="preserve">
     <value>Een kopie van de post van een domein, of van één account, naar een adres gestuurd - als envelopverslag met het bericht als bijlage, of als het bericht zelf.</value>
   </data>
@@ -500,6 +503,9 @@
   </data>
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>Een gemarkeerd bericht wordt op geen enkele zichtbare manier gewijzigd: geen X-hMailServer-Spam-header, geen redenheader en geen onderwerpvoorvoegsel, dus een e-mailclient heeft niets om op te sorteren. De interne spamvlag wordt wel gezet, wat automatische antwoorden en doorsturen onderdrukt voor accounts die zo zijn geconfigureerd.</value>
+  </data>
+  <data name="A message a user moves into their Junk folder is taught to the spam filter as spam, and one moved out of it as not spam. SpamAssassin learns while its switch above is on; Rspamd learns through its controller, into the statistics of the mailbox's owner." xml:space="preserve">
+    <value>Een bericht dat een gebruiker naar zijn map Ongewenst verplaatst, wordt het spamfilter als spam geleerd, en een bericht dat eruit wordt verplaatst als geen spam. SpamAssassin leert zolang zijn schakelaar hierboven aan staat; Rspamd leert via zijn controller, in de statistieken van de eigenaar van de mailbox.</value>
   </data>
   <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
     <value>Een bericht boven deze grootte wordt doorgelaten zonder naar de engine te worden gestuurd, omdat een grote bijlage over het netwerk sturen meer kost dan het antwoord waard is. 0 haalt het plafond weg, wat redelijk is voor een engine op deze machine.</value>
@@ -5358,6 +5364,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Filter lines: an address, any words, or session=42" xml:space="preserve">
     <value>Regels filteren: een adres, willekeurige woorden of session=42</value>
   </data>
+  <data name="Filter that learns" xml:space="preserve">
+    <value>Filter dat leert</value>
+  </data>
   <data name="Find organisational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Organisatiedomeinen bepalen door de DNS-boom te doorlopen (RFC 9989)</value>
   </data>
@@ -5453,6 +5462,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Bijvoorbeeld http://127.0.0.1:11333/checkv2. Voorlopig alleen gewoon HTTP, dus de engine hoort op deze machine te staan of op een netwerk dat u vertrouwt - het hele bericht wordt ernaartoe gestuurd.</value>
+  </data>
+  <data name="For example http://127.0.0.1:11334, the controller on this machine. Plain http is accepted to this machine only; a controller elsewhere is reached over https, its certificate verified." xml:space="preserve">
+    <value>Bijvoorbeeld http://127.0.0.1:11334, de controller op deze machine. Onversleutelde http wordt alleen naar deze machine geaccepteerd; een controller elders wordt via https bereikt, met een gecontroleerd certificaat.</value>
   </data>
   <data name="For example partner.example, or .example for the domain and everything beneath it; separate them with commas or spaces." xml:space="preserve">
     <value>Bijvoorbeeld partner.example, of .example voor het domein en alles eronder; scheid ze met komma's of spaties.</value>
@@ -6496,6 +6508,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Latest {0}; peak {1}" xml:space="preserve">
     <value>Laatste {0}; piek {1}</value>
+  </data>
+  <data name="Learning from the Junk folder" xml:space="preserve">
+    <value>Leren van de map Ongewenst</value>
   </data>
   <data name="Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>Laat beide vakken leeg om de wachtwoordzin te houden die al is ingesteld. De server geeft hem nooit terug - niet aan dit programma en niet aan iemand anders - bewaar hem dus ergens anders dan naast de back-ups: een herstel vraagt erom, en uit een archief waarvan de wachtwoordzin kwijt is haalt niemand nog iets.</value>
@@ -10550,6 +10565,15 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Routes" xml:space="preserve">
     <value>Routes</value>
   </data>
+  <data name="Rspamd" xml:space="preserve">
+    <value>Rspamd</value>
+  </data>
+  <data name="Rspamd classifier (a per-user one)" xml:space="preserve">
+    <value>Rspamd-classificator (een per gebruiker)</value>
+  </data>
+  <data name="Rspamd controller address" xml:space="preserve">
+    <value>Adres van de Rspamd-controller</value>
+  </data>
   <data name="Rule action" xml:space="preserve">
     <value>Regelactie</value>
   </data>
@@ -14492,6 +14516,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Timed out looking up {0}. Check the name, and that this machine can reach a DNS server." xml:space="preserve">
     <value>Time-out bij het opzoeken van {0}. Controleer de naam, en of deze machine een DNS-server kan bereiken.</value>
+  </data>
+  <data name="Timeout for one lesson (seconds)" xml:space="preserve">
+    <value>Time-out voor één les (seconden)</value>
   </data>
   <data name="Timeout for the whole exchange (seconds)" xml:space="preserve">
     <value>Time-out voor de hele uitwisseling (seconden)</value>

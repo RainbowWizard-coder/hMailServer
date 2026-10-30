@@ -9,6 +9,8 @@
 #include "IMAPConfiguration.h"
 #include "IMAPFolderContainer.h"
 
+#include "../Common/AntiSpam/MoveLearning.h"
+#include "../Common/AntiSpam/RspamdLearner.h"
 #include "../Common/AntiSpam/SpamAssassin/SpamAssassinLearner.h"
 #include "../Common/Application/Application.h"
 #include "../Common/Application/Configuration.h"
@@ -332,11 +334,29 @@ namespace HM
    void
    IMAPMoveDispatch::Committed(IMAPMoveRecord &record)
    {
-      // SpamAssassinLearnOnMove's lessons, each queued for spamd as they have been
-      // since the setting came. A learning backend added later is given its
-      // lessons here too.
+      // The lessons of learning from the Junk folder, each for the backend chosen
+      // when its copy was made: SpamAssassin's queued for spamd one by one as they
+      // have been since SpamAssassinLearnOnMove came, Rspamd's queued together, so
+      // that a full queue is said once for the command.
+      std::vector<RspamdLearner::Lesson> rspamdLessons;
       for (const IMAPMoveRecord::Lesson &lesson : record.lessons)
+      {
+         if (lesson.backend == MoveLearning::BackendRspamd)
+         {
+            RspamdLearner::Lesson rspamd;
+            rspamd.copy = lesson.copy;
+            rspamd.owner = lesson.destination_owner;
+            rspamd.spam = lesson.spam;
+            if (rspamd.copy && rspamd.owner)
+               rspamdLessons.push_back(rspamd);
+            continue;
+         }
+
          SpamAssassinLearner::Teach(lesson.copy, lesson.destination_owner, lesson.spam);
+      }
+
+      if (!rspamdLessons.empty())
+         RspamdLearner::Queue(rspamdLessons);
 
       const std::vector<IMAPMoveEvent> events = EventsOf(record);
       if (!events.empty())

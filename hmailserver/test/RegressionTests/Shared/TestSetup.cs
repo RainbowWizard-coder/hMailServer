@@ -744,6 +744,23 @@ namespace RegressionTests.Shared
          if (antiSpam.SpamAssassinEnabled)
             antiSpam.SpamAssassinEnabled = false;
 
+         // Learning from the Junk folder as shipped, whatever AntiSpam.RspamdLearning
+         // left: SpamAssassin as the backend, a COPY teaching, no controller.
+         if (antiSpam.MoveLearningBackend != 0)
+            antiSpam.MoveLearningBackend = 0;
+
+         if (!antiSpam.MoveLearningFromCopy)
+            antiSpam.MoveLearningFromCopy = true;
+
+         if (antiSpam.RspamdControllerUrl != "")
+            antiSpam.RspamdControllerUrl = "";
+
+         if (antiSpam.RspamdClassifier != "")
+            antiSpam.RspamdClassifier = "";
+
+         if (antiSpam.RspamdTimeoutSeconds != 15)
+            antiSpam.RspamdTimeoutSeconds = 15;
+
          if (antiSpam.TarpitCount != 0)
             antiSpam.TarpitCount = 0;
 
