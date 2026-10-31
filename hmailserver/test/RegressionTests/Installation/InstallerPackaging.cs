@@ -2418,6 +2418,106 @@ namespace RegressionTests.Installation
          Assert.IsEmpty(runs, "What Inno Setup calls before the folders are looked at, as the install begins or during it runs a program or lets what setup holds go: " + string.Join("; ", runs) + ".");
       }
 
+      // Inno Setup 6.7.3's event functions, Setup's and the uninstaller's, and those the [Code]
+      // may define, each held by these tests and build/check-installer-scripts.py
+      // (INNO_EVENT_FUNCTIONS and EVENT_FUNCTIONS_HELD there).
+      private static readonly string[] InnoEventFunctions =
+      {
+         "InitializeSetup", "InitializeWizard", "DeinitializeSetup", "CurStepChanged", "CurInstallProgressChanged", "NextButtonClick", "BackButtonClick",
+         "CancelButtonClick", "ShouldSkipPage", "CurPageChanged", "CheckPassword", "NeedRestart", "UpdateReadyMemo", "RegisterPreviousData", "CheckSerial",
+         "GetCustomSetupExitCode", "PrepareToInstall", "RegisterExtraCloseApplicationsResources", "InitializeUninstall", "InitializeUninstallProgressForm",
+         "DeinitializeUninstall", "CurUninstallStepChanged", "UninstallNeedRestart",
+      };
+
+      private static readonly string[] EventFunctionsHeld =
+      {
+         "InitializeSetup", "InitializeWizard", "NextButtonClick", "PrepareToInstall", "CurStepChanged", "DeinitializeSetup", "GetCustomSetupExitCode",
+         "CurPageChanged", "ShouldSkipPage", "UpdateReadyMemo", "CancelButtonClick", "CurUninstallStepChanged",
+      };
+
+      // A routine's definition as Inno Setup's compiler reads its header, in MaskedCode's text
+      // (ROUTINE_DEFINITION): indented, after an attribute, in any case, with a comment before
+      // its name, and not a forward or an external declaration.
+      private static readonly Regex RoutineDefinition = new Regex(@"^[ \t]*(?:<[^<>\n]*>[ \t]*)*(function|procedure)\s+(\w+)\s*(?:\([^()]*\))?\s*(?::\s*\w+\s*)?;(?!\s*(?:forward|external)\b)",
+                                                                RegexOptions.Multiline | RegexOptions.IgnoreCase);
+      private static readonly Regex CodeCommentOrString = new Regex(@"//[^\n]*|\{(?!#)[^}]*\}|\(\*[\s\S]*?\*\)|'(?:[^'\n]|'')*'");
+
+      /// <summary>
+      ///    The text with each comment of the [Code] and each string's characters made spaces,
+      ///    its line feeds and a string's quotes kept (masked_code).
+      /// </summary>
+      private static string MaskedCode(string text)
+      {
+         return CodeCommentOrString.Replace(text, match => match.Value.StartsWith("'", StringComparison.Ordinal)
+            ? "'" + Regex.Replace(match.Value.Substring(1, match.Value.Length - 2), @"[^\n]", " ") + "'"
+            : Regex.Replace(match.Value, @"[^\n]", " "));
+      }
+
+      /// <summary>
+      ///    The [Code] ISCC compiles for an installer script: the lines of every [Code] section
+      ///    of it and of the scripts it #includes, at any depth, in the order the preprocessor
+      ///    reads them, a script #included inside a [Code] section read as part of it
+      ///    (installer_code). What it #includes and cannot read goes into Failed.
+      /// </summary>
+      private static string InstallerCode(string script, List<string> failed)
+      {
+         var lines = new List<string>();
+         string section = "";
+         Action<string, int> walk = null;
+         walk = (name, depth) =>
+         {
+            string path = Paths.Combine(InstallationRoot, name);
+            if (depth > 8 || !File.Exists(path))
+            {
+               failed.Add(script + " #includes " + name + ", which is not an installer script these tests read");
+               return;
+            }
+            foreach (string line in ScriptText(File.ReadAllText(path)).Split('\n'))
+            {
+               Match included = Regex.Match(line, @"^[ \t]*#[ \t]*include[ \t]+""([^""]+)""[ \t]*$");
+               if (included.Success)
+               {
+                  walk(Path.GetFileName(included.Groups[1].Value.Replace('/', '\\')), depth + 1);
+                  continue;
+               }
+               Match header = Regex.Match(line, @"^\s*\[([^\]]+)\]\s*$");
+               if (header.Success)
+               {
+                  section = header.Groups[1].Value.Trim().ToLowerInvariant();
+                  continue;
+               }
+               if (section == "code")
+                  lines.Add(line);
+            }
+         };
+         walk(script, 0);
+         return string.Join("\n", lines);
+      }
+
+      [Test]
+      [Description("Work item 78 (R1 to R4, 31 October 2026): Inno Setup runs an event function wherever ISCC finds one, so the [Code] is read as ISCC compiles it - every [Code] section of the scripts each installer #includes, joined, OriginalHMailServer.iss within it - and each routine's header in every form its compiler takes: indented, in any case, with a comment before its name, after an attribute, a forward or an external declaration not taken for the routine. No script but hMailServerInnoExtension.iss opens a [Code] section, no routine is given an event attribute (<event('...')>), which makes it an event function beside the one of the event's name, and every event function of Inno Setup 6.7.3 the [Code] defines is one these tests and build/check-installer-scripts.py hold (check_event_functions). A routine given <event('CurStepChanged')>, an indented CurInstallProgressChanged, a NeedRestart with a comment before its name and one in a [Code] section of section_icons.iss each passed before, and Inno Setup ran each.")]
+      public void EveryEventFunctionTheCodeDefinesIsOneTheChecksHold()
+      {
+         var failed = new List<string>();
+         foreach (FileInfo script in InstallerScripts())
+            if (script.Name != "hMailServerInnoExtension.iss" &&
+                Regex.IsMatch(ScriptText(File.ReadAllText(script.FullName)), @"^[ \t]*\[[ \t]*code[ \t]*\][ \t]*$", RegexOptions.Multiline | RegexOptions.IgnoreCase))
+               failed.Add(script.Name + " opens a [Code] section, which ISCC joins to the [Code]");
+         foreach (string installer in new[] { "hMailServer64.iss", "hMailServerARM64.iss" })
+         {
+            string masked = MaskedCode(InstallerCode(installer, failed));
+            if (Regex.IsMatch(masked, @"<\s*event\s*\(", RegexOptions.IgnoreCase))
+               failed.Add(installer + "'s [Code] gives a routine an event attribute");
+            var defined = new HashSet<string>(RoutineDefinition.Matches(masked).Cast<Match>().Select(match => match.Groups[2].Value.ToLowerInvariant()));
+            Assert.IsTrue(defined.Contains("curstepchanged") && defined.Contains("preparetoinstall") && defined.Contains("nextbuttonclick"),
+               installer + "'s [Code] was not read: CurStepChanged, PrepareToInstall and NextButtonClick are not among its routines.");
+            foreach (string eventFunction in InnoEventFunctions)
+               if (defined.Contains(eventFunction.ToLowerInvariant()) && !EventFunctionsHeld.Contains(eventFunction))
+                  failed.Add(installer + "'s [Code] defines " + eventFunction + ", an event function Inno Setup runs, which these tests do not hold");
+         }
+         CollectionAssert.IsEmpty(failed, "An event function of the [Code] runs that the checks do not hold: " + string.Join("; ", failed));
+      }
+
       /// <summary>
       ///    The routines of the [Code] that Name calls, itself or through any routine it
       ///    calls, and the functions that run a program among them (Exec, ShellExec,
