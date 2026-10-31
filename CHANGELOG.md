@@ -2736,7 +2736,13 @@ with `--check`).
   code, comments and white space aside, so that no change of one passes until it has been reviewed and its digest
   written in both (`python build/check-installer-scripts.py --digests` prints them as the tree is). Thirty-four more
   statements hold the helpers the decisions rely on, and `PrepareToInstallRefusal`, which the rest of setup shares,
-  leaves before the folders are prepared only with a refusal. A sweep of one-token changes of those routines - every
+  leaves before the folders are prepared only with a refusal. The service routines `IsServiceInstalled`, which the
+  rest of setup shares, asks through - `OpenServiceManager`, `OpenNamedService` and `CloseServiceAndManager` - and
+  those the Ready page's stop of the service rests on - `GetServiceState`, `IsServiceRunning` and
+  `IsServiceStopped` - are each held whole by a statement, and the Service Control Manager's functions, the record
+  `QueryServiceStatusEx` fills and the constants they pass and compare with among the declarations, each constant to
+  its value; `OpenServiceManager` answering 0 without asking, which leaves every service setup found not as prepared
+  free to start, and either of the other two always false or always stopped had passed both. A sweep of one-token changes of those routines - every
   `if`, `while`, `Result` and `Exit`, one at a time - had 433 of 903 pass the checker before; after, all 912 but the
   19 in `PrepareToInstallRefusal`'s database refusals are refused. They also hold what Inno Setup does outside the
   `[Code]` before the folders are read again after the files - no `Permissions:` on a `[Dirs]` or `[Files]` entry
@@ -2778,7 +2784,7 @@ with `--check`).
   look after the files, one more in `CurStepChanged`, and `#if 0` around `section_dirs.iss`'s `{app}` entry had passed
   both and compiled. The fixture reads an installer script as ISCC and the checker read it, a lone carriage return
   ending the line, where three one-line changes behind one - code after a `//` comment, `#if 0` around a `[Dirs]`
-  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 641. The smoke test's dac-handle case gives the program folder an
+  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 659. The smoke test's dac-handle case gives the program folder an
   entry of its own for the standard account, as an account could write one through `Everyone`'s right to change the
   permissions, and requires it dropped and named, and none for it after the restart; copy-fails runs the watch's
   check of the program folder as it was made, taking setup's line on the folder by the path its handle gives, as on

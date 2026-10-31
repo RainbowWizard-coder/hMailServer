@@ -190,7 +190,13 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
                of its code - comments dropped, white space one space, every string
                as written (PROGRAM_FOLDER_CODE; --digests prints them as the tree
                is) - so that no change of one passes until it has been reviewed and
-               its digest written here and in InstallerPackaging.cs. PrepareToInstallRefusal,
+               its digest written here and in InstallerPackaging.cs. The shared
+               IsServiceInstalled, and the service routines it and the Ready page's
+               stop ask through (OpenServiceManager, OpenNamedService,
+               CloseServiceAndManager, GetServiceState, IsServiceRunning,
+               IsServiceStopped), are held by statements whole, and the Service
+               Control Manager's functions, record and constants they use among the
+               declarations (check 9 of R1 to R4, 31 October 2026). PrepareToInstallRefusal,
                which the rest of setup shares, leaves before the folders are prepared
                only with a refusal.
                HardenNewProgramFolder, which hardened a folder Inno Setup had made,
@@ -807,6 +813,7 @@ PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'Hold
                            'DataLinkTargetIsGrantable', 'AclLetsEveryUserWrite', 'DatabaseTargetIsTheAdministrators', 'RestartNeededFor', 'RecordRestartNeeded',
                            'OthersCouldChange', 'NoteFolderOthersCouldChange', 'NoteFoldersOthersCouldChange', 'HardenForRestart', 'CheckFoldersBeforeTheStop',
                            'FoldersChangedLine', 'RestoreServiceStart', 'GetCustomSetupExitCode', 'IsServiceInstalled', 'OpenNamedService', 'CloseServiceAndManager',
+                           'OpenServiceManager', 'GetServiceState', 'IsServiceRunning', 'IsServiceStopped',
                            'DataFolderIsAllowed', 'DatabaseFilesWhy', 'HardenDataFolder', 'AddRestartFolder', 'StaleEntryLetsOthers', 'HandsDownWriteTo',
                            'NoteStaleItem', 'StaleItemIn', 'TakenEntriesLetOthers', 'RestartRecordedForWalked', 'WalkedFinal', 'MakeFolderIn',
                            'HardenDistrustedFolder', 'ProgramFolderWaitsForTheFiles', 'RelativeLinkTarget', 'RemoveAndMakeAgain')
@@ -1402,6 +1409,24 @@ PROGRAM_FOLDER_STATEMENTS = (
      "Result := OpenServiceW(Manager, Name, Access); if (Result = 0) then begin CloseServiceHandle(Manager); Manager := 0; end; end;$"),
     ('CloseServiceAndManager', 'the service or the connection to the service manager IsServiceInstalled opened is not let go',
      "^procedure CloseServiceAndManager(Service: SC_HANDLE; Manager: SC_HANDLE); begin if (Service <> 0) then CloseServiceHandle(Service); if (Manager <> 0) then CloseServiceHandle(Manager); end;$"),
+    # The rest of that chain, and what the Ready page's stop rests on (check 9 of R1 to R4,
+    # 31 October 2026: OpenServiceManager answering 0 without asking, IsServiceRunning
+    # always false and GetServiceState always SERVICE_STOPPED each passed the checker and
+    # the fixture, the first leaving every service found not as prepared free to start).
+    # The Service Control Manager's functions, record and constants they use are held among
+    # PROGRAM_FOLDER_DECLARATIONS.
+    ('OpenServiceManager', 'the service manager is not asked, or a connection is taken where Windows refused one, so that IsServiceInstalled says no service is there and none found not as prepared is kept from starting',
+     "^function OpenServiceManager() : SC_HANDLE; var lastError: Integer; who: String; begin Result := OpenSCManagerW(0, 0, SC_MANAGER_CONNECT); if (Result = 0) then begin "
+     "lastError := DLLGetLastError(); if IsUninstaller() then who := 'The uninstaller' else who := 'Setup'; Log(~); SuppressibleMsgBox(~); end; end;$"),
+    ('GetServiceState', 'the state the service is in is not the one Windows reports, so that the Ready page does not stop a running service, or does not say it stopped it',
+     "^function GetServiceState(Name: String) : cardinal; var manager: SC_HANDLE; service: SC_HANDLE; status : SERVICE_STATUS_PROCESS; needed : cardinal; begin Result := 0; "
+     "service := OpenNamedService(Name, SERVICE_QUERY_STATUS, manager); if (service = 0) then Exit; "
+     "if QueryServiceStatusProcess(service, SERVICE_STATUS_PROCESS_INFO, status, SERVICE_STATUS_PROCESS_SIZE, needed) then Result := status.dwCurrentState; "
+     "CloseServiceAndManager(service, manager); end;$"),
+    ('IsServiceRunning', 'a running service is not taken for running, so that the Ready page neither stops it nor says, in a refusal, that it stopped it',
+     "^function IsServiceRunning(Name: String) : Boolean; begin Result := (GetServiceState(Name) = SERVICE_RUNNING); end;$"),
+    ('IsServiceStopped', 'a service that is not stopped is taken for stopped, so that setup does not ask it to stop before it prepares the folders and copies the files',
+     "^function IsServiceStopped(Name: String) : Boolean; begin Result := (GetServiceState(Name) = SERVICE_STOPPED); end;$"),
     ('RemoveHeldFolder', 'an empty folder is removed through a link, or by a handle not read as that folder',
      "handle := HoldFolder(Folder, HM_REMOVE_FOLDER_ACCESS, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle = -1 then begin Why := ~; Exit; end; szFinal := FinalPathOfHeld(handle); if HeldIsLink(handle, bKnown) then Why := ~ else if (szFinal = '') or (ParentFinal = '') or (CompareText(szFinal, AddBackslash(ParentFinal) + ExtractFileName(Folder)) <> 0) then Why := ~ else begin info := HM_DISPOSITION_DELETE_POSIX; Result := SetHeldInformation(handle, HM_FILE_DISPOSITION_INFO_EX, info, 4);"),
     ('NothingTurnedIn', 'a folder is walked after the files without being opened as itself, as no link, and as the folder its path names',
@@ -1552,6 +1577,25 @@ PROGRAM_FOLDER_DECLARATIONS = (
     "function CloseKey(hKey: cardinal): Integer; external 'RegCloseKey@advapi32.dll stdcall';",
     "function SetHeldInformation(hFile: Integer; FileInformationClass: cardinal; var lpFileInformation: cardinal; dwBufferSize: cardinal): Boolean; external 'SetFileInformationByHandle@kernel32.dll stdcall';",
     "function VolumePathNames(lpszVolumeName: String; lpszVolumePathNames: String; cchBufferLength: cardinal; var lpcchReturnLength: cardinal): Boolean; external 'GetVolumePathNamesForVolumeNameW@kernel32.dll stdcall';",
+    # The Service Control Manager's, which IsServiceInstalled, which PROGRAM_FOLDER_SHARED
+    # names, asks through, and GetServiceState, held by statements (check 9 of R1 to R4, 31
+    # October 2026): its functions, the record QueryServiceStatusEx fills and the constants
+    # those routines pass and compare with, each to winsvc.h's value. The constants are
+    # Windows' names, not HM_, and so held here, each once, rather than among
+    # PROGRAM_FOLDER_CONSTANTS.
+    "function OpenSCManagerW(lpMachineName: cardinal; lpDatabaseName: cardinal; dwDesiredAccess: cardinal): SC_HANDLE; external 'OpenSCManagerW@advapi32.dll stdcall';",
+    "function OpenServiceW(hSCManager: SC_HANDLE; lpServiceName: String; dwDesiredAccess: cardinal): SC_HANDLE; external 'OpenServiceW@advapi32.dll stdcall';",
+    "function CloseServiceHandle(hSCObject: SC_HANDLE): Boolean; external 'CloseServiceHandle@advapi32.dll stdcall';",
+    "function QueryServiceStatusProcess(hService: HANDLE; InfoLevel: cardinal; var Buffer: SERVICE_STATUS_PROCESS; cbBufSize: cardinal; var pcbBytesNeeded: cardinal): boolean; external 'QueryServiceStatusEx@advapi32.dll stdcall';",
+    "SERVICE_STATUS_PROCESS = record dwServiceType : cardinal; dwCurrentState : cardinal; dwControlsAccepted : cardinal; dwWin32ExitCode : cardinal; dwServiceSpecificExitCode : cardinal; "
+    "dwCheckPoint : cardinal; dwWaitHint : cardinal; dwProcessId : cardinal; dwServiceFlags : cardinal; end;",
+    "SC_MANAGER_CONNECT = $0001;",
+    "SERVICE_QUERY_CONFIG = $0001;",
+    "SERVICE_QUERY_STATUS = $0004;",
+    "SERVICE_STOPPED = $00000001;",
+    "SERVICE_RUNNING = $00000004;",
+    "SERVICE_STATUS_PROCESS_INFO = 0;",
+    "SERVICE_STATUS_PROCESS_SIZE = 36;",
 )
 
 # Every routine of R1 to R4, held whole by a digest of its code - comments dropped, each
@@ -3483,6 +3527,20 @@ def negative_controls(texts):
                  '   if (Manager = 0) then\n      Exit;\n   Result := Manager;\n   Exit;\n   Result := OpenServiceW(Manager, Name, Access);')),
         ('CloseServiceAndManager not letting go of the service, so that each IsServiceInstalled leaves a handle to it open',
          altered(texts, EXTENSION, '   if (Service <> 0) then\n      CloseServiceHandle(Service);', '   if (Service <> 0) then\n      Service := 0;')),
+        # Check 9 of R1 to R4 (31 October 2026), its 9.01 to 9.03, and the declarations
+        # those routines rest on.
+        ('OpenServiceManager answering 0 without asking the service manager, so that IsServiceInstalled is always false',
+         altered(texts, EXTENSION, '   Result := OpenSCManagerW(0, 0, SC_MANAGER_CONNECT);\n', '   Result := 0;\n')),
+        ('IsServiceRunning always false, so that the Ready page neither stops a running service nor says it stopped it',
+         altered(texts, EXTENSION, '   Result := (GetServiceState(Name) = SERVICE_RUNNING);\n', '   Result := false;\n')),
+        ('GetServiceState answering SERVICE_STOPPED whatever state the service is in',
+         altered(texts, EXTENSION, '      Result := status.dwCurrentState;\n', '      Result := SERVICE_STOPPED;\n')),
+        ('IsServiceStopped always true, so that a running service is not asked to stop',
+         altered(texts, EXTENSION, '   Result := (GetServiceState(Name) = SERVICE_STOPPED);\n', '   Result := true;\n')),
+        ('SERVICE_RUNNING given the value of SERVICE_START_PENDING, so that no running service is taken for running',
+         altered(texts, EXTENSION, '\tSERVICE_RUNNING             = $00000004;', '\tSERVICE_RUNNING             = $00000002;')),
+        ('QueryServiceStatusProcess declared from QueryServiceStatus, which fills the shorter SERVICE_STATUS',
+         altered(texts, EXTENSION, "external 'QueryServiceStatusEx@advapi32.dll stdcall';", "external 'QueryServiceStatus@advapi32.dll stdcall';")),
         ('RunPostInstallTasks no longer running /ProtectFolders',
          altered(texts, EXTENSION, '         ProtectFolders();\n', '')),
         ('folders not as prepared ending in 0 (steps incomplete taken for complete)',
@@ -3688,9 +3746,17 @@ def negative_controls(texts):
             new = old.replace('@kernel32.dll', '@advapi32.dll')
         elif '@advapi32.dll' in old:
             new = old.replace('@advapi32.dll', '@kernel32.dll')
+        elif re.match(r'\w+ = [$0-9A-Fa-f]+;\Z', declaration):
+            # A constant (the Service Control Manager's, check 9 of R1 to R4): one more.
+            value = re.search(r'(\$?)([0-9A-Fa-f]+);\Z', old)
+            if value.group(1):
+                digits = '%0*X' % (len(value.group(2)), int(value.group(2), 16) + 1)
+            else:
+                digits = str(int(value.group(2)) + 1)
+            new = old[:value.start(2)] + digits + ';'
         else:
             new = old.replace('cardinal', 'Word', 1)
-        controls.append(('%s declared otherwise (another DLL, or a field of another width)' % name, altered(texts, EXTENSION, old, new) if old else None))
+        controls.append(('%s declared otherwise (another DLL, a field of another width, or a constant of another value)' % name, altered(texts, EXTENSION, old, new) if old else None))
     controls.append(('a Windows function R1 to R4 call that the check does not hold',
                      (lambda declared: altered(declared, EXTENSION, "   Result := false;\n   if FindFirst(AddBackslash(Folder) + '*', rec) then",
                                                "   Result := false;\n   if FolderIsEmpty(Folder) and FindFirst(AddBackslash(Folder) + '*', rec) then") if declared else None)(

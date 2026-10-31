@@ -1636,6 +1636,13 @@ namespace RegressionTests.Installation
          // moved onto master on 28 October 2026): the three hold what the one statement held.
          new[] { "OpenNamedService", "the service is not opened by its name through the service manager with the access asked, so that IsServiceInstalled does not answer whether it is installed", "^function OpenNamedService(Name: String; Access: cardinal; var Manager: SC_HANDLE) : SC_HANDLE; begin Result := 0; Manager := OpenServiceManager(); if (Manager = 0) then Exit; Result := OpenServiceW(Manager, Name, Access); if (Result = 0) then begin CloseServiceHandle(Manager); Manager := 0; end; end;$" },
          new[] { "CloseServiceAndManager", "the service or the connection to the service manager IsServiceInstalled opened is not let go", "^procedure CloseServiceAndManager(Service: SC_HANDLE; Manager: SC_HANDLE); begin if (Service <> 0) then CloseServiceHandle(Service); if (Manager <> 0) then CloseServiceHandle(Manager); end;$" },
+         // The rest of that chain, and what the Ready page's stop rests on (check 9 of R1 to
+         // R4, 31 October 2026); their functions, record and constants are among
+         // ProgramFolderDeclarations.
+         new[] { "OpenServiceManager", "the service manager is not asked, or a connection is taken where Windows refused one, so that IsServiceInstalled says no service is there and none found not as prepared is kept from starting", "^function OpenServiceManager() : SC_HANDLE; var lastError: Integer; who: String; begin Result := OpenSCManagerW(0, 0, SC_MANAGER_CONNECT); if (Result = 0) then begin lastError := DLLGetLastError(); if IsUninstaller() then who := 'The uninstaller' else who := 'Setup'; Log(~); SuppressibleMsgBox(~); end; end;$" },
+         new[] { "GetServiceState", "the state the service is in is not the one Windows reports, so that the Ready page does not stop a running service, or does not say it stopped it", "^function GetServiceState(Name: String) : cardinal; var manager: SC_HANDLE; service: SC_HANDLE; status : SERVICE_STATUS_PROCESS; needed : cardinal; begin Result := 0; service := OpenNamedService(Name, SERVICE_QUERY_STATUS, manager); if (service = 0) then Exit; if QueryServiceStatusProcess(service, SERVICE_STATUS_PROCESS_INFO, status, SERVICE_STATUS_PROCESS_SIZE, needed) then Result := status.dwCurrentState; CloseServiceAndManager(service, manager); end;$" },
+         new[] { "IsServiceRunning", "a running service is not taken for running, so that the Ready page neither stops it nor says, in a refusal, that it stopped it", "^function IsServiceRunning(Name: String) : Boolean; begin Result := (GetServiceState(Name) = SERVICE_RUNNING); end;$" },
+         new[] { "IsServiceStopped", "a service that is not stopped is taken for stopped, so that setup does not ask it to stop before it prepares the folders and copies the files", "^function IsServiceStopped(Name: String) : Boolean; begin Result := (GetServiceState(Name) = SERVICE_STOPPED); end;$" },
          new[] { "RemoveHeldFolder", "an empty folder is removed through a link, or by a handle not read as that folder", "handle := HoldFolder(Folder, HM_REMOVE_FOLDER_ACCESS, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle = -1 then begin Why := ~; Exit; end; szFinal := FinalPathOfHeld(handle); if HeldIsLink(handle, bKnown) then Why := ~ else if (szFinal = '') or (ParentFinal = '') or (CompareText(szFinal, AddBackslash(ParentFinal) + ExtractFileName(Folder)) <> 0) then Why := ~ else begin info := HM_DISPOSITION_DELETE_POSIX; Result := SetHeldInformation(handle, HM_FILE_DISPOSITION_INFO_EX, info, 4);" },
          new[] { "NothingTurnedIn", "a folder is walked after the files without being opened as itself, as no link, and as the folder its path names", "folderHandle := HoldFolder(Folder, HM_HOLD_FOLDER_ACCESS, HM_SHARE_ALL_BUT_DELETE, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); szFinal := ''; if folderHandle <> -1 then if not HeldIsLink(folderHandle, bKnown) then szFinal := FinalPathOfHeld(folderHandle); if (szFinal = '') or (CompareText(szFinal, Expected) <> 0) then begin" },
          new[] { "GetCustomSetupExitCode", "folders found not as setup left them after the files end in 10, which hMailServer.Updater rolls back, rather than 12", "if g_bFoldersNotAsPrepared then Result := 12 else if g_bStepsIncomplete and g_bDatabaseChanged then Result := 11 else if g_bStepsIncomplete then Result := 10 else Result := 0;" },
@@ -1839,6 +1846,21 @@ namespace RegressionTests.Installation
          "function CloseKey(hKey: cardinal): Integer; external 'RegCloseKey@advapi32.dll stdcall';",
          "function SetHeldInformation(hFile: Integer; FileInformationClass: cardinal; var lpFileInformation: cardinal; dwBufferSize: cardinal): Boolean; external 'SetFileInformationByHandle@kernel32.dll stdcall';",
          "function VolumePathNames(lpszVolumeName: String; lpszVolumePathNames: String; cchBufferLength: cardinal; var lpcchReturnLength: cardinal): Boolean; external 'GetVolumePathNamesForVolumeNameW@kernel32.dll stdcall';",
+         // The Service Control Manager's, which IsServiceInstalled asks through and
+         // GetServiceState uses (check 9 of R1 to R4, 31 October 2026); the constants are
+         // Windows' names, not HM_, and so held here, each once.
+         "function OpenSCManagerW(lpMachineName: cardinal; lpDatabaseName: cardinal; dwDesiredAccess: cardinal): SC_HANDLE; external 'OpenSCManagerW@advapi32.dll stdcall';",
+         "function OpenServiceW(hSCManager: SC_HANDLE; lpServiceName: String; dwDesiredAccess: cardinal): SC_HANDLE; external 'OpenServiceW@advapi32.dll stdcall';",
+         "function CloseServiceHandle(hSCObject: SC_HANDLE): Boolean; external 'CloseServiceHandle@advapi32.dll stdcall';",
+         "function QueryServiceStatusProcess(hService: HANDLE; InfoLevel: cardinal; var Buffer: SERVICE_STATUS_PROCESS; cbBufSize: cardinal; var pcbBytesNeeded: cardinal): boolean; external 'QueryServiceStatusEx@advapi32.dll stdcall';",
+         "SERVICE_STATUS_PROCESS = record dwServiceType : cardinal; dwCurrentState : cardinal; dwControlsAccepted : cardinal; dwWin32ExitCode : cardinal; dwServiceSpecificExitCode : cardinal; dwCheckPoint : cardinal; dwWaitHint : cardinal; dwProcessId : cardinal; dwServiceFlags : cardinal; end;",
+         "SC_MANAGER_CONNECT = $0001;",
+         "SERVICE_QUERY_CONFIG = $0001;",
+         "SERVICE_QUERY_STATUS = $0004;",
+         "SERVICE_STOPPED = $00000001;",
+         "SERVICE_RUNNING = $00000004;",
+         "SERVICE_STATUS_PROCESS_INFO = 0;",
+         "SERVICE_STATUS_PROCESS_SIZE = 36;",
       };
 
       private static readonly string[] ProgramFolderEntryPoints =
