@@ -47,6 +47,7 @@
 
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/Logger.h"
+#include "../Common/Util/FileUtilities.h"
 
 namespace
 {
@@ -184,7 +185,7 @@ namespace
 
    std::string ReadBytes(const HM::String &path)
    {
-      std::ifstream in(HM::AnsiString(path).c_str(), std::ios::in | std::ios::binary);
+      std::ifstream in(HM::FileUtilities::NarrowPath(path).c_str(), std::ios::in | std::ios::binary);
       return std::string(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
    }
 }

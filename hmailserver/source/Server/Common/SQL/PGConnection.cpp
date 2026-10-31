@@ -1128,8 +1128,12 @@ namespace HM
       {
          const char twoBytes[] = { (char) 0xC3, (char) 0xA9 };
          // The characters the code page writes as those bytes, found by writing
-         // each character below the surrogates as FileNameBytes writes a name: one
-         // for both in a code page with double-byte characters, or one for each.
+         // each character of the Basic Multilingual Plane outside ASCII and the
+         // surrogates as FileNameBytes writes a name: one for both in a code page
+         // with double-byte characters, or one for each - on code page 932 the
+         // half-width katakana U+FF83 and U+FF69, above the surrogates. Every ANSI
+         // code page that is not UTF-8 writes them, so finding none fails the case
+         // rather than passing it untried.
          const auto codePageBytes = [](wchar_t character) -> std::string
          {
             BOOL unmapped = FALSE;
@@ -1141,8 +1145,11 @@ namespace HM
          wchar_t wide[4] = { 0 };
          int count = 0;
          wchar_t first = 0, second = 0;
-         for (wchar_t character = 0x80; character < 0xD800 && count == 0; character++)
+         for (unsigned int code = 0x80; code <= 0xFFFD && count == 0; code++)
          {
+            if (code >= 0xD800 && code <= 0xDFFF)
+               continue;
+            const wchar_t character = (wchar_t) code;
             const std::string written = codePageBytes(character);
             if (written == both)
             {
@@ -1160,6 +1167,8 @@ namespace HM
             wide[1] = second;
             count = 2;
          }
+         CheckConninfo(count > 0, "no character of code page " + std::to_string(GetACP()) +
+            ", nor a pair of them, is written as the bytes C3 A9, so the name that also reads as UTF-8 could not be made");
          if (count > 0)
          {
             const String ambiguous = String(_T("C:\\certs\\")) + String(wide) + _T("\\root.pem");
@@ -1167,6 +1176,8 @@ namespace HM
             BOOL defaulted = FALSE;
             char narrow[8] = { 0 };
             const int length = WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, wide, count, narrow, (int) sizeof(narrow), nullptr, &defaulted);
+            CheckConninfo(length == 2 && !defaulted && narrow[0] == twoBytes[0] && narrow[1] == twoBytes[1],
+               "the characters found for the bytes C3 A9 in code page " + std::to_string(GetACP()) + " are not written as those bytes");
             if (length == 2 && !defaulted && narrow[0] == twoBytes[0] && narrow[1] == twoBytes[1])
             {
                CheckConninfo(!DALConnection::FileNameBytes(ambiguous, back) && back.IsEmpty(),

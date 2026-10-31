@@ -178,7 +178,7 @@ namespace HM
          nameable = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
                     c == '.' || c == '-' || c == '_' || c == '@' || c == ':';
       }
-      if (!nameable || access(std::string(AnsiString(systemctlPath).c_str()).c_str(), X_OK) != 0)
+      if (!nameable || access(FileUtilities::NarrowPath(systemctlPath).c_str(), X_OK) != 0)
          return HelperUnitUnknown;
 
       const String directory = FileUtilities::GetFilePath(answerFile);
