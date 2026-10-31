@@ -403,8 +403,10 @@ takes no path to change from the configuration.
   where it was - a `CHECK` line, and `icacls "<file>" /reset`, which gives it the
   folder's; by an entry it inherits from a folder's own entry, a `CHECK` line naming
   that folder and the `icacls /remove:g` that takes the entry away there, which
-  `/reset` of the file would not. `--report-only` says such a file by its folder's
-  line alone, never as a file outside the program's own folders.
+  `/reset` of the file would not. `--report-only` says such a file by an entry of its
+  own as `/ProtectFolders` does, since `/ProtectFolders` keeps that entry, and what it
+  inherits by its folder's line alone - who may read the folder now - never as a file
+  outside the program's own folders.
 * An entry of one of the six's own that lets such a group read it, which only an
   administrator can have given: kept, and a `CHECK` line with the `icacls /remove:g`
   that takes it away.

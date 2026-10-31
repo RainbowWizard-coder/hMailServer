@@ -440,7 +440,9 @@ with `--check`).
   as inheriting the entry from the folder whose own entry it is, with the `icacls "<folder>" /remove:g` that takes
   it away there, and an entry of the file's own as before. A key file the configuration names in one of the
   program's own folders is said the same way, and `--report-only` no longer says one as outside the program's own
-  folders: the line on its folder says who may read it. Since the release after 6.3.7 counts This Organization,
+  folders: it says a key file whose own entry lets such a group read it, in those three folders or named by the
+  configuration in one of the program's own, as `/ProtectFolders` does, and what a file inherits by the line on its
+  folder, which says who may read the folder now. Since the release after 6.3.7 counts This Organization,
   Local account, Authentication authority asserted identity, ALL SERVICES and a domain's Domain Users and Domain
   Guests among the groups of every user, both lines could be written of a data folder an administrator had given one
   of them. Found by the hMailServer project (Progressive Robot Ltd).
