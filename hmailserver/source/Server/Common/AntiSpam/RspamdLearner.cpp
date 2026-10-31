@@ -23,6 +23,8 @@
 #include "../Util/Strings/Formatter.h"
 
 #include <chrono>
+#include <cstdlib>
+#include <exception>
 #include <map>
 
 #ifdef _DEBUG
@@ -52,10 +54,23 @@ namespace HM
          {
          }
 
+         // DrainerEnded takes the queue's lock, which the system may refuse: an
+         // exception that left this destructor, which may not throw, ended the
+         // process, and so does this, said where it happens. Otherwise the queue
+         // would believe a drainer still runs, and no lesson would be sent again.
          ~RspamdLearnTask()
          {
-            if (!emptied_)
+            if (emptied_)
+               return;
+
+            try
+            {
                RspamdLessonQueue::Instance().DrainerEnded();
+            }
+            catch (...)
+            {
+               std::terminate();
+            }
          }
 
          virtual void DoWork()
@@ -193,7 +208,7 @@ namespace HM
       if (!HttpsClient::ParseUrl(text, parsedHttps, host, port, path) || host.IsEmpty())
          return settingName + _T(" is not an http or https URL with a host.");
 
-      const long portNumber = atol(port.c_str());
+      const long portNumber = strtol(port.c_str(), nullptr, 10);
       if (port.GetLength() > 5 || portNumber < 1 || portNumber > 65535)
          return settingName + _T("'s port must be between 1 and 65535.");
 

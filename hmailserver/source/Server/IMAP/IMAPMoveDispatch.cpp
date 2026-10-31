@@ -30,6 +30,7 @@
 #include "../Common/Scripting/ScriptBinding.h"
 #endif
 
+#include <exception>
 #include <set>
 #include <stdexcept>
 
@@ -59,10 +60,23 @@ namespace HM
          {
          }
 
+         // DrainerEnded takes the queue's lock, which the system may refuse: an
+         // exception that left this destructor, which may not throw, ended the
+         // process, and so does this, said where it happens. Otherwise the queue
+         // would believe a drainer still runs, and no event would be fired again.
          ~IMAPMoveEventTask()
          {
-            if (!emptied_)
+            if (emptied_)
+               return;
+
+            try
+            {
                IMAPMoveDispatch::Queue().DrainerEnded();
+            }
+            catch (...)
+            {
+               std::terminate();
+            }
          }
 
          virtual void DoWork()
@@ -618,7 +632,7 @@ namespace HM
          for (size_t i = 0; i < count; i++)
          {
             IMAPMoveEvent event;
-            event.message_id = (__int64) (1000 + i);
+            event.message_id = 1000 + static_cast<__int64>(i);
             events.push_back(event);
          }
 

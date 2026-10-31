@@ -16,6 +16,7 @@
 #include <boost/asio.hpp>
 
 #include <chrono>
+#include <cstdlib>
 #include <functional>
 #include <map>
 #include <stdexcept>
@@ -151,9 +152,8 @@ namespace HM
 
                io_.run_for(std::chrono::seconds(limit_seconds_));
 
-               boost::system::error_code ignored;
-               socket_.close(ignored);
-               acceptor_.close(ignored);
+               Close_(socket_);
+               Close_(acceptor_);
             });
          }
 
@@ -182,9 +182,10 @@ namespace HM
                   boost::asio::async_write(socket_, boost::asio::buffer(answer_),
                      [this](const boost::system::error_code &, std::size_t)
                   {
-                     boost::system::error_code ignored;
-                     socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored);
-                     socket_.close(ignored);
+                     boost::system::error_code error;
+                     if (socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, error))
+                        error.clear(); // a peer gone already: closed below all the same
+                     Close_(socket_);
                      io_.stop();
                   });
                   return;
@@ -192,6 +193,17 @@ namespace HM
 
                Read_();
             });
+         }
+
+         // Closes a socket or the acceptor the stand-in is done with. A close that
+         // fails leaves nothing for the stand-in to do, so its error is let go
+         // here, read, as the call returns it.
+         template <class Closable>
+         static void Close_(Closable &closable)
+         {
+            boost::system::error_code error;
+            if (closable.close(error))
+               error.clear();
          }
 
          bool Complete_() const
@@ -206,7 +218,7 @@ namespace HM
             if (at == std::string::npos)
                return true;
 
-            const size_t length = (size_t) atol(head.c_str() + at + key.size());
+            const size_t length = (size_t) strtoul(head.c_str() + at + key.size(), nullptr, 10);
             return received_.size() >= end + 4 + length;
          }
 
@@ -219,7 +231,7 @@ namespace HM
          bool silent_;
          int limit_seconds_;
          unsigned short port_;
-         char chunk_[4096];
+         char chunk_[4096] = {};
       };
 
       std::string Answer(const char *statusLine, const std::string &body)
