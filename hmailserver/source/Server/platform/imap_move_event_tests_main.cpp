@@ -10,7 +10,8 @@
 // scripting and the handler all on, once for each message whose original the
 // expunge removed, and never for a COPY, a failed MOVE, a public folder or
 // another account's folders - the bounded queue the events wait in (the newest
-// dropped when it is full, one drainer at a time), the call text the Windows
+// dropped when it is full, by count or by bytes, a command's fields shared by its
+// events and charged once, one drainer at a time), the call text the Windows
 // engines are handed, and the values a handler is given; and here, where the
 // event scripts are JavaScript, a handler called as the event calls it, reading
 // every one of them.
@@ -87,7 +88,8 @@ main(int /*argc*/, char * /*argv*/[])
    boost::filesystem::remove_all(scratch, error);
 
    printf("ok    the IMAP move event: raised for a committed MOVE or UID MOVE between the session account's own folders, once for each message whose original was removed, "
-          "and not for a COPY, a failed MOVE, a public folder, another account's folders or any switch off; the queue holds its bound and drops the newest; "
+          "and not for a COPY, a failed MOVE, a public folder, another account's folders or any switch off; a command's events share one copy of its fields and are no more "
+          "than the queue has room for; the queue holds its bounds of events and bytes and drops the newest; "
           "the VBScript and JScript calls quote every text; a JavaScript handler is given the account and the thirteen values\n");
    return 0;
 }

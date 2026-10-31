@@ -90,14 +90,20 @@ namespace HM
       std::vector<Moved> moved;
    };
 
-   // One message's OnIMAPMessageMoved, as its handler is given it.
-   class IMAPMoveEvent
+   // What every event of one MOVE shares: the operation, the user, the account
+   // and both folders. Made once for the command (IMAPMoveDispatch::FieldsOf) and
+   // held by its events through one shared pointer, never copied into each: a
+   // folder's full name is the user's choice and may be thousands of characters
+   // (25 levels of 255), and a MOVE may move every message of a mailbox.
+   class IMAPMoveEventFields
    {
    public:
-      IMAPMoveEvent();
+      IMAPMoveEventFields();
 
-      // Unique to this event: made when it is fired (a braced UUID).
-      String event_id;
+      // The memory the fields take, their texts counted by their length: what
+      // the queue charges once for a command's events (IMAPMoveEventQueue).
+      size_t Bytes() const;
+
       // "MOVE" or "UID MOVE".
       String operation;
       // The user signed in to the session that moved it.
@@ -107,10 +113,25 @@ namespace HM
       __int64 source_folder_id;
       String source_folder;
       unsigned int source_uid_validity;
-      unsigned int source_uid;
       __int64 destination_folder_id;
       String destination_folder;
       unsigned int destination_uid_validity;
+   };
+
+   // One message's OnIMAPMessageMoved, as its handler is given it: what is the
+   // message's own, and the command's fields, shared with the command's other
+   // events.
+   class IMAPMoveEvent
+   {
+   public:
+      IMAPMoveEvent();
+
+      // Unique to this event: made when it is fired (a braced UUID).
+      String event_id;
+      // The operation, the user, the account and both folders; never null in an
+      // event EventsOf made.
+      std::shared_ptr<const IMAPMoveEventFields> fields;
+      unsigned int source_uid;
       unsigned int destination_uid;
       // The message's id in the source, which is gone now, and its id now, in the
       // destination.
@@ -118,9 +139,12 @@ namespace HM
       __int64 message_id;
    };
 
-   // The events waiting to be fired, oldest first, and at most a capacity of them:
-   // an IMAP command never waits for a script, so a queue that is full takes no
-   // more and the newest are dropped, which the caller logs. One drainer at a time
+   // The events waiting to be fired, oldest first, and at most a capacity of them
+   // in at most a capacity of bytes: an IMAP command never waits for a script, so
+   // a queue that is full takes no more and the newest are dropped, which the
+   // caller logs. An event is charged its own size, and the fields it shares with
+   // the events of its command once for those of them that wait one after the
+   // other, as a command's do (Offer takes them together). One drainer at a time
    // fires them, in order, on the asynchronous work queue; Offer says when one has
    // to be started, Take ends it when nothing is left, and DrainerEnded lets a
    // drainer that stopped before then - the servers stopped, its task never run -
@@ -129,12 +153,17 @@ namespace HM
    class IMAPMoveEventQueue
    {
    public:
-      explicit IMAPMoveEventQueue(size_t capacity);
+      IMAPMoveEventQueue(size_t capacity, size_t byteCapacity);
 
       // As many of events as there is room for, from the first; returns how many.
       // startDrainer is set when no drainer is running and one has to be started
       // for them, and the queue then counts one as running.
       size_t Offer(const std::vector<IMAPMoveEvent> &events, bool &startDrainer);
+
+      // How many events of one command, whose shared fields take fieldBytes, there
+      // is room for now: what the command builds at most (IMAPMoveDispatch::Committed).
+      // Offer still holds the bound, should another command's events come first.
+      size_t Room(size_t fieldBytes) const;
 
       // The oldest event, for the drainer. False when there is none: the drainer
       // stops, and the queue no longer counts one as running.
@@ -145,12 +174,21 @@ namespace HM
 
       size_t GetDepth() const;
       size_t GetCapacity() const;
+      size_t GetBytes() const;
+      size_t GetByteCapacity() const;
       bool GetDrainerRunning() const;
 
+      // What one event is charged beside its command's fields.
+      static size_t EventBytes();
+
    private:
+      static size_t FieldBytes_(const IMAPMoveEvent &event);
+
       mutable boost::mutex mutex_;
       std::deque<IMAPMoveEvent> pending_;
       size_t capacity_;
+      size_t byte_capacity_;
+      size_t bytes_;
       bool drainer_running_;
    };
 
@@ -181,10 +219,17 @@ namespace HM
    class IMAPMoveDispatch
    {
    public:
-      // The most events that wait at once. Each is a few hundred bytes, so a full
-      // queue is a few megabytes; a handler slower than the moves it is told of
+      // The most events that wait at once, and the most memory they take. An
+      // event's own values are a few dozen bytes; the fields a command's events
+      // share - above all the two folders' full names, which may be thousands of
+      // characters each - are held once for the command and charged once, so a
+      // full queue is at most QueueCapacity events in QueueBytes, whether one
+      // command filled it or many. A command builds no more events than there is
+      // room for (IMAPMoveEventQueue::Room), so a MOVE of a whole mailbox costs
+      // no more than that either; a handler slower than the moves it is told of
       // loses the newest rather than holding up a client or the memory.
       static const size_t QueueCapacity = 10000;
+      static const size_t QueueBytes = static_cast<size_t>(16) * 1024 * 1024;
 
       // What decides whether a MOVE's messages raise the event, as plain values.
       class Facts
@@ -217,8 +262,20 @@ namespace HM
       // all of its work. Queues the lessons and the events, and empties the record.
       static void Committed(IMAPMoveRecord &record);
 
-      // The events a record raises: one for each message of a MOVE or UID MOVE
-      // whose original was removed, when the record wants them; none for a COPY.
+      // How many events a record raises: one for each message of a MOVE or UID
+      // MOVE whose original was removed, when the record wants them; none for a
+      // COPY.
+      static size_t CountEvents(const IMAPMoveRecord &record);
+
+      // The fields the events of a record share, made once: its operation's name,
+      // the user, the account and both folders.
+      static std::shared_ptr<const IMAPMoveEventFields> FieldsOf(const IMAPMoveRecord &record);
+
+      // The events a record raises (CountEvents), in the order the command moved
+      // the messages, each holding fields - no copy of them - and no more than
+      // most of them, and never more than QueueCapacity: the first ones.
+      static std::vector<IMAPMoveEvent> EventsOf(const IMAPMoveRecord &record, std::shared_ptr<const IMAPMoveEventFields> fields,
+                                                 size_t most);
       static std::vector<IMAPMoveEvent> EventsOf(const IMAPMoveRecord &record);
 
       // The call the Windows engines are handed for the event, in the language
@@ -242,15 +299,19 @@ namespace HM
 
    private:
 
-      static void QueueEvents_(const std::vector<IMAPMoveEvent> &events);
+      static void QueueEvents_(const IMAPMoveRecord &record);
+      static const IMAPMoveEventFields &FieldsOf_(const IMAPMoveEvent &event);
       static String FolderPath_(std::shared_ptr<IMAPFolder> folder);
    };
 
    // The rules above held to examples: which MOVEs raise the event and which do
    // not (a COPY, a failed MOVE, a move of another account's folders, a public
    // folder, any switch off), one event per message whose source was removed and
-   // none for one whose was not, the queue's bound - the newest dropped, the
-   // drainer started once and again after it ends - the call text in VBScript and
+   // none for one whose was not, a MOVE of 20,000 messages between two folders
+   // with names of 6,000 characters building no more events than the queue holds
+   // and one copy of the names between them, the queue's bounds - the newest
+   // dropped, past its count and past its bytes, each command's fields charged
+   // once, the drainer started once and again after it ends - the call text in VBScript and
    // JScript with a folder name that tries to end its literal, and the container's
    // values in the handler's order; on the POSIX build a JavaScript handler called
    // as the event calls it, reading every argument. No database, no network.

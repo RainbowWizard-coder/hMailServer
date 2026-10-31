@@ -1896,12 +1896,17 @@ with `--check`).
   delegated folders. The IMAP thread only queues: the client's reply is the same with the setting on as off, and one
   task of the asynchronous work queue fires the events in order, one at a time, outside every folder lock and
   transaction, each handler under `ScriptTimeout`; a handler that fails is a Script Error in the ERROR log and changes
-  nothing of the move, and no event is fired twice. The queue holds 10,000 events in memory: past that the newest are
-  dropped with a line in the application log, and a restart of the service loses what is waiting
-  (hmailserver/docs/EventScripts.md). The `COPY` and `MOVE` commands hand SpamAssassinLearnOnMove's lessons on at the
-  same point, now one dispatch for both (`IMAP/IMAPMoveDispatch`), after a `MOVE`'s expunge where they were queued just
-  before it, and teach as they did. `imap-move-event-tests`, which debian/rules and the RPM spec run, holds the rules,
-  the queue's bound, the call text and the values, with a JavaScript handler, and ClassTester runs the same on Windows;
+  nothing of the move, and no event is fired twice. The queue holds 10,000 events in memory, and 16 MB of their
+  values: what the events of one command share - the operation, the user, the account and both folders' full names,
+  which may be thousands of characters each - is held once for them, and a command builds no more events than the
+  queue has room for, so that a `MOVE` of a whole mailbox between two folders with long names holds no more than
+  that either; past either bound the newest are dropped with a line in the application log, and a restart of the
+  service loses what is waiting (hmailserver/docs/EventScripts.md). The `COPY` and `MOVE` commands hand
+  SpamAssassinLearnOnMove's lessons on at the same point, now one dispatch for both (`IMAP/IMAPMoveDispatch`), after a
+  `MOVE`'s expunge where they were queued just before it, and teach as they did. `imap-move-event-tests`, which
+  debian/rules and the RPM spec run, holds the rules, the queue's bounds - a `MOVE` of 20,000 messages between two
+  folders with names of 6,000 characters builds no more events than the queue holds, with one copy of the names
+  between them - the call text and the values, with a JavaScript handler, and ClassTester runs the same on Windows;
   the regression fixture `IMAP.ImapMoveEvents` holds a VBScript `MOVE`, a JScript `UID MOVE`, a `COPY`, a failed
   `MOVE`, the setting off, a failing handler, the master user and the reply to the client.
 

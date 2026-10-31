@@ -233,7 +233,12 @@ event's does. A handler cannot change the move: it has happened. A handler that
 throws or runs past the timeout is reported as any handler is - a Script Error in the
 ERROR log - and the next event is fired; no event is ever fired again.
 
-**What can be lost, and when.** The queue holds at most 10,000 events. When it is
+**What can be lost, and when.** The queue holds at most 10,000 events, and at most
+16 MB of their values. What the events of one `MOVE` share - the operation, the user,
+the account and both folders' full names, which a user may make thousands of
+characters long - is held once for them, not in each, and a `MOVE` builds no more
+events than the queue has room for, so that one of a whole mailbox between two
+folders with long names takes no more memory than the queue may hold. When it is
 full - a handler slower than the moves it is told of - the newest are dropped,
 rather than a client being made to wait, and the application log says how many, once
 for each command. The queue is held in memory only: a restart of the service loses

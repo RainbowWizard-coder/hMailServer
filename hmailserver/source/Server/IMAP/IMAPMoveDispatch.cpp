@@ -30,7 +30,9 @@
 #include "../Common/Scripting/ScriptBinding.h"
 #endif
 
+#include <algorithm>
 #include <exception>
+#include <memory>
 #include <set>
 #include <stdexcept>
 
@@ -100,7 +102,7 @@ namespace HM
                   // is that event's alone: the move has happened, and the events
                   // after it are fired all the same.
                   LOG_APPLICATION(Formatter::Format("OnIMAPMessageMoved for message {0} of account {1} was not fired: {2}",
-                     event.message_id, event.account_id, error.what()));
+                     event.message_id, event.fields ? event.fields->account_id : 0, error.what()));
                }
             }
 
@@ -146,23 +148,49 @@ namespace HM
       }
    }
 
-   IMAPMoveEvent::IMAPMoveEvent() :
+   IMAPMoveEventFields::IMAPMoveEventFields() :
       account_id(0),
       source_folder_id(0),
       source_uid_validity(0),
-      source_uid(0),
       destination_folder_id(0),
-      destination_uid_validity(0),
+      destination_uid_validity(0)
+   {
+   }
+
+   size_t
+   IMAPMoveEventFields::Bytes() const
+   {
+      // Each text with its terminator, in the characters String holds.
+      const size_t characters = operation.size() + user.size() + source_folder.size() + destination_folder.size() + 4;
+      return sizeof(IMAPMoveEventFields) + characters * sizeof(String::value_type);
+   }
+
+   IMAPMoveEvent::IMAPMoveEvent() :
+      source_uid(0),
       destination_uid(0),
       source_message_id(0),
       message_id(0)
    {
    }
 
-   IMAPMoveEventQueue::IMAPMoveEventQueue(size_t capacity) :
+   IMAPMoveEventQueue::IMAPMoveEventQueue(size_t capacity, size_t byteCapacity) :
       capacity_(capacity),
+      byte_capacity_(byteCapacity),
+      bytes_(0),
       drainer_running_(false)
    {
+   }
+
+   size_t
+   IMAPMoveEventQueue::EventBytes()
+   {
+      return sizeof(IMAPMoveEvent);
+   }
+
+   size_t
+   IMAPMoveEventQueue::FieldBytes_(const IMAPMoveEvent &event)
+   {
+      return event.fields ? event.fields->Bytes() : 0;
    }
 
    size_t
@@ -178,7 +206,15 @@ namespace HM
          if (pending_.size() >= capacity_)
             break;
 
+         // The fields are charged with the first of the events that share them
+         // and wait one after the other, and given back with the last (Take).
+         const bool sharesPrevious = !pending_.empty() && pending_.back().fields == event.fields;
+         const size_t cost = EventBytes() + (sharesPrevious ? 0 : FieldBytes_(event));
+         if (cost > byte_capacity_ - std::min(bytes_, byte_capacity_))
+            break;
+
          pending_.push_back(event);
+         bytes_ += cost;
          admitted++;
       }
 
@@ -189,6 +225,21 @@ namespace HM
       }
 
       return admitted;
+   }
+
+   size_t
+   IMAPMoveEventQueue::Room(size_t fieldBytes) const
+   {
+      boost::lock_guard<boost::mutex> guard(mutex_);
+
+      if (pending_.size() >= capacity_)
+         return 0;
+
+      const size_t free = byte_capacity_ - std::min(bytes_, byte_capacity_);
+      if (free < fieldBytes + EventBytes())
+         return 0;
+
+      return std::min(capacity_ - pending_.size(), (free - fieldBytes) / EventBytes());
    }
 
    bool
@@ -204,6 +255,11 @@ namespace HM
 
       event = pending_.front();
       pending_.pop_front();
+
+      size_t given = EventBytes();
+      if (pending_.empty() || pending_.front().fields != event.fields)
+         given += FieldBytes_(event);
+      bytes_ -= std::min(bytes_, given);
       return true;
    }
 
@@ -225,6 +281,19 @@ namespace HM
    IMAPMoveEventQueue::GetCapacity() const
    {
       return capacity_;
+   }
+
+   size_t
+   IMAPMoveEventQueue::GetBytes() const
+   {
+      boost::lock_guard<boost::mutex> guard(mutex_);
+      return bytes_;
+   }
+
+   size_t
+   IMAPMoveEventQueue::GetByteCapacity() const
+   {
+      return byte_capacity_;
    }
 
    bool
@@ -372,44 +441,85 @@ namespace HM
       if (!rspamdLessons.empty())
          RspamdLearner::Queue(rspamdLessons);
 
-      const std::vector<IMAPMoveEvent> events = EventsOf(record);
-      if (!events.empty())
-         QueueEvents_(events);
+      if (CountEvents(record) > 0)
+         QueueEvents_(record);
 
       record.Clear();
+   }
+
+   size_t
+   IMAPMoveDispatch::CountEvents(const IMAPMoveRecord &record)
+   {
+      // A COPY moves nothing, and a COPY followed by a STORE and an EXPUNGE is
+      // three commands, which nothing here joins into a move.
+      if (record.operation != IMAPMoveRecord::OperationMove && record.operation != IMAPMoveRecord::OperationUidMove)
+         return 0;
+
+      if (!record.events_wanted)
+         return 0;
+
+      // A message whose original the expunge did not delete is in both folders:
+      // not moved.
+      size_t count = 0;
+      for (const IMAPMoveRecord::Moved &item : record.moved)
+      {
+         if (item.source_removed)
+            count++;
+      }
+
+      return count;
+   }
+
+   std::shared_ptr<const IMAPMoveEventFields>
+   IMAPMoveDispatch::FieldsOf(const IMAPMoveRecord &record)
+   {
+      std::shared_ptr<IMAPMoveEventFields> fields = std::make_shared<IMAPMoveEventFields>();
+      fields->operation = OperationName(record.operation);
+      fields->user = record.user;
+      fields->account_id = record.account_id;
+      fields->source_folder_id = record.source_folder_id;
+      fields->source_folder = record.source_folder;
+      fields->source_uid_validity = record.source_uid_validity;
+      fields->destination_folder_id = record.destination_folder_id;
+      fields->destination_folder = record.destination_folder;
+      fields->destination_uid_validity = record.destination_uid_validity;
+      return fields;
    }
 
    std::vector<IMAPMoveEvent>
    IMAPMoveDispatch::EventsOf(const IMAPMoveRecord &record)
    {
+      if (CountEvents(record) == 0)
+         return std::vector<IMAPMoveEvent>();
+
+      return EventsOf(record, FieldsOf(record), QueueCapacity);
+   }
+
+   std::vector<IMAPMoveEvent>
+   IMAPMoveDispatch::EventsOf(const IMAPMoveRecord &record, std::shared_ptr<const IMAPMoveEventFields> fields, size_t most)
+   {
       std::vector<IMAPMoveEvent> events;
 
-      // A COPY moves nothing, and a COPY followed by a STORE and an EXPUNGE is
-      // three commands, which nothing here joins into a move.
-      if (record.operation != IMAPMoveRecord::OperationMove && record.operation != IMAPMoveRecord::OperationUidMove)
+      // By value: std::min takes its arguments by reference, which QueueCapacity, a
+      // constant with no definition of its own, is not to be bound to.
+      const size_t capacity = QueueCapacity;
+      const size_t count = std::min(std::min(CountEvents(record), most), capacity);
+      if (count == 0 || !fields)
          return events;
 
-      if (!record.events_wanted)
-         return events;
+      events.reserve(count);
 
       for (const IMAPMoveRecord::Moved &item : record.moved)
       {
-         // A message whose original the expunge did not delete is in both folders:
-         // not moved.
+         if (events.size() >= count)
+            break;
+
          if (!item.source_removed)
             continue;
 
          IMAPMoveEvent event;
-         event.operation = OperationName(record.operation);
-         event.user = record.user;
-         event.account_id = record.account_id;
-         event.source_folder_id = record.source_folder_id;
-         event.source_folder = record.source_folder;
-         event.source_uid_validity = record.source_uid_validity;
+         event.fields = fields;
          event.source_uid = item.source_uid;
-         event.destination_folder_id = record.destination_folder_id;
-         event.destination_folder = record.destination_folder;
-         event.destination_uid_validity = record.destination_uid_validity;
          event.destination_uid = item.destination_uid;
          event.source_message_id = item.source_message_id;
          event.message_id = item.message_id;
@@ -442,24 +552,33 @@ namespace HM
    {
       // Never freed: a drainer task the asynchronous work queue frees as the
       // process ends still tells it it has ended.
-      static IMAPMoveEventQueue *queue = new IMAPMoveEventQueue(QueueCapacity);
+      static IMAPMoveEventQueue *queue = new IMAPMoveEventQueue(QueueCapacity, QueueBytes);
       return *queue;
    }
 
    void
-   IMAPMoveDispatch::QueueEvents_(const std::vector<IMAPMoveEvent> &events)
+   IMAPMoveDispatch::QueueEvents_(const IMAPMoveRecord &record)
    {
-      bool startDrainer = false;
-      const size_t admitted = Queue().Offer(events, startDrainer);
+      const size_t raised = CountEvents(record);
 
-      if (admitted < events.size())
+      // The fields once for the command, and no more events built than the queue
+      // has room for now: a MOVE of a whole mailbox between two folders with long
+      // names holds no more memory on this thread than the queue may.
+      std::shared_ptr<const IMAPMoveEventFields> fields = FieldsOf(record);
+      const std::vector<IMAPMoveEvent> events = EventsOf(record, fields, Queue().Room(fields->Bytes()));
+
+      bool startDrainer = false;
+      const size_t admitted = events.empty() ? 0 : Queue().Offer(events, startDrainer);
+
+      if (admitted < raised)
       {
          // The client is not made to wait for a script: the newest are dropped,
          // and said so, once for the command.
          LOG_APPLICATION(Formatter::Format("OnIMAPMessageMoved: {0} of the {1} messages a {2} by {3} moved were not queued for the event script, "
-            "because {4} events are waiting already, the most there may be. The handler is slower than the moves it is told of.",
-            (unsigned __int64) (events.size() - admitted), (unsigned __int64) events.size(), events.front().operation,
-            events.front().user, (unsigned __int64) Queue().GetCapacity()));
+            "because the events waiting already are the most there may be ({4}). The handler is slower than the moves it is told of.",
+            (unsigned __int64) (raised - admitted), (unsigned __int64) raised, fields->operation, fields->user,
+            Formatter::Format("{0} events, or {1} bytes of their values", (unsigned __int64) Queue().GetCapacity(),
+               (unsigned __int64) Queue().GetByteCapacity())));
       }
 
       if (!startDrainer)
@@ -477,6 +596,14 @@ namespace HM
       // It runs a script, which may block for as long as the script timeout:
       // TaskMayBlock keeps it within the queue's cap for such tasks.
       workQueue->AddTask(std::shared_ptr<Task>(new IMAPMoveEventTask()), WorkQueue::TaskMayBlock);
+   }
+
+   const IMAPMoveEventFields &
+   IMAPMoveDispatch::FieldsOf_(const IMAPMoveEvent &event)
+   {
+      // An event made by hand without them, as a test makes one, reads as empty.
+      static const IMAPMoveEventFields none;
+      return event.fields ? *event.fields : none;
    }
 
    String
@@ -502,17 +629,19 @@ namespace HM
          return Formatter::Format("{0}", value);
       };
 
+      const IMAPMoveEventFields &fields = FieldsOf_(event);
+
       String call = _T("OnIMAPMessageMoved(HMAILSERVER_ACCOUNT, ");
       call += text(event.event_id) + _T(", ");
-      call += text(event.operation) + _T(", ");
-      call += text(event.user) + _T(", ");
-      call += number((unsigned __int64) event.source_folder_id) + _T(", ");
-      call += text(event.source_folder) + _T(", ");
-      call += number(event.source_uid_validity) + _T(", ");
+      call += text(fields.operation) + _T(", ");
+      call += text(fields.user) + _T(", ");
+      call += number((unsigned __int64) fields.source_folder_id) + _T(", ");
+      call += text(fields.source_folder) + _T(", ");
+      call += number(fields.source_uid_validity) + _T(", ");
       call += number(event.source_uid) + _T(", ");
-      call += number((unsigned __int64) event.destination_folder_id) + _T(", ");
-      call += text(event.destination_folder) + _T(", ");
-      call += number(event.destination_uid_validity) + _T(", ");
+      call += number((unsigned __int64) fields.destination_folder_id) + _T(", ");
+      call += text(fields.destination_folder) + _T(", ");
+      call += number(fields.destination_uid_validity) + _T(", ");
       call += number(event.destination_uid) + _T(", ");
       call += number((unsigned __int64) event.source_message_id) + _T(", ");
       call += number((unsigned __int64) event.message_id) + _T(")");
@@ -528,16 +657,17 @@ namespace HM
       // In the handler's order, after the account: the values the JavaScript
       // engine calls it with (ScriptArgument). The Windows engines read the call
       // text BuildCall makes instead.
+      const IMAPMoveEventFields &fields = FieldsOf_(event);
       container->AddTextArgument(event.event_id);
-      container->AddTextArgument(event.operation);
-      container->AddTextArgument(event.user);
-      container->AddNumberArgument((long long) event.source_folder_id);
-      container->AddTextArgument(event.source_folder);
-      container->AddNumberArgument((long long) event.source_uid_validity);
+      container->AddTextArgument(fields.operation);
+      container->AddTextArgument(fields.user);
+      container->AddNumberArgument((long long) fields.source_folder_id);
+      container->AddTextArgument(fields.source_folder);
+      container->AddNumberArgument((long long) fields.source_uid_validity);
       container->AddNumberArgument((long long) event.source_uid);
-      container->AddNumberArgument((long long) event.destination_folder_id);
-      container->AddTextArgument(event.destination_folder);
-      container->AddNumberArgument((long long) event.destination_uid_validity);
+      container->AddNumberArgument((long long) fields.destination_folder_id);
+      container->AddTextArgument(fields.destination_folder);
+      container->AddNumberArgument((long long) fields.destination_uid_validity);
       container->AddNumberArgument((long long) event.destination_uid);
       container->AddNumberArgument((long long) event.source_message_id);
       container->AddNumberArgument((long long) event.message_id);
@@ -555,13 +685,16 @@ namespace HM
          return;
       }
 
+      if (!event.fields)
+         return;
+
       // Read now, on this thread, so that the handler is given the account as it
       // is: the one the IMAP session holds may be a cached copy.
       std::shared_ptr<Account> account = std::shared_ptr<Account>(new Account);
-      if (!PersistentAccount::ReadObject(account, event.account_id))
+      if (!PersistentAccount::ReadObject(account, event.fields->account_id))
       {
          LOG_APPLICATION(Formatter::Format("OnIMAPMessageMoved for message {0} not fired: account {1} could not be read; it may have been deleted since the move.",
-            event.message_id, event.account_id));
+            event.message_id, event.fields->account_id));
          return;
       }
 
@@ -641,18 +774,21 @@ namespace HM
 
       IMAPMoveEvent SampleEvent()
       {
+         std::shared_ptr<IMAPMoveEventFields> fields = std::make_shared<IMAPMoveEventFields>();
+         fields->operation = _T("UID MOVE");
+         fields->user = _T("owner@example.test");
+         fields->account_id = 7;
+         fields->source_folder_id = 11;
+         fields->source_folder = _T("Say \"hi\" it's a \\ folder");
+         fields->source_uid_validity = 1761800000;
+         fields->destination_folder_id = 12;
+         fields->destination_folder = _T("Junk");
+         fields->destination_uid_validity = 1761800100;
+
          IMAPMoveEvent event;
          event.event_id = _T("{0F0E0D0C-0B0A-4908-8706-050403020100}");
-         event.operation = _T("UID MOVE");
-         event.user = _T("owner@example.test");
-         event.account_id = 7;
-         event.source_folder_id = 11;
-         event.source_folder = _T("Say \"hi\" it's a \\ folder");
-         event.source_uid_validity = 1761800000;
+         event.fields = fields;
          event.source_uid = 41;
-         event.destination_folder_id = 12;
-         event.destination_folder = _T("Junk");
-         event.destination_uid_validity = 1761800100;
          event.destination_uid = 2;
          event.source_message_id = 501;
          event.message_id = 3000000000LL;
@@ -717,17 +853,21 @@ namespace HM
          "the first event is the first message's, with its UIDs and ids");
       Expect(events[1].source_uid == 42 && events[1].destination_uid == 3 && events[1].source_message_id == 502 && events[1].message_id == 902,
          "the second event is the third message's, in the order the command moved them");
-      Expect(events[0].operation == _T("MOVE") && events[0].user == _T("owner@example.test") && events[0].account_id == 7,
+      Expect(events[0].fields && events[0].fields->operation == _T("MOVE") && events[0].fields->user == _T("owner@example.test") &&
+             events[0].fields->account_id == 7,
          "an event names the operation, the user and the account");
-      Expect(events[1].source_folder_id == 11 && events[1].source_folder == _T("INBOX") && events[1].source_uid_validity == 1761800000 &&
-             events[1].destination_folder_id == 12 && events[1].destination_folder == _T("Archive.2026") && events[1].destination_uid_validity == 1761800100,
+      Expect(events[1].fields && events[1].fields->source_folder_id == 11 && events[1].fields->source_folder == _T("INBOX") &&
+             events[1].fields->source_uid_validity == 1761800000 && events[1].fields->destination_folder_id == 12 &&
+             events[1].fields->destination_folder == _T("Archive.2026") && events[1].fields->destination_uid_validity == 1761800100,
          "an event names both folders, by id and name, with their UIDVALIDITY");
+      Expect(events[0].fields == events[1].fields, "the events of one command share its fields");
+      Expect(IMAPMoveDispatch::CountEvents(record) == 2, "the count of a record's events is the count of its messages whose original was removed");
       Expect(events[0].event_id.IsEmpty(), "an event's id is made when it is fired, not when it is queued");
 
       IMAPMoveRecord uidMove = ThreeMoves(IMAPMoveRecord::OperationUidMove);
       uidMove.MarkSourcesRemoved(deleted);
       events = IMAPMoveDispatch::EventsOf(uidMove);
-      Expect(events.size() == 2 && events[0].operation == _T("UID MOVE"), "a UID MOVE raises the same events, named UID MOVE");
+      Expect(events.size() == 2 && events[0].fields->operation == _T("UID MOVE"), "a UID MOVE raises the same events, named UID MOVE");
 
       IMAPMoveRecord copy = ThreeMoves(IMAPMoveRecord::OperationCopy);
       copy.MarkSourcesRemoved(deleted);
@@ -747,8 +887,85 @@ namespace HM
       failed.Clear();
       Expect(IMAPMoveDispatch::EventsOf(failed).empty() && failed.lessons.empty(), "a MOVE that failed and was rolled back raises nothing and teaches nothing");
 
+      // A MOVE of a whole mailbox between two folders with names of thousands of
+      // characters: one copy of each name, shared by its events, and never more
+      // events than the queue holds - nor than it has room for.
+      {
+         IMAPMoveRecord large = ThreeMoves(IMAPMoveRecord::OperationMove);
+         large.source_folder = String(6000, _T('s'));
+         large.destination_folder = String(6000, _T('d'));
+         large.moved.clear();
+
+         std::vector<__int64> removed;
+         for (unsigned int i = 0; i < 20000; i++)
+         {
+            IMAPMoveRecord::Moved item;
+            item.source_uid = 1 + i;
+            item.destination_uid = 1 + i;
+            item.source_message_id = 100000 + i;
+            item.message_id = 200000 + i;
+            large.moved.push_back(item);
+            removed.push_back(100000 + i);
+         }
+         large.MarkSourcesRemoved(removed);
+
+         Expect(IMAPMoveDispatch::CountEvents(large) == 20000, "a MOVE of 20,000 messages raises 20,000 events");
+
+         std::vector<IMAPMoveEvent> built = IMAPMoveDispatch::EventsOf(large);
+         Expect(built.size() == IMAPMoveDispatch::QueueCapacity, "a MOVE of 20,000 messages builds no more events than the queue holds");
+         Expect(built.front().source_uid == 1 && built.back().source_uid == IMAPMoveDispatch::QueueCapacity,
+            "the events built are the first messages', in the order the command moved them");
+
+         std::set<const IMAPMoveEventFields *> distinct;
+         for (const IMAPMoveEvent &item : built)
+            distinct.insert(item.fields.get());
+         Expect(distinct.size() == 1 && built.front().fields.use_count() == static_cast<long>(built.size()),
+            "the events of a MOVE hold one copy of its fields between them");
+         Expect(built.front().fields->source_folder.size() == 6000 && built.front().fields->destination_folder.size() == 6000,
+            "the shared fields are the folders' whole names");
+
+         std::shared_ptr<const IMAPMoveEventFields> fields = IMAPMoveDispatch::FieldsOf(large);
+         Expect(fields->Bytes() >= 12000 * sizeof(String::value_type), "the fields are charged their names' length");
+         Expect(IMAPMoveDispatch::EventsOf(large, fields, 5).size() == 5, "a command builds no more events than it is given room for");
+         Expect(IMAPMoveDispatch::EventsOf(large, fields, 0).empty(), "and none when there is no room");
+
+         // The queue charges a command's fields once, and holds its bytes: room
+         // for two commands of one message each, and two more events.
+         const size_t eventBytes = IMAPMoveEventQueue::EventBytes();
+         IMAPMoveEventQueue bytes(IMAPMoveDispatch::QueueCapacity, (fields->Bytes() + eventBytes) * 2 + eventBytes * 2);
+         Expect(bytes.Room(fields->Bytes()) == 4 + fields->Bytes() / eventBytes, "an empty queue has room for as many events of a command as its bytes hold");
+
+         bool start = false;
+         Expect(bytes.Offer(IMAPMoveDispatch::EventsOf(large, fields, 3), start) == 3 && start, "the events of one command are taken");
+         Expect(bytes.GetBytes() == fields->Bytes() + 3 * eventBytes, "and charged their fields once");
+
+         size_t commands = 1;
+         for (int i = 0; i < 10; i++)
+         {
+            std::shared_ptr<const IMAPMoveEventFields> own = IMAPMoveDispatch::FieldsOf(large);
+            if (bytes.Offer(IMAPMoveDispatch::EventsOf(large, own, 1), start) == 1)
+               commands++;
+         }
+         Expect(commands == 2, "commands each with fields of their own are taken only while their fields fit in the queue's bytes");
+         Expect(bytes.GetBytes() <= bytes.GetByteCapacity(), "the queue never holds more than its bytes");
+         Expect(bytes.Room(fields->Bytes()) == 0, "a queue whose bytes are taken has no room for another command's fields");
+
+         IMAPMoveEvent drained;
+         size_t taken = 0;
+         while (bytes.Take(drained))
+            taken++;
+         Expect(taken == 4 && bytes.GetBytes() == 0, "every byte charged is given back as the events are taken");
+
+         IMAPMoveEventQueue server(IMAPMoveDispatch::QueueCapacity, IMAPMoveDispatch::QueueBytes);
+         const size_t room = server.Room(fields->Bytes());
+         Expect(room == IMAPMoveDispatch::QueueCapacity, "the server's empty queue has room for a whole command of such names");
+         Expect(server.Offer(IMAPMoveDispatch::EventsOf(large, fields, room), start) == room && server.GetBytes() <= IMAPMoveDispatch::QueueBytes,
+            "and holds it within its bytes");
+         Expect(server.Room(fields->Bytes()) == 0, "a full queue has no room");
+      }
+
       // The queue's bound: the newest dropped, one drainer at a time.
-      IMAPMoveEventQueue queue(3);
+      IMAPMoveEventQueue queue(3, IMAPMoveDispatch::QueueBytes);
       bool start = false;
       Expect(queue.Offer(Events(2), start) == 2 && start, "the first events are taken, and a drainer is to be started");
       Expect(queue.Offer(Events(2), start) == 1 && !start, "past the bound the newest are dropped, and no second drainer is started");
@@ -767,6 +984,7 @@ namespace HM
       Expect(queue.Offer(Events(1), start) == 1 && start, "and the next offer starts a drainer for it");
 
       Expect(IMAPMoveDispatch::Queue().GetCapacity() == IMAPMoveDispatch::QueueCapacity, "the server's queue holds QueueCapacity events");
+      Expect(IMAPMoveDispatch::Queue().GetByteCapacity() == IMAPMoveDispatch::QueueBytes, "in QueueBytes");
 
       // The call text, every text a literal whole.
       IMAPMoveEvent event = SampleEvent();
@@ -791,7 +1009,7 @@ namespace HM
       Expect(arguments.size() == 13, "thirteen values follow the account");
       Expect(arguments[0].kind == ScriptArgument::KindText && arguments[0].text == event.event_id, "the event's id");
       Expect(arguments[1].text == _T("UID MOVE") && arguments[2].text == _T("owner@example.test"), "the operation and the user");
-      Expect(arguments[3].kind == ScriptArgument::KindNumber && arguments[3].number == 11 && arguments[4].text == event.source_folder &&
+      Expect(arguments[3].kind == ScriptArgument::KindNumber && arguments[3].number == 11 && arguments[4].text == event.fields->source_folder &&
              arguments[5].number == 1761800000 && arguments[6].number == 41, "the source folder's id, name and UIDVALIDITY, and the source UID");
       Expect(arguments[7].number == 12 && arguments[8].text == _T("Junk") && arguments[9].number == 1761800100 && arguments[10].number == 2,
          "the destination folder's id, name and UIDVALIDITY, and the destination UID");
