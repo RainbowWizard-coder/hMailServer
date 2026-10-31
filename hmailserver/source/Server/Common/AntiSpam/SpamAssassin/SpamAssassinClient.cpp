@@ -10,6 +10,7 @@
 #include "../../Util/ByteBuffer.h"
 #include "../../Util/File.h"
 #include "../../Util/FileUtilities.h"
+#include "../../Util/Unicode.h"
 
 #include "../../Application/TimeoutCalculator.h"
 
@@ -20,6 +21,62 @@
 
 namespace HM
 {
+   bool
+   SpamAssassinClient::UserBytes(const String &user, AnsiString &bytes)
+   {
+      bytes.Empty();
+
+      // A control character - a line break most of all, which would end the header
+      // and start another - is refused before anything is written. Every byte of
+      // the result is then 0x20 or above: UTF-8 writes no byte below 0x80 for a
+      // character above U+007F.
+      for (int i = 0; i < user.GetLength(); i++)
+      {
+         const unsigned int value = (unsigned int) user[i];
+         if (value < 0x20 || value == 0x7F)
+            return false;
+      }
+
+      AnsiString written;
+#ifndef HM_PLATFORM_POSIX
+      bool latin1 = true;
+      for (int i = 0; i < user.GetLength() && latin1; i++)
+         latin1 = (unsigned int) user[i] <= 0xFF;
+
+      if (latin1)
+      {
+         std::string narrow;
+         for (int i = 0; i < user.GetLength(); i++)
+            narrow += (char) (unsigned char) user[i];
+         written = narrow.c_str();
+      }
+      else if (!Unicode::ToUtf8Canonical(user, written))
+         return false;
+#else
+      if (!Unicode::ToUtf8Canonical(user, written))
+         return false;
+#endif
+
+      bytes = written;
+      return true;
+   }
+
+   AnsiString
+   SpamAssassinClient::UserHeaderValue(const String &user)
+   {
+      if (user.IsEmpty())
+         return AnsiString();
+
+      AnsiString bytes;
+      if (UserBytes(user, bytes))
+         return bytes;
+
+      ErrorManager::Instance()->ReportError(ErrorManager::Medium, 5514, "SpamAssassinClient::UserHeaderValue",
+         Formatter::Format("The SpamAssassin user {0} holds a control character or half of a surrogate pair, which spamd's User: header cannot "
+            "carry, so this request goes without it and spamd uses its default user's preferences.", user));
+      return AnsiString();
+   }
+
    SpamAssassinClient::SpamAssassinClient(const String &sFile,
                                           boost::asio::io_context& io_context, 
                                           boost::asio::ssl::context& context,
@@ -561,5 +618,62 @@ namespace HM
          FileUtilities::DeleteFile(result_->GetName());
          result_ = nullptr;
       }
+   }
+
+   void
+   SpamAssassinUserTester::Test()
+   {
+      struct Case
+      {
+         const wchar_t *user;
+         const char *bytes;
+      };
+
+      // ASCII as it is; a name within Latin-1 as UTF-8 on POSIX, as its bytes on
+      // Windows (as up to 6.3.7 there); a name beyond U+00FF as UTF-8 on both;
+      // an address held as its UTF-8 bytes widened, as SMTP gives one, as those
+      // bytes on both. Up to 6.3.7 Linux sent nothing for any of the last three,
+      // and Windows nothing for the one beyond U+00FF.
+      const wchar_t latin1[] = { L'j', 0x00F6, L'r', L'g', 0 };
+      const wchar_t beyond[] = { L'z', 0x00E9, 0x65E5, L'@', L'x', L'.', L't', L'e', L's', L't', 0 };
+      const wchar_t widened[] = { 0x00C3, 0x00A9, L'@', L'x', L'.', L't', L'e', L's', L't', 0 };
+      const Case cases[] =
+      {
+         { L"spamd-user_1@example.test", "spamd-user_1@example.test" },
+#ifdef HM_PLATFORM_POSIX
+         { latin1, "j\xC3\xB6rg" },
+#else
+         { latin1, "j\xF6rg" },
+#endif
+         { beyond, "z\xC3\xA9\xE6\x97\xA5@x.test" },
+         { widened, "\xC3\xA9@x.test" },
+      };
+
+      for (const Case &item : cases)
+      {
+         AnsiString bytes;
+         if (!SpamAssassinClient::UserBytes(String(item.user), bytes) || bytes != AnsiString(item.bytes))
+            throw std::logic_error(std::string("SpamAssassinUserTester: a user went to spamd as [") + bytes.c_str() + "], not as [" + item.bytes + "]");
+      }
+
+      // A control character - a line break would end the header and begin
+      // another - and half of a surrogate pair: refused, nothing written.
+      String broken(_T("user"));
+      broken += (wchar_t) 0x0D;
+      broken += _T("\nSet: local");
+      String lone(_T("half"));
+      lone += (wchar_t) 0xD800;
+      String deleteCharacter(_T("a"));
+      deleteCharacter += (wchar_t) 0x7F;
+      for (const String &refused : { broken, lone, deleteCharacter })
+      {
+         AnsiString bytes;
+         if (SpamAssassinClient::UserBytes(refused, bytes) || !bytes.IsEmpty())
+            throw std::logic_error("SpamAssassinUserTester: a user spamd's User: header cannot carry was not refused");
+      }
+
+      AnsiString none;
+      if (!SpamAssassinClient::UserBytes(String(), none) || !none.IsEmpty())
+         throw std::logic_error("SpamAssassinUserTester: an empty user did not give an empty header value");
    }
 }

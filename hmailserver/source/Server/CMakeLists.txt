@@ -1195,6 +1195,18 @@ add_executable(connection-string-tests ${SERVER_DIR}/platform/connection_string_
 target_link_libraries(connection-string-tests PRIVATE hmailserver_core)
 set_target_properties(connection-string-tests PROPERTIES OUTPUT_NAME connection-string-tests)
 
+# ---------------------------------------------------------------- the narrow forms of text
+#
+# FormatterTester (Common/Util/Strings/Formatter.h) and SpamAssassinUserTester
+# (Common/AntiSpam/SpamAssassin/SpamAssassinClient.h), which ClassTester runs
+# inside the Windows server: Unicode::ToANSI's bytes, the same as Windows' on
+# every C library and LANG, FormatAsAnsi with each count of arguments, and the
+# bytes of spamd's User: header. No configuration, network or spamd. Not
+# installed; a bench tool.
+add_executable(unicode-tests ${SERVER_DIR}/platform/unicode_tests_main.cpp)
+target_link_libraries(unicode-tests PRIVATE hmailserver_core)
+set_target_properties(unicode-tests PROPERTIES OUTPUT_NAME unicode-tests)
+
 # ---------------------------------------------------------------- the database's row counts and UTC clock
 #
 # DatabaseClaimTester (Common/SQL/DatabaseClaimTester.h) as a program of its own:

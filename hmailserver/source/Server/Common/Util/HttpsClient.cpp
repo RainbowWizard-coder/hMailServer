@@ -1153,7 +1153,7 @@ namespace HM
 
             if (trustFile)
             {
-               const AnsiString narrowCaFile = ca_file->c_str();
+               const AnsiString narrowCaFile = FileUtilities::NarrowPath(*ca_file);
                boost::system::error_code loaded;
                sslContext.load_verify_file(std::string(narrowCaFile.c_str()), loaded);
                if (loaded)
@@ -1400,7 +1400,7 @@ namespace HM
             // not, so the path is narrowed here the way the rest of the tree narrows
             // a String for an API that takes char - the string class does the
             // conversion on construction.
-            const AnsiString narrowPath = path.c_str();
+            const AnsiString narrowPath = FileUtilities::NarrowPath(path);
             sink.open(narrowPath.c_str(), std::ios::binary | std::ios::trunc);
 #else
             sink.open(path.c_str(), std::ios::binary | std::ios::trunc);

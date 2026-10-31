@@ -161,7 +161,7 @@ namespace HM
       {
          // A narrow path on POSIX: libstdc++'s streams take no wide one.
 #ifdef HM_PLATFORM_POSIX
-         const AnsiString narrowListFile(listFile);
+         const AnsiString narrowListFile(FileUtilities::NarrowPath(listFile));
          std::ofstream out(narrowListFile.c_str(), std::ios::binary | std::ios::trunc);
 #else
          std::ofstream out(listFile.c_str(), std::ios::binary | std::ios::trunc);
@@ -716,9 +716,13 @@ namespace HM
             if (directory.IsEmpty())
                continue;
 
+            // Read back as UTF-8, as every file name here is (FileUtilities::
+            // WidePath): the program's name is handed to execvp in UTF-8 again. A
+            // directory of PATH that is not UTF-8 is passed over.
             AnsiString full = directory + "/" + candidate;
-            if (::access(full.c_str(), X_OK) == 0)
-               return String(full);
+            String wide;
+            if (::access(full.c_str(), X_OK) == 0 && FileUtilities::WidePath(full.c_str(), wide))
+               return wide;
          }
       }
 

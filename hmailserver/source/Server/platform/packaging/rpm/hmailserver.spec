@@ -228,9 +228,11 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 # String::Format's text for every character outside ASCII, held to glibc's
 # vswprintf and read back from the logs (a scratch directory too), which IMAP
 # moves raise the event script's OnIMAPMessageMoved, with a JavaScript handler
-# called as the event calls it (a scratch directory too), and which IMAP moves
+# called as the event calls it (a scratch directory too), which IMAP moves
 # teach the spam filter from the Junk folder, for SpamAssassin and for Rspamd,
-# and the request a lesson to Rspamd is (a scratch directory too) - the list
+# and the request a lesson to Rspamd is (a scratch directory too), and the
+# narrow forms of text, Unicode::ToANSI's bytes, FormatAsAnsi's arguments and
+# spamd's User: header - the list
 # debian/rules runs, and build/check-source-tarball.py holds both to every
 # *-tests program CMakeLists.txt makes by add_executable but those it leaves
 # out, each with its reason, and this section, but for its comments, which
@@ -242,7 +244,7 @@ install -d -m 0750 %{buildroot}%{_localstatedir}/log/hmailserver
 cd %{hm_builddir}
 echo "== hmailserver --version"
 ./hmailserver --version
-for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests connection-string-tests language-tests live-log-tests profiles-tests inline-script-hash-tests signature-html-sanitizer-tests mailbox-crypto-tests greylist-keys-tests never-ban-tests autoban-widen-tests deflate-tests dane-tests sign-in-budget-tests openapi-tests idna-tests acme-tests quarantine-search-tests report-parser-tests notification-server-tests stopped-servers-tests string-format-tests imap-move-event-tests move-learning-tests; do
+for tester in spf-tests script-binding-tests snmp-tests object-store-signature-tests singleton-tests legacy-blowfish-tests xml-tree-tests datetime-tests public-suffix-tests backup-tests trust-anchor-tests business-object-tests tls-options-tests update-feed-tests imip-tests file-utilities-tests media-type-tests scram-tests ini-file-tests connection-string-tests language-tests live-log-tests profiles-tests inline-script-hash-tests signature-html-sanitizer-tests mailbox-crypto-tests greylist-keys-tests never-ban-tests autoban-widen-tests deflate-tests dane-tests sign-in-budget-tests openapi-tests idna-tests acme-tests quarantine-search-tests report-parser-tests notification-server-tests stopped-servers-tests string-format-tests imap-move-event-tests move-learning-tests unicode-tests; do
   echo "== $tester"
   ./$tester
 done

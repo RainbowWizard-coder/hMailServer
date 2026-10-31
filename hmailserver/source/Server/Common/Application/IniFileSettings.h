@@ -599,7 +599,11 @@ namespace HM
       void SetDatabaseServer(const String &sNewValue);
       void SetDatabaseName(const String &sNewValue);
       void SetUsername(const String &sNewValue);
-      void SetPassword(const String &sNewValue);
+      // False when the password was not written - the secret store refused it on
+      // Linux (HM6418), or the legacy Blowfish scheme the file falls back to
+      // cannot carry it (HM7279, which says why) - and the file and this process
+      // keep the password they had.
+      bool SetPassword(const String &sNewValue);
       void SetDatabaseType(DatabaseSettings::SQLDBType type);
       void SetDatabasePort(long lNewValue);
       void SetIsInternalDatabase(bool newValue);
@@ -1500,9 +1504,10 @@ namespace HM
       String GetAutoconfigClientHost() const { return Current()->autoconfig_client_host_; }
       std::set<int> GetAuthDisabledOnPorts();
 
-   private:   
+   private:
 
       void WriteIniSetting_(const String &sSection, const String &sKey, const String &sValue);
+      void SetPasswordInMemory_(const String &password);
 
       // A [Directories] value that is not a full path is taken to be relative to
       // the program folder, so that an installation can be written to be movable

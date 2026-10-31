@@ -311,7 +311,7 @@ namespace HM
       // there, and the caller treats it the same way.
       struct stat attributes;
 
-      if (::stat(AnsiString(fileName).c_str(), &attributes) != 0)
+      if (::stat(FileUtilities::NarrowPath(fileName).c_str(), &attributes) != 0)
          return false;
 
       size = (unsigned __int64) attributes.st_size;
@@ -728,7 +728,7 @@ namespace HM
             // property this line depends on - a reader of the state file never
             // sees a half-written one. It does not retry either, which is the
             // other property the comment below is about.
-            else if (::rename(AnsiString(tempFileName).c_str(), AnsiString(fileName).c_str()) != 0)
+            else if (::rename(FileUtilities::NarrowPath(tempFileName).c_str(), FileUtilities::NarrowPath(fileName).c_str()) != 0)
             {
                // rename rather than FileUtilities::Move: Move retries five times
                // with a 250ms sleep between attempts, and this runs on a connection
@@ -1228,7 +1228,7 @@ namespace HM
       // the nanoseconds of the last write, and a file that cannot be stat'ed
       // leaves the token at zero exactly as a failed GetFileAttributesEx does.
       struct stat attributes;
-      if (::stat(AnsiString(iniFile).c_str(), &attributes) == 0)
+      if (::stat(FileUtilities::NarrowPath(iniFile).c_str(), &attributes) == 0)
       {
          writeTime = (ULONGLONG) attributes.st_mtim.tv_sec * 1000000000ULL +
                      (ULONGLONG) attributes.st_mtim.tv_nsec;

@@ -595,7 +595,7 @@ namespace HM
 #ifdef HM_PLATFORM_POSIX
          // The path narrowed as File::Open narrows it, so that the file named is
          // the file FileUtilities::Exists found.
-         const AnsiString narrowPath = path;
+         const AnsiString narrowPath = FileUtilities::NarrowPath(path);
          const int descriptor = ::open(narrowPath.c_str(), O_RDONLY | O_CLOEXEC | O_NOCTTY);
          if (descriptor < 0)
          {
@@ -715,7 +715,10 @@ namespace HM
 #ifdef HM_PLATFORM_POSIX
          if (::geteuid() == 0)
          {
-            std::fprintf(stderr, "HM%d: %s\n", code, AnsiString(message).c_str());
+            // UTF-8, as every other line a command prints is.
+            AnsiString text;
+            Unicode::WideToMultiByte(message, text);
+            std::fprintf(stderr, "HM%d: %s\n", code, text.c_str());
             return;
          }
 #else

@@ -15,6 +15,7 @@
 #include "../Common/SQL/SQLScriptParser.h"
 #include "../Common/SQL/SQLScriptRunner.h"
 
+#include "../Common/Util/LegacyBlowfish.h"
 #include "../Common/Util/PasswordGenerator.h"
 #include "../Common/Application/ErrorManager.h"
 #include "../Common/Application/NewInstallDefaults.h"
@@ -473,6 +474,31 @@ static HM::String DatabaseRefusal_()
       _T("Set the database up while the service runs as LocalSystem, as the installer does: from an elevated prompt in the Bin folder, hMailServer.exe --service-account localsystem /Register, restart the service, run DBSetup.exe, then hMailServer.exe --confirm /GrantServiceAccess and hMailServer.exe --service-account virtual /Register, and restart it again. Or change [Database] in the file with an editor run as an administrator and restart the service."));
 }
 
+// The refusal IniFileSettings::SetPassword would make of a password the legacy
+// Blowfish scheme cannot carry where the machine's own store is not used,
+// said before anything is created; empty when it would be written.
+static HM::String PasswordRefusal_(const HM::String &password)
+{
+   if (HM::IniFileSettings::Instance()->GetProtectStoredSecretsWithDPAPI())
+      return HM::String();
+
+   const HM::String refusal = HM::LegacyBlowfish::Refusal(password);
+   if (refusal.IsEmpty())
+      return HM::String();
+
+   return _T("The database's password cannot be kept in hMailServer.INI: ProtectStoredSecretsWithDPAPI is 0, and the legacy Blowfish scheme the file then keeps it in refuses it: ") +
+      refusal + _T(". Nothing was created or changed.");
+}
+
+// What a database change answers when its password was not written to the file
+// after all (IniFileSettings::SetPassword, whose error-log line says why): the
+// file still names the database it named before, since the password is written
+// first. Up to 6.3.7 the change was reported done whatever was written.
+static HM::String PasswordNotWritten_(const HM::String &what)
+{
+   return what + _T(", but its password could not be written to hMailServer.INI (the error log says why), so the file still names the database it named before.");
+}
+
 STDMETHODIMP InterfaceDatabase::CreateInternalDatabase()
 {
    try
@@ -538,10 +564,11 @@ STDMETHODIMP InterfaceDatabase::CreateInternalDatabase()
          HM::ErrorManager::Instance()->ReportError(HM::ErrorManager::Medium, 7512, "InterfaceDatabase::CreateInternalDatabase", sentence);
       }
    
+      if (!ini_file_settings_->SetPassword(sPassword))
+         return COMError::GenerateError(PasswordNotWritten_(_T("The internal database was created")));
       ini_file_settings_->SetDatabaseDirectory(sDirectory);
       ini_file_settings_->SetDatabaseType(HM::DatabaseSettings::TypeMSSQLCompactEdition);
       ini_file_settings_->SetUsername("");
-      ini_file_settings_->SetPassword(sPassword);
       ini_file_settings_->SetDatabasePort(0);
       ini_file_settings_->SetDatabaseServer("");
       ini_file_settings_->SetDatabaseName(sDatabaseName);
@@ -589,6 +616,10 @@ STDMETHODIMP InterfaceDatabase::CreateExternalDatabase(eDBtype ServerType, BSTR 
       const HM::String sDatabaseName = DatabaseName;
       const HM::String sUsername = Username;
       const HM::String sPassword = Password;
+
+      const HM::String passwordRefusal = PasswordRefusal_(sPassword);
+      if (!passwordRefusal.IsEmpty())
+         return COMError::GenerateError(passwordRefusal);
       const HM::String sProvider = ini_file_settings_->GetDatabaseProvider();
 
       if (sDatabaseName.Find(_T(" ")) >= 0)
@@ -645,10 +676,11 @@ STDMETHODIMP InterfaceDatabase::CreateExternalDatabase(eDBtype ServerType, BSTR 
          HM::ErrorManager::Instance()->ReportError(HM::ErrorManager::Medium, 7512, "InterfaceDatabase::CreateExternalDatabase", sentence);
       }
 
+      if (!ini_file_settings_->SetPassword(sPassword))
+         return COMError::GenerateError(PasswordNotWritten_(_T("The database was created")));
       ini_file_settings_->SetDatabaseDirectory("");
       ini_file_settings_->SetDatabaseType((HM::DatabaseSettings::SQLDBType) ServerType);
       ini_file_settings_->SetUsername(sUsername);
-      ini_file_settings_->SetPassword(sPassword);
       ini_file_settings_->SetDatabasePort(lPort);
       ini_file_settings_->SetDatabaseServer(sServerName);
       ini_file_settings_->SetDatabaseName(sDatabaseName);
@@ -680,6 +712,10 @@ STDMETHODIMP InterfaceDatabase::SetDefaultDatabase(eDBtype ServerType, BSTR Serv
       HM::String sDatabaseName = DatabaseName;
       HM::String sUsername = Username;
       HM::String sPassword = Password;
+
+      const HM::String passwordRefusal = PasswordRefusal_(sPassword);
+      if (!passwordRefusal.IsEmpty())
+         return COMError::GenerateError(passwordRefusal);
    
       if (sDatabaseName.Find(_T(" ")) >= 0)
          return COMError::GenerateError("The database name may not contain spaces.");
@@ -700,10 +736,11 @@ STDMETHODIMP InterfaceDatabase::SetDefaultDatabase(eDBtype ServerType, BSTR Serv
       // Disconnect again.
       pConn->Disconnect();
    
+      if (!ini_file_settings_->SetPassword(sPassword))
+         return COMError::GenerateError(PasswordNotWritten_(_T("The database was reached")));
       ini_file_settings_->SetDatabaseDirectory("");
       ini_file_settings_->SetDatabaseType((HM::DatabaseSettings::SQLDBType) ServerType);
       ini_file_settings_->SetUsername(sUsername);
-      ini_file_settings_->SetPassword(sPassword);
       ini_file_settings_->SetDatabasePort(lPort);
       ini_file_settings_->SetDatabaseServer(sServerName);
       ini_file_settings_->SetDatabaseName(sDatabaseName);

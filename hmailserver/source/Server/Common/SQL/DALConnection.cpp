@@ -152,6 +152,71 @@ namespace HM
       return Unicode::ToUtf8Exact(value, bytes);
    }
 
+   bool
+   DALConnection::FileNameBytes(const String &path, AnsiString &bytes)
+   {
+      bytes.Empty();
+
+      // A name with U+0000 in it would be cut short where a narrow call reads it,
+      // and is refused before any branch below, Windows' UTF-8 code page's
+      // among them.
+      if (std::wstring(path.c_str(), (size_t) path.GetLength()).find(L'\0') != std::wstring::npos)
+         return false;
+
+#ifdef HM_PLATFORM_POSIX
+      return Unicode::ToUtf8Exact(path, bytes);
+#else
+      if (path.IsEmpty())
+         return true;
+
+      // WideCharToMultiByte takes neither WC_NO_BEST_FIT_CHARS nor a used-default
+      // flag for CP_UTF8, and UTF-8 needs neither: it carries every character but
+      // half of a surrogate pair, which ToUtf8Exact refuses.
+      if (GetACP() == CP_UTF8)
+         return Unicode::ToUtf8Exact(path, bytes);
+
+      BOOL defaulted = FALSE;
+      const int size = WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, path.c_str(), path.GetLength(), nullptr, 0, nullptr, &defaulted);
+      if (size <= 0 || defaulted)
+         return false;
+
+      std::string narrow((size_t) size, '\0');
+      if (WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, path.c_str(), path.GetLength(), &narrow[0], size, nullptr, &defaulted) != size || defaulted)
+         return false;
+
+      // OpenSSL's fopen on Windows (crypto/o_fopen.c, openssl_fopen) reads a name
+      // as UTF-8 first and opens the file at that reading when there is one,
+      // falling back to the code page's only when there is none - while libpq
+      // stat()s the code page's bytes before it hands them to OpenSSL. Bytes
+      // outside ASCII that also read as UTF-8 - on code page 1252 U+00C3 U+00A9
+      // are C3 A9, which is U+00E9 in UTF-8 - therefore name two files, and the
+      // one read would be another file whenever one sits at the other reading. In
+      // a code page that is not UTF-8 such bytes always read as another name, so
+      // such a name is refused, as one the code page cannot carry is. Any other
+      // name outside ASCII is not UTF-8, and OpenSSL opens it in the code page.
+      bool ascii = true;
+      for (const char c : narrow)
+         ascii = ascii && (unsigned char) c < 0x80;
+      if (!ascii && MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, narrow.data(), (int) narrow.size(), nullptr, 0) > 0)
+         return false;
+
+      bytes = narrow.c_str();
+      return true;
+#endif
+   }
+
+   String
+   DALConnection::FileNameRefusal()
+   {
+#ifdef HM_PLATFORM_POSIX
+      return _T("half of a surrogate pair or a U+0000, which no file name on this system holds");
+#else
+      return _T("a character this system's code page does not have, characters whose bytes in it also read as another name in UTF-8 - which ")
+             _T("OpenSSL, libpq's and Oracle's client's, opens first when a file is there - or a U+0000, and the database's client opens the file ")
+             _T("by its name in that code page");
+#endif
+   }
+
    int
    DALConnection::EndOfLiteral(const String &sql, int open, bool backslashEscapes)
    {

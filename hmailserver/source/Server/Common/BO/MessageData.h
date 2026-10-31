@@ -256,4 +256,19 @@ namespace HM
       void TestRefusals(const String &directory);
    };
 
+   // A message in folders named outside ASCII - above U+00FF, as a domain or an
+   // account folder held decoded is, and within it - written by FileUtilities and
+   // read by every reader the message store's MIME paths have: MimeBody's
+   // LoadFromFile and LoadHeaderFromFile, MessageStore::LoadMime and
+   // MessageData, then changed and written back by SaveAllToFile and read again.
+   // Up to 6.3.7 MimeBody and LoadMime took the name narrow, as AnsiString(String)
+   // gives it, and a name above U+00FF (on Windows, outside the code page) was
+   // looked for with '?' in it. Files under directory, removed again; reports nothing. ClassTester
+   // runs it on Windows, file-utilities-tests on Linux. Throws with what failed.
+   class MessageFileNameTester
+   {
+   public:
+      void Test(const String &directory);
+   };
+
 }

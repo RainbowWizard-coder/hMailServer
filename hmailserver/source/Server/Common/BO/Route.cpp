@@ -104,7 +104,7 @@ namespace HM
       pNode->AppendAttr(_T("ToAllAddresses"), to_all_addresses_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("RequiresAuthentication"), relayer_requires_authentication_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("Username"), relayer_auth_username_);
-      pNode->AppendAttr(_T("Password"), Crypt::Instance()->EnCrypt(relayer_auth_password_, Crypt::ETBlowFish));
+      pNode->AppendAttr(_T("Password"), Crypt::Instance()->EnCryptForXml(relayer_auth_password_, Formatter::Format("The relayer password of the route {0}", domain_name_)));
       pNode->AppendAttr(_T("TreatRecipientAsLocalDomain"), treat_recipient_as_local_domain_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("TreatSenderAsLocalDomain"), treat_sender_as_local_domain_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("ConnectionSecurity"), StringParser::IntToString(connection_security_));

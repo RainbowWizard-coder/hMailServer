@@ -33,6 +33,35 @@ namespace HM
 
       hm_MYSQL *GetConnection() const;
 
+      // TlsCaFile's name as the client loaded opens the file: MariaDB Connector/C,
+      // and Oracle's client on POSIX, as DALConnection::FileNameBytes writes it;
+      // Oracle's client on Windows in UTF-8, which OpenSSL's fopen reads first.
+      // False, with nothing written, for a name that cannot be written so - which
+      // ApplyTlsOptions_ refuses (HM7534), never a connection with no CA set.
+      static bool CaFileBytes(const String &caFile, bool mariaDbClient, AnsiString &bytes);
+
+      // Whether MariaDB Connector/C takes a connection to server as one to this
+      // machine, as its plugins/auth/my_auth.c does from 3.4.1 (is_local_connection):
+      // Server= exactly 127.0.0.1 or ::1, localhost or empty - over a Unix socket
+      // on POSIX and TCP on Windows - or, on Windows, "." for a named pipe; or a
+      // Server= with a comma, which the client reads as a list of servers to try
+      // in turn (mthd_my_real_connect, ma_get_host_list: "[::1]:3306" an element
+      // too), any element of which is one of those, since which answers is known
+      // only once one has. On such a connection it checks a certificate's issuer
+      // only when a CA file is named, and never its name.
+      static bool ClientTakesAsLocal(const String &server);
+
+      // TlsMode=verify-full on the client loaded, as that client checks it: the
+      // words --check-database's settings line ends in (", the certificate ..."),
+      // and the words the connection's description puts after "the server's
+      // certificate checked", empty where nothing need be said. False, with the
+      // refusal (HM7535) in refusal, where the client would check neither the
+      // certificate's issuer nor its name - the
+      // MariaDB client on a connection it takes as local with no TlsCaFile - so
+      // that no connection is made that this server would say was checked.
+      static bool VerifyFullCheck(bool mariaDbClient, const String &server, const String &caFile,
+                                  String &settingsWords, String &checkedHow, String &refusal);
+
       ExecutionResult CheckError(hm_MYSQL *pSQL, const String &sAdditionalInfo, String &sOutputErrorMessage) const;
 
       virtual void OnConnected();
@@ -229,7 +258,9 @@ namespace HM
    // conninfo are written in - UTF-8 on POSIX; on Windows Latin-1 for a value it
    // carries, as before, and UTF-8 for any other, which reached the server empty -
    // and MySQLConnection::QuoteIdentifier, a database's name quoted whatever it
-   // holds. Throws std::logic_error with a sentence. connection-string-tests runs
+   // holds; TlsCaFile's name for each client; and verify-full as each client
+   // checks it (ClientTakesAsLocal, VerifyFullCheck). Throws std::logic_error
+   // with a sentence. connection-string-tests runs
    // it on Linux, ClassTester inside the Windows service. No database,
    // configuration or network.
    class MySQLConnectionTester

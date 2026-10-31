@@ -26,6 +26,26 @@ namespace HM
       // applies to this scan. Empty sends no header. Set before Connect.
       void SetUser(const AnsiString &user) { user_ = user; }
 
+      // A user's name as the User: header carries it. spamd reads the header's
+      // bytes as they are and refuses a request whose User: holds a byte below
+      // 0x20 (spamd's got_user_header, "User header contains control chars");
+      // what the name means - a Unix user, a virtual-config directory's %u, an SQL
+      // username - is its own. An address the server holds as its bytes widened
+      // (Unicode::IsWidenedUtf8, as SMTP gives it) goes as those bytes; any other
+      // name as UTF-8 on POSIX, and on Windows one byte a character when every
+      // character is U+00FF or below, as Unicode::ToANSI wrote it up to 6.3.7,
+      // and UTF-8 when one is above. False, with nothing written, for a name with
+      // a control character or half of a surrogate pair. Up to 6.3.7 every caller
+      // used ToANSI, which gave nothing for a name with a character outside ASCII
+      // on Linux and above U+00FF on Windows, and the request then went without
+      // the header, as spamd's default user, without a word.
+      static bool UserBytes(const String &user, AnsiString &bytes);
+
+      // UserBytes for a request, said in the error log (HM5514) when a user is
+      // named and cannot be sent: the request then goes without the header, which
+      // spamd reads as its own default user. Empty for an empty user.
+      static AnsiString UserHeaderValue(const String &user);
+
       // TELL instead of PROCESS: the message is a lesson - spam or ham - for spamd's
       // local Bayes store, and the reply is an acknowledgement rather than the
       // message back. Set before Connect. See SpamAssassinLearner.
@@ -92,4 +112,15 @@ namespace HM
 
       __int64 total_result_bytes_written_;
   };
+
+   // SpamAssassinClient::UserBytes: the bytes spamd's User: header is given for a
+   // name, an address held decoded and held as its bytes widened alike, and a
+   // control character refused. Throws std::logic_error with a sentence.
+   // unicode-tests runs it on Linux, ClassTester inside the Windows service. No
+   // spamd, configuration or network.
+   class SpamAssassinUserTester
+   {
+   public:
+      void Test();
+   };
 }

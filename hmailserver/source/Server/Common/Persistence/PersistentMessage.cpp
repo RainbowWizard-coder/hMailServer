@@ -1715,7 +1715,7 @@ namespace HM
       // no mandatory locking: open the file that is already there, for reading.
       // FILE_SHARE_READ is Windows saying "other readers may join me", which is
       // the only thing POSIX ever does; OPEN_EXISTING is the absence of O_CREAT.
-      const AnsiString narrowFileName = fileName.c_str();
+      const AnsiString narrowFileName = FileUtilities::NarrowPath(fileName);
       int handleFile = ::open(narrowFileName.c_str(), O_RDONLY);
 
       if (handleFile < 0)
@@ -1869,7 +1869,7 @@ namespace HM
 #ifdef HM_PLATFORM_POSIX
       // As in LoadHeader above: open the file that is already there, for
       // reading, and let a negative descriptor be the failure.
-      const AnsiString narrowFileName = fileName.c_str();
+      const AnsiString narrowFileName = FileUtilities::NarrowPath(fileName);
       int handleFile = ::open(narrowFileName.c_str(), O_RDONLY);
 
       if (handleFile < 0)

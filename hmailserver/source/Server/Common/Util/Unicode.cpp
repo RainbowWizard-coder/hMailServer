@@ -323,32 +323,43 @@ namespace HM
 
    }
 
-   AnsiString 
+   AnsiString
    Unicode::ToANSI(const String &sString)
    {
+#ifdef HM_PLATFORM_POSIX
+      // The bytes Windows gives, where wcstombs_s runs in the C runtime's "C"
+      // locale, which this process never changes: each character up to U+00FF
+      // as the byte of its value, and for a text with any character above it
+      // nothing at all - wcstombs_s fails with EILSEQ and leaves the result
+      // empty (measured with MSVC 19.51 on 30 October 2026: U+00E0 is e0, U+00FF
+      // ff, U+0080 80, and U+0130 or U+20AC anywhere in the text gives ""). The
+      // text ends at its first U+0000, as wcslen ends it there.
+      //
+      // Up to 6.3.7 this was wcstombs in the locale the process started in,
+      // which the server never sets either: the "C" locale of glibc and musl,
+      // which refuse every character outside ASCII, so that on Linux any such
+      // character emptied the whole text where Windows kept it.
+      std::string bytes;
+      for (const wchar_t *character = sString.c_str(); *character != 0; character++)
+      {
+         const unsigned long value = static_cast<unsigned long>(*character);
+         if (value > 0xFF)
+            return AnsiString();
+
+         bytes += static_cast<char>(static_cast<unsigned char>(value));
+      }
+
+      return AnsiString(bytes.c_str());
+#else
       size_t i;
       size_t nLen = (wcslen(sString) + 1) << 1;
       char *pAnsiString = new char [nLen];
-#ifdef HM_PLATFORM_POSIX
-      // wcstombs is wcstombs_s with the answer in the return value rather than in
-      // an out-parameter, and without the guarantee of termination. It answers
-      // (size_t) -1 for a character the locale cannot represent and leaves the
-      // buffer unspecified, and it does not terminate a result that exactly fills
-      // the buffer - so both are terminated by hand, which is what wcstombs_s
-      // does for its caller.
-      i = ::wcstombs(pAnsiString, sString, nLen);
-
-      if (i == (size_t) -1)
-         pAnsiString[0] = '\0';
-      else if (i >= nLen)
-         pAnsiString[nLen - 1] = '\0';
-#else
       wcstombs_s(&i, pAnsiString, nLen, sString, nLen);
-#endif
       AnsiString retval = pAnsiString;
       delete [] pAnsiString;
 
       return retval;
+#endif
    }
 
    bool 

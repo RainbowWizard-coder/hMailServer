@@ -29,7 +29,9 @@
 
 #ifdef HM_PLATFORM_POSIX
 #include "ProcessLauncher.h"
+#include <cerrno>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <string>
 #include <sys/stat.h>
@@ -286,8 +288,10 @@ namespace HM
 #endif
 
    String
-   UpdateInstaller::HelperSourcePath()
+   UpdateInstaller::HelperSourcePath(String &why)
    {
+      why.Empty();
+
 #ifdef HM_PLATFORM_POSIX
       // The helper the package installed, or the one the AppImage carries. It
       // is a shell script - the whole of what root does to apply an update, in a
@@ -301,11 +305,24 @@ namespace HM
          return String(PACKAGED_HELPER);
       case UpdateChecker::InstallAppImage:
       {
-         // APPDIR is the image's mount point, set by the runtime with APPIMAGE.
+         // APPDIR is the image's mount point, set by the runtime with APPIMAGE,
+         // under $TMPDIR, whatever that is named. Read as UTF-8, as APPIMAGE is
+         // (FileUtilities::WidePath), since every name is made from a String in
+         // UTF-8 here: up to 6.3.7 it was widened a byte to a character, so that
+         // under a TMPDIR outside ASCII the helper's name was its UTF-8 encoded a
+         // second time, the copy below found nothing there (HM6891), and the
+         // image could not update itself. Bytes that are not UTF-8 are no name
+         // this server writes, and the apply is refused with why.
          const char *appdir = getenv("APPDIR");
          if (!appdir || !*appdir)
             return _T("");
-         return String(appdir) + String(APPIMAGE_HELPER);
+         String mountPoint;
+         if (!FileUtilities::WidePath(appdir, mountPoint))
+         {
+            why = Formatter::Format(_T("APPDIR names the AppImage's mount point as {0}, which is not UTF-8, the encoding every file is named in here, so the update helper in it cannot be named. Set TMPDIR, under which the AppImage mounts itself, to a path in UTF-8."), mountPoint);
+            return _T("");
+         }
+         return mountPoint + String(APPIMAGE_HELPER);
       }
       default:
          return _T("");
@@ -640,10 +657,22 @@ namespace HM
       if (colon != std::string::npos)
          runtimeDirectory.resize(colon);
 
+      // Read as UTF-8, as every name the system gives is here (FileUtilities::
+      // WidePath). systemd makes it /run/ and the unit's RuntimeDirectory=, which
+      // the packaged unit names hmailserver, ASCII; a unit of somebody's own that
+      // names a directory whose bytes are not UTF-8 has its request go the other
+      // way, below, rather than to a file of another name.
+      String runtimeDirectoryName;
+      const bool runtimeDirectoryUtf8 = FileUtilities::WidePath(runtimeDirectory.c_str(), runtimeDirectoryName);
+
       String untaken;
-      if (!runtimeDirectory.empty())
+      if (!runtimeDirectory.empty() && !runtimeDirectoryUtf8)
       {
-         String requestPath = String(runtimeDirectory.c_str()) + _T("/apply-request");
+         untaken = Formatter::Format(_T("RUNTIME_DIRECTORY names {0}, which is not UTF-8, the encoding every file is named in here"), runtimeDirectoryName);
+      }
+      else if (!runtimeDirectory.empty())
+      {
+         String requestPath = runtimeDirectoryName + _T("/apply-request");
          if (!FileUtilities::WriteToFileAtomically(requestPath, request))
          {
             untaken = Formatter::Format(_T("the request could not be written to {0}"), requestPath);
@@ -713,7 +742,17 @@ namespace HM
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6891, "UpdateInstaller::LaunchPosix_", error);
             return false;
          }
-         chmod(std::string(AnsiString(helper).c_str()).c_str(), 0755);
+         // By the bytes every other call names the file by (FileUtilities::
+         // NarrowPath): up to 6.3.7 AnsiString's Latin-1, which under a data
+         // directory outside ASCII named another file, or none, so that the
+         // mode was not set and nothing said so.
+         if (chmod(FileUtilities::NarrowPath(helper).c_str(), 0755) != 0)
+         {
+            const int failure = errno;
+            error = Formatter::Format(_T("{0} could not be made executable: {1}."), helper, String(strerror(failure)));
+            ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6891, "UpdateInstaller::LaunchPosix_", error);
+            return false;
+         }
 
          // The unit this server runs under, and for an AppImage the image it runs
          // from, are passed by Apply and go on the helper's command line
@@ -951,7 +990,13 @@ namespace HM
       }
 #endif
 
-      String helperSource = HelperSourcePath();
+      String helperWhy;
+      String helperSource = HelperSourcePath(helperWhy);
+      if (!helperWhy.IsEmpty())
+      {
+         error = helperWhy;
+         return false;
+      }
       if (helperSource.IsEmpty() || !FileUtilities::Exists(helperSource))
       {
          error = Formatter::Format(_T("The update helper {0} is not beside the server; this installation cannot apply updates."), helperSource);
@@ -1105,10 +1150,14 @@ namespace HM
       AnsiString request;
       request += "kind=" + AnsiString(UpdateChecker::InstallKindName(kind)) + "\n";
       request += "version=" + AnsiString(snapshot.available_version) + "\n";
-      request += "package=" + AnsiString(snapshot.installer_path) + "\n";
+      // A path in the bytes every file is named by (FileUtilities::NarrowPath),
+      // which are the bytes the helper is given the Updates directory in: up to
+      // 6.3.7 AnsiString's Latin-1, which under a data directory outside ASCII
+      // named a file the helper did not find inside that directory.
+      request += "package=" + FileUtilities::NarrowPath(snapshot.installer_path) + "\n";
       if (!rollbackPath.IsEmpty())
       {
-         request += "rollback=" + AnsiString(rollbackPath) + "\n";
+         request += "rollback=" + FileUtilities::NarrowPath(rollbackPath) + "\n";
          request += "rollback_version=" + AnsiString(running) + "\n";
       }
       // The unit this server runs under and, for an AppImage, the image it runs
@@ -1120,13 +1169,23 @@ namespace HM
       String appImage;
       if (kind == UpdateChecker::InstallAppImage)
       {
+         // Its name as the system gives it, read as UTF-8 as every name is
+         // (FileUtilities::WidePath), so that it reaches the request and the
+         // helper's command line as the same bytes; bytes that are not UTF-8
+         // are no name this server writes, and the apply is refused.
          const char *image = getenv("APPIMAGE");
-         if (image)
-            appImage = String(image);
+         if (image && !FileUtilities::WidePath(image, appImage))
+         {
+            why = Formatter::Format(_T("APPIMAGE names the image this server runs from as {0}, which is not UTF-8, the encoding every file is named in here, so the update was not applied. Move the image to a path in UTF-8."), appImage);
+            UpdateChecker::RecordFailure(why);
+            LOG_APPLICATION(Formatter::Format(_T("Update apply failed: {0}"), why));
+            error = why;
+            return false;
+         }
       }
       request += "unit=" + AnsiString(ownUnit) + "\n";
-      request += "outcome=" + AnsiString(outcome) + "\n";
-      request += "log=" + AnsiString(directory) + "/apply-" + AnsiString(snapshot.available_version) + ".log\n";
+      request += "outcome=" + FileUtilities::NarrowPath(outcome) + "\n";
+      request += "log=" + FileUtilities::NarrowPath(directory) + "/apply-" + AnsiString(snapshot.available_version) + ".log\n";
       request += "wait=" + AnsiString(Formatter::Format(_T("{0}"), IniFileSettings::Instance()->GetUpdateServiceWaitSeconds())) + "\n";
       // No key says that the server has drained: the helper's stop drains as it
       // always does, with the doors already closed by now, and the server's own
@@ -1136,7 +1195,7 @@ namespace HM
       if (!readyUrl.empty())
          request += "ready_url=" + AnsiString(readyUrl.c_str()) + "\n";
       if (kind == UpdateChecker::InstallAppImage)
-         request += "image=" + AnsiString(appImage) + "\n";
+         request += "image=" + FileUtilities::NarrowPath(appImage) + "\n";
       // Where the backup taken for this apply went, if one was (the update task's
       // UpdateBackupBeforeApply), and when it finished: text the helper puts into
       // the outcome of an update it does not put back because the new version's
@@ -1151,7 +1210,7 @@ namespace HM
          for (int i = 0; i < backupFolder.GetLength(); i++)
             printable = printable && backupFolder[i] >= 0x20 && backupFolder[i] != 0x7F;
          if (printable)
-            request += "backup=" + AnsiString(backupFolder) + " (finished " + AnsiString(Time::GetCurrentDateTime()) + ")\n";
+            request += "backup=" + FileUtilities::NarrowPath(backupFolder) + " (finished " + AnsiString(Time::GetCurrentDateTime()) + ")\n";
       }
 
       String helperUnit;

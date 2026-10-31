@@ -332,7 +332,7 @@ namespace HM
 
          if (FileUtilities::Exists(dh2048_file))
          {
-            context.use_tmp_dh_file(AnsiString(dh2048_file));
+            context.use_tmp_dh_file(FileUtilities::NarrowPath(dh2048_file));
          }
          else
          {
@@ -353,8 +353,8 @@ namespace HM
 
       }
 
-      AnsiString certificateFile = certificate->GetCertificateFile();
-      AnsiString privateKeyFile = certificate->GetPrivateKeyFile();
+      AnsiString certificateFile = FileUtilities::NarrowPath(certificate->GetCertificateFile());
+      AnsiString privateKeyFile = FileUtilities::NarrowPath(certificate->GetPrivateKeyFile());
 
 
       try
@@ -367,7 +367,7 @@ namespace HM
 
          String errorMessage;
          errorMessage.Format(_T("Failed to load certificate file. Path: %s, Address: %s, Port: %i, Error: %s"), 
-            String(certificateFile).c_str(), ip_address.c_str(), port, asioError.c_str());
+            certificate->GetCertificateFile().c_str(), ip_address.c_str(), port, asioError.c_str());
 
          ErrorManager::Instance()->ReportError(ErrorManager::High, 5113, "SslContextInitializer::InitServer", errorMessage);
 
@@ -384,7 +384,7 @@ namespace HM
 
          String errorMessage;
          errorMessage.Format(_T("Failed to load certificate chain from certificate file. Path: %s, Address: %s, Port: %i, Error: %s"), 
-            String(certificateFile), ip_address.c_str(), port, asioError.c_str());
+            certificate->GetCertificateFile(), ip_address.c_str(), port, asioError.c_str());
 
          ErrorManager::Instance()->ReportError(ErrorManager::High, 5113, "SslContextInitializer::InitServer", errorMessage);
 
@@ -412,7 +412,7 @@ namespace HM
 
          String errorMessage;
          errorMessage.Format(_T("Failed to load private key file. Path: %s, Address: %s, Port: %i, Error: %s"), 
-            String(privateKeyFile), ip_address.c_str(), port, asioError.c_str());
+            certificate->GetPrivateKeyFile(), ip_address.c_str(), port, asioError.c_str());
 
          ErrorManager::Instance()->ReportError(ErrorManager::High, 5113, "SslContextInitializer::InitServer", errorMessage);
 
@@ -439,7 +439,7 @@ namespace HM
       // degraded server into an unreachable one and would be a far worse surprise
       // than the one being fixed. The DH-parameter case above sets the same
       // precedent: report loudly, carry on.
-      ReportCertificateValidityProblem_(context, String(certificateFile), ip_address, port);
+      ReportCertificateValidityProblem_(context, certificate->GetCertificateFile(), ip_address, port);
 
       return true;
    }

@@ -289,7 +289,12 @@ namespace HM
          String log_directory = IniFileSettings::Instance()->GetLogDirectory();
          if (!log_directory.IsEmpty() && FileUtilities::DirectoryExists(log_directory))
          {
-            AnsiString candidate = FileUtilities::Combine(log_directory, String(marker_file_name));
+            // The bytes the handler's open() is given, the file's name as every
+            // other call names it (FileUtilities::NarrowPath): up to 6.3.7
+            // AnsiString's Latin-1, which under a log directory outside ASCII
+            // named a file in no directory there is, so that no record was
+            // written. Empty for a name UTF-8 cannot carry, and /tmp stands.
+            AnsiString candidate = FileUtilities::NarrowPath(FileUtilities::Combine(log_directory, String(marker_file_name)));
             if (candidate.GetLength() > 0 && candidate.GetLength() < (int) sizeof(marker_file_) - 1)
             {
                ::memcpy(marker_file_, candidate.c_str(), candidate.GetLength());
@@ -310,7 +315,7 @@ namespace HM
 
       String message;
       message.Format(_T("Crash oracle armed. SIGSEGV, SIGBUS, SIGILL, SIGFPE and SIGABRT are recorded in %s, and the process then dies by the signal, so the kernel's core-dump policy applies (RLIMIT_CORE, kernel.core_pattern, systemd-coredump where installed; the unit file says how to allow a core)."),
-         String(marker_file_).c_str());
+         GetMarkerFile().c_str());
       LOG_APPLICATION(message);
    }
 
@@ -338,7 +343,10 @@ namespace HM
    String
    CrashOracle::GetMarkerFile()
    {
-      return String(marker_file_);
+      // The handler's bytes read back as the name they are (NarrowPath's UTF-8).
+      String name;
+      FileUtilities::WidePath(marker_file_, name);
+      return name;
    }
 }
 

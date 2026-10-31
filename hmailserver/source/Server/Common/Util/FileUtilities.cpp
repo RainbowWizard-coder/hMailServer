@@ -18,6 +18,12 @@
 #include <boost/filesystem.hpp>
 #include <climits>
 
+#ifdef HM_PLATFORM_POSIX
+#include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
+#include <locale>
+#include <mutex>
+#endif
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -34,6 +40,82 @@ namespace HM
    const String FileUtilities::PathSeparator = _T("/");
 #else
    const String FileUtilities::PathSeparator = _T("\\");
+#endif
+
+   AnsiString
+   FileUtilities::NarrowPath(const String &path)
+   {
+#ifdef HM_PLATFORM_POSIX
+      AnsiString bytes;
+      if (!Unicode::ToUtf8Exact(path, bytes))
+         return AnsiString();
+      return bytes;
+#else
+      return AnsiString(path);
+#endif
+   }
+
+   bool
+   FileUtilities::WidePath(const char *bytes, String &path)
+   {
+      path.Empty();
+      if (bytes == nullptr)
+         return true;
+
+#ifdef HM_PLATFORM_POSIX
+      if (Unicode::MultiByteToWide(AnsiString(bytes), path))
+         return true;
+
+      path = String(bytes);
+      return false;
+#else
+      path = String(bytes);
+      return true;
+#endif
+   }
+
+#ifdef HM_PLATFORM_POSIX
+   void
+   FileUtilities::UseUtf8FileNames()
+   {
+      static std::once_flag once;
+      std::call_once(once, []()
+      {
+         // Boost's own UTF-8 facet, which Boost.Filesystem's documentation names
+         // for this: it needs no locale of the system's, so it is the same on
+         // glibc and musl, with LANG set or not.
+         const std::locale utf8(std::locale::classic(), new boost::filesystem::detail::utf8_codecvt_facet);
+
+         // path::imbue puts the facet in place and then answers the locale it
+         // replaced - and when none was set, which is always so here, Boost 1.90
+         // makes that answer with std::locale(""), the locale LANG, LC_ALL and
+         // LC_CTYPE name, which libstdc++ on glibc refuses with a runtime_error for
+         // a locale the machine does not have (LC_CTYPE=UTF-8 from a Mac's SSH
+         // session, a container's LANG with no such locale generated). The facet is
+         // in place by then, and the answer is not wanted: such an environment
+         // changes nothing here, where uncaught it ended the process before main.
+         // musl takes any name, and Boost 1.84 answered without making one.
+         try
+         {
+            boost::filesystem::path::imbue(utf8);
+         }
+         catch (const std::exception &)
+         {
+         }
+      });
+   }
+
+   namespace
+   {
+      // Before main, while nothing but static initialisation runs: path::imbue is
+      // not safe beside another thread's conversion.
+      struct Utf8FileNames
+      {
+         Utf8FileNames() { FileUtilities::UseUtf8FileNames(); }
+      };
+
+      const Utf8FileNames utf8FileNames;
+   }
 #endif
 
    // Where a path splits into its directory and its name: the position of the
@@ -1006,6 +1088,7 @@ namespace HM
       TestByteBuffer_();
       TestUtf16Files_();
       TestFailedClose();
+      TestFileNameEncoding();
    }
 
    namespace
@@ -1333,5 +1416,123 @@ namespace HM
       Assert::AreEqual(_T(""), FileUtilities::ReadCompleteTextFile(path));
 
       FileUtilities::DeleteFile(path);
+   }
+
+   namespace
+   {
+      void CheckName_(bool condition, const std::string &what)
+      {
+         if (!condition)
+            throw std::logic_error("FileUtilitiesTester::TestFileNameEncoding: " + what);
+      }
+
+#ifdef HM_PLATFORM_POSIX
+      std::string Hex_(const AnsiString &bytes)
+      {
+         static const char digits[] = "0123456789abcdef";
+         std::string text;
+         for (int i = 0; i < bytes.GetLength(); i++)
+         {
+            const unsigned char value = (unsigned char) bytes[i];
+            if (!text.empty())
+               text += ' ';
+            text += digits[value >> 4];
+            text += digits[value & 0x0F];
+         }
+         return text;
+      }
+#endif
+   }
+
+   void
+   FileUtilitiesTester::TestFileNameEncoding()
+   {
+      // c, U+00E0, -, U+0130, -, U+20AC: within Latin-1, beyond it, and beyond the
+      // characters Windows' C locale converts.
+      const wchar_t wideName[] = { L'c', 0x00E0, L'-', 0x0130, L'-', 0x20AC, L'.', L't', L'x', L't', 0 };
+      const String name(wideName);
+
+#ifdef HM_PLATFORM_POSIX
+      // NarrowPath: UTF-8, whatever LANG says. Up to 6.3.7 File::Open and the
+      // other narrow calls had AnsiString(String)'s Latin-1 (63 for U+0130 and
+      // U+20AC: '?'), and Boost.Filesystem the locale's - UTF-8 under a UTF-8 LANG
+      // on glibc, an exception with LANG unset and on musl.
+      const AnsiString expected("c\xC3\xA0-\xC4\xB0-\xE2\x82\xAC.txt");
+      CheckName_(FileUtilities::NarrowPath(name) == expected,
+         "NarrowPath gave " + Hex_(FileUtilities::NarrowPath(name)) + " where UTF-8 is " + Hex_(expected));
+
+      std::string native;
+      try
+      {
+         native = boost::filesystem::path(name.c_str()).native();
+      }
+      catch (const std::exception &failure)
+      {
+         CheckName_(false, std::string("Boost.Filesystem could not convert the name: ") + failure.what());
+      }
+      CheckName_(native == std::string(expected.c_str()), "Boost.Filesystem named the file " + Hex_(AnsiString(native.c_str())) + ", where NarrowPath names it " + Hex_(expected));
+
+      String lone(_T("half"));
+      lone += (wchar_t) 0xD800;
+      CheckName_(FileUtilities::NarrowPath(lone).IsEmpty(), "a name with half of a surrogate pair was given bytes");
+
+      String read;
+      CheckName_(FileUtilities::WidePath("c\xC3\xA0", read) && read == String(L"c\x00E0"), "WidePath did not read UTF-8 bytes as UTF-8");
+      CheckName_(!FileUtilities::WidePath("c\xE0", read) && read.GetLength() == 2 && (unsigned int) read[1] == 0xE0,
+         "WidePath took bytes that are not UTF-8 for UTF-8, or did not widen them");
+#else
+      // As it has always been on Windows: the ANSI code page's narrowing.
+      CheckName_(FileUtilities::NarrowPath(_T("C:\\Temp\\caf\x00E9.txt")) == AnsiString(String(_T("C:\\Temp\\caf\x00E9.txt"))),
+         "NarrowPath is not AnsiString(String) on Windows");
+      String read;
+      CheckName_(FileUtilities::WidePath("abc", read) && read == _T("abc"), "WidePath did not widen ASCII");
+#endif
+
+      // One file by every way of naming it: made by File::Open, found by
+      // FileUtilities::Exists and Boost.Filesystem, read back by
+      // ReadCompleteTextFile, listed under the same name, and removed by
+      // DeleteFile.
+      const boost::filesystem::path directory = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path("hm-names-%%%%-%%%%");
+      boost::filesystem::create_directories(directory);
+      const String folder(directory.wstring().c_str());
+      const String full = FileUtilities::Combine(folder, name);
+
+      bool made = false;
+      {
+         File file;
+         made = file.Open(full, File::OTCreate) && file.Write(AnsiString("one file"));
+         file.Close();
+      }
+
+      bool found = false;
+      bool listed = false;
+      String content;
+#ifdef HM_PLATFORM_POSIX
+      bool stated = false;
+#endif
+      if (made)
+      {
+         found = FileUtilities::Exists(full) && boost::filesystem::exists(boost::filesystem::path(full.c_str()));
+         content = FileUtilities::ReadCompleteTextFile(full);
+         for (boost::filesystem::directory_iterator entry(directory), end; entry != end; ++entry)
+            listed = listed || String(entry->path().filename().wstring().c_str()) == name;
+#ifdef HM_PLATFORM_POSIX
+         struct stat status = {};
+         stated = ::stat(FileUtilities::NarrowPath(full).c_str(), &status) == 0;
+#endif
+      }
+
+      const bool deleted = made && FileUtilities::DeleteFile(full) && !FileUtilities::Exists(full);
+      boost::system::error_code ignored;
+      boost::filesystem::remove_all(directory, ignored);
+
+      CheckName_(made, "File::Open could not make a file whose name holds characters outside ASCII");
+      CheckName_(found, "the file File::Open made is not found by that name by FileUtilities::Exists and Boost.Filesystem");
+      CheckName_(content == _T("one file"), "the file File::Open made is not the one ReadCompleteTextFile reads by its name");
+      CheckName_(listed, "the file File::Open made is listed under another name");
+#ifdef HM_PLATFORM_POSIX
+      CheckName_(stated, "stat() does not find the file File::Open made by NarrowPath's bytes for its name");
+#endif
+      CheckName_(deleted, "DeleteFile did not remove the file File::Open made by its name");
    }
 }

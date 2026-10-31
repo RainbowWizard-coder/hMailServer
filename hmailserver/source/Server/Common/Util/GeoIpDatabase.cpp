@@ -101,7 +101,7 @@ namespace HM
       // extension; the standard one takes a narrow path, which is what this
       // filesystem's names are. The same narrowing SigstoreVerifier::Sha256File
       // does, for the same reason.
-      const AnsiString narrow_path = path;
+      const AnsiString narrow_path = FileUtilities::NarrowPath(path);
       std::ifstream file(narrow_path.c_str(), std::ios::binary);
 #else
       std::ifstream file(path.c_str(), std::ios::binary);

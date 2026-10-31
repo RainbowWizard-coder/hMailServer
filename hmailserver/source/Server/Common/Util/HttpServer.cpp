@@ -162,7 +162,7 @@ namespace HM
          Close();
 
 #ifdef HM_PLATFORM_POSIX
-         const AnsiString narrow = path.c_str();
+         const AnsiString narrow = FileUtilities::NarrowPath(path);
          descriptor_ = ::open(narrow.c_str(), O_RDONLY | O_CLOEXEC);
          if (descriptor_ < 0)
             return false;

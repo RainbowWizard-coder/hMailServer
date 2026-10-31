@@ -155,7 +155,7 @@ namespace HM
       // its blocks, which is what overwriting them means. Truncating first
       // would free them and put the zeros somewhere else.
 #ifdef HM_PLATFORM_POSIX
-      const AnsiString narrow = fileName.c_str();
+      const AnsiString narrow = FileUtilities::NarrowPath(fileName);
       std::fstream over(narrow.c_str(), std::ios::in | std::ios::out | std::ios::binary);
 #else
       std::fstream over(fileName.c_str(), std::ios::in | std::ios::out | std::ios::binary);

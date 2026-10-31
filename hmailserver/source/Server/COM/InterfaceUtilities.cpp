@@ -479,8 +479,14 @@ STDMETHODIMP InterfaceUtilities::BlowfishEncrypt(BSTR Input, BSTR *Output)
 
       HM::String sOutput = HM::Crypt::Instance()->EnCrypt(sInput, HM::Crypt::ETBlowFish);
 
+      // A text the scheme refuses - a character above U+00FF, or more than 248
+      // characters (HM7278, HM7277) - is an error to the caller, where up to 6.3.7
+      // the first gave a value that read back as nothing.
+      if (sOutput.IsEmpty() && !sInput.IsEmpty())
+         return COMError::GenerateError("The text was not encrypted: the legacy Blowfish scheme carries only characters up to U+00FF, and at most 248 of them.");
+
       *Output = sOutput.AllocSysString();
-   
+
       return S_OK;
    }
    catch (...)

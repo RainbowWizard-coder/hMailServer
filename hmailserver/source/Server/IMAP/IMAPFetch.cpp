@@ -3556,7 +3556,7 @@ namespace HM
             throw std::logic_error("A message could not be written to a file of the test's own");
 
          std::shared_ptr<MimeBody> body(new MimeBody);
-         if (MessageStore::LoadMime(AnsiString(file), *body) != MimeLoadResult::Loaded)
+         if (MessageStore::LoadMime(file, *body) != MimeLoadResult::Loaded)
             throw std::logic_error("MessageStore::LoadMime did not parse a message written to a file of the test's own");
 
          // The server's parse keeps no bytes: the sections cut from the stored

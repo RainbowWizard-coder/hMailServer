@@ -19,7 +19,14 @@ namespace HM
          BODomains = 2,
          BOMessages = 4,
          BOCompression = 8,
-      };      
+
+         // Never a backup's: what PersonExport hands XMLStore, whose output is
+         // the person's data and carries no credential (PersonExport's
+         // LeaveOutCredentials), so that a secret is not encrypted for it - and
+         // a refusal not reported to the backup log (HM7280) - when no backup is
+         // being made. Never stored with a backup's options.
+         BOLeaveOutCredentials = 1024,
+      };
 
       void SetBackupFile(const String &sBackupFile) {backup_file_ = sBackupFile; }
       String GetBackupFile() {return backup_file_; }

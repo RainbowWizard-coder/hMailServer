@@ -48,10 +48,20 @@
 // There the download says it did not run, and the rest still does; a socket
 // refused for any other reason fails the case.
 //
+// And a file's name: one with characters outside ASCII is one file to File::Open,
+// FileUtilities, Boost.Filesystem, stat() and a directory's listing, all in UTF-8
+// whatever LANG says (FileUtilitiesTester::TestFileNameEncoding). Up to 6.3.7
+// File::Open named it in Latin-1, and Boost.Filesystem in the locale's encoding,
+// which threw for it with LANG unset and on musl. And a locale the machine does
+// not have, named by LC_ALL, changes nothing: this program run again under one
+// reaches main (MissingLocaleCase).
+//
 // It prints a line for each and exits non-zero if one failed.
 
 #include <cerrno>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <exception>
 #include <fstream>
 #include <iterator>
@@ -85,6 +95,9 @@
 #include "../Common/Util/TransparentTransmissionBuffer.h"
 #include "../Common/Persistence/MessageStore.h"
 #include "../Common/BO/MessageData.h"
+#include "../Common/Util/Crypt.h"
+#include "../Common/Util/Unicode.h"
+#include "../Common/Util/UpdateInstaller.h"
 
 namespace
 {
@@ -580,6 +593,121 @@ namespace
       return status;
    }
 
+   // The argument this program is run again with, by MissingLocaleCase, under a
+   // locale no machine has.
+   const char MissingLocaleArgument[] = "--under-a-missing-locale";
+
+   // How this program was run (main's argv[0]), for the run again where
+   // /proc/self/exe cannot be executed.
+   const char *ProgramName = "file-utilities-tests";
+
+   // The run under a missing locale: that it got here at all means the static
+   // initialisers, FileUtilities' UseUtf8FileNames among them, did not end the
+   // process, and a wide name still converts to UTF-8.
+   int MissingLocaleChild()
+   {
+      const wchar_t wide[] = { L'c', 0x00E0, L'-', 0x20AC, 0 };
+      return boost::filesystem::path(wide).native() == std::string("c\xC3\xA0-\xE2\x82\xAC") ? 0 : 3;
+   }
+
+   // LANG, LC_ALL or LC_CTYPE naming a locale the machine does not have - an SSH
+   // session from a Mac sets LC_CTYPE=UTF-8, a container is given a LANG it has no
+   // locale for - changes nothing: this program run again with LC_ALL naming one
+   // reaches main and converts a name as UTF-8. Boost 1.90's path::imbue answers
+   // with std::locale(""), which glibc's libstdc++ refuses for such a name, and
+   // when nothing caught that, every program linked with the server's code -
+   // this one, the server and every hmailserver command - ended before main.
+   void MissingLocaleCase()
+   {
+      if (std::fflush(stdout) != 0)
+         throw std::runtime_error("the output could not be flushed before the run under a missing locale");
+
+      const pid_t child = fork();
+      if (child == 0)
+      {
+         setenv("LC_ALL", "xx_YY.UTF-8", 1);
+         setenv("LANG", "xx_YY.UTF-8", 1);
+         setenv("LC_CTYPE", "UTF-8", 1);
+         execl("/proc/self/exe", ProgramName, MissingLocaleArgument, static_cast<char *>(nullptr));
+         execlp(ProgramName, ProgramName, MissingLocaleArgument, static_cast<char *>(nullptr));
+         _exit(127);
+      }
+
+      int status = 0;
+      Check(child > 0 && waitpid(child, &status, 0) == child, "this program could not be run again under a missing locale");
+      if (WIFSIGNALED(status))
+         throw std::runtime_error("run again with LC_ALL=xx_YY.UTF-8, a locale no machine has, it ended by signal " +
+            std::to_string(WTERMSIG(status)) + " before it reached main (an exception from a static initialiser)");
+      Check(WIFEXITED(status) && WEXITSTATUS(status) == 0, "run again with LC_ALL=xx_YY.UTF-8 it exited " +
+         std::to_string(WIFEXITED(status) ? WEXITSTATUS(status) : -1) + " (3: a wide name did not convert to UTF-8; 127: it could not be run)");
+   }
+
+#if HM_LIVE_UPDATE
+   // An environment variable set for one case and put back as it was after it.
+   class EnvironmentValue
+   {
+   public:
+      EnvironmentValue(const char *name, const char *value) : name_(name)
+      {
+         const char *old = getenv(name);
+         had_ = old != nullptr;
+         if (had_)
+            old_ = old;
+         if (value != nullptr)
+            setenv(name, value, 1);
+         else
+            unsetenv(name);
+      }
+
+      ~EnvironmentValue()
+      {
+         if (had_)
+            setenv(name_, old_.c_str(), 1);
+         else
+            unsetenv(name_);
+      }
+
+   private:
+      const char *name_;
+      bool had_ = false;
+      std::string old_;
+   };
+
+   // The AppImage's update helper, which the apply copies out of APPDIR - the
+   // image's mount point, under TMPDIR, whatever that is named: read as UTF-8, as
+   // every name is here, so that a mount point outside ASCII names the helper that
+   // is there, and one whose bytes are not UTF-8 is refused with the reason. Up to
+   // 6.3.7 its bytes were widened one to a character, and the helper's name was
+   // the mount point's UTF-8 encoded a second time: the copy found nothing
+   // (HM6891), and the image could not update itself.
+   void AppImageHelperCase()
+   {
+      const EnvironmentValue kind("HM_INSTALL_KIND", nullptr);
+      const EnvironmentValue snap("SNAP", nullptr);
+      const EnvironmentValue image("APPIMAGE", "/opt/hMailServer-x86_64.AppImage");
+
+      {
+         const EnvironmentValue mount("APPDIR", "/tmp/caf\xC3\xA9-\xE6\x97\xA5/.mount_hMailS");
+         const wchar_t wide[] = { L'/', L't', L'm', L'p', L'/', L'c', L'a', L'f', 0x00E9, L'-', 0x65E5, 0 };
+         const String expected = String(wide) + _T("/.mount_hMailS/usr/lib/hmailserver/hmailserver-update");
+         String why;
+         const String helper = HM::UpdateInstaller::HelperSourcePath(why);
+         Check(why.IsEmpty() && helper == expected, "an APPDIR in UTF-8 named the helper in " + std::to_string(helper.GetLength()) +
+            " characters, not the " + std::to_string(expected.GetLength()) + " of " + std::string(HM::Unicode::ToUtf8(expected).c_str()) +
+            (why.IsEmpty() ? std::string() : ": " + std::string(HM::Unicode::ToUtf8(why).c_str())));
+      }
+
+      {
+         const EnvironmentValue mount("APPDIR", "/tmp/caf\xE9/.mount_hMailS");
+         String why;
+         const String helper = HM::UpdateInstaller::HelperSourcePath(why);
+         Check(helper.IsEmpty() && why.Find(_T("APPDIR")) >= 0 && why.Find(_T("not UTF-8")) >= 0,
+            "an APPDIR whose bytes are not UTF-8 was not refused with the reason: [" + std::string(HM::Unicode::ToUtf8(helper).c_str()) + "] [" +
+            std::string(HM::Unicode::ToUtf8(why).c_str()) + "]");
+      }
+   }
+#endif
+
    int Run(const std::string &name, void (*test)())
    {
       try
@@ -599,6 +727,15 @@ namespace
    {
       HM::FileUtilitiesTester tester;
       tester.TestFailedClose();
+   }
+
+   // FileUtilitiesTester::TestFileNameEncoding: up to 6.3.7 File::Open named a
+   // file in Latin-1 and Boost.Filesystem in the locale's encoding - UTF-8 under a
+   // UTF-8 LANG on glibc, an exception with LANG unset and on musl.
+   void FileNameEncodingCase()
+   {
+      HM::FileUtilitiesTester tester;
+      tester.TestFileNameEncoding();
    }
 
    // The spool on a file that takes every byte, which is the control for the rest:
@@ -739,6 +876,81 @@ namespace
       boost::filesystem::remove_all(directory, ignored);
       Check(failure.empty(), failure);
    }
+
+   // A message under folders named outside ASCII, read by MimeBody, MessageStore::
+   // LoadMime and MessageData and written back by SaveAllToFile (MessageFileName-
+   // Tester, Common/BO/MessageData.cpp), with nothing reported. Up to 6.3.7 the
+   // MIME paths took the name as AnsiString(String) narrows it, and a name above
+   // U+00FF was another name to them than to the writer.
+   void MessageFileNamesCase()
+   {
+      const boost::filesystem::path directory = boost::filesystem::temp_directory_path() /
+         boost::filesystem::unique_path("hm-message-names-%%%%-%%%%");
+      boost::filesystem::create_directories(directory);
+
+      const int notOpened = ReportsOf("HM4228") + ReportsOf("HM4218") + ReportsOf("HM6000");
+
+      std::string failure;
+      try
+      {
+         HM::MessageFileNameTester tester;
+         tester.Test(Wide(directory));
+         Check(ReportsOf("HM4228") + ReportsOf("HM4218") + ReportsOf("HM6000") == notOpened, "reading and writing the messages reported an error");
+      }
+      catch (const std::exception &e)
+      {
+         failure = e.what();
+      }
+
+      boost::system::error_code ignored;
+      boost::filesystem::remove_all(directory, ignored);
+      Check(failure.empty(), failure);
+   }
+
+   // The log's text, every file of it.
+   std::string LogText()
+   {
+      std::string all;
+      boost::system::error_code error;
+      for (boost::filesystem::directory_iterator entry(LogDirectory, error);
+           !error && entry != boost::filesystem::directory_iterator(); entry.increment(error))
+      {
+         std::ifstream in(entry->path().string().c_str(), std::ios::binary);
+         all += std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+      }
+      return all;
+   }
+
+   // A secret a backup carries that the legacy Blowfish scheme refuses: left out,
+   // with one HM7280 naming whose it was and which limit refused it - a character
+   // above U+00FF, or more characters than the scheme holds, as an OAuth refresh
+   // token often has - and no other report (HM7277, HM7278). One it takes is
+   // written, with no report.
+   void BackupSecretCase()
+   {
+      const int refusedBefore = ReportsOf("HM7280");
+      const int otherBefore = ReportsOf("HM7277") + ReportsOf("HM7278");
+
+      const HM::String wide(L"p\x00e0ss\x20ac");
+      const HM::String token(std::wstring(249, L't').c_str());
+      const HM::String wideWhose(_T("The password of the external account Wide (server imap.example, user w)"));
+      const HM::String tokenWhose(_T("The OAuth token of the external account Long (server imap.example, user t)"));
+
+      const HM::String wideWritten = HM::Crypt::Instance()->EnCryptForXml(wide, wideWhose);
+      const HM::String tokenWritten = HM::Crypt::Instance()->EnCryptForXml(token, tokenWhose);
+      const HM::String takenWritten = HM::Crypt::Instance()->EnCryptForXml(HM::String(L"caf\x00e9"), _T("The password of the external account Taken"));
+
+      Check(wideWritten.IsEmpty() && tokenWritten.IsEmpty(), "a secret the legacy Blowfish scheme refuses was written to the backup");
+      Check(takenWritten == HM::String(_T("df3dc19376c45323")), "a secret the scheme takes was not written as the scheme writes it");
+      Check(ReportsOf("HM7280") == refusedBefore + 2, "the two refused secrets were not each reported once as HM7280");
+      Check(ReportsOf("HM7277") + ReportsOf("HM7278") == otherBefore, "a refused secret was reported a second time, by the scheme's own HM7277 or HM7278");
+
+      const std::string log = LogText();
+      Check(log.find(std::string(HM::Unicode::ToUtf8(wideWhose).c_str()) + " was written to the backup without it, since the legacy Blowfish scheme a backup carries secrets in refused it: it holds a character above U+00FF") != std::string::npos,
+         "HM7280 for the password above U+00FF does not name whose it was and why");
+      Check(log.find(std::string(HM::Unicode::ToUtf8(tokenWhose).c_str()) + " was written to the backup without it, since the legacy Blowfish scheme a backup carries secrets in refused it: it has 249 characters, and the scheme holds at most 248") != std::string::npos,
+         "HM7280 for the 249-character token does not name whose it was and its length");
+   }
 }
 
 namespace
@@ -811,8 +1023,13 @@ namespace
    }
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+   if (argc == 2 && std::strcmp(argv[1], MissingLocaleArgument) == 0)
+      return MissingLocaleChild();
+   if (argc > 0 && argv[0] != nullptr && argv[0][0] != 0)
+      ProgramName = argv[0];
+
    int failed = 0;
 
    // A configuration of this program's own, naming a log directory under the temp
@@ -847,6 +1064,15 @@ int main()
    failed += Run("a written file's close: a whole file closes true, and /dev/full's close answers false through File::Close and FileUtilities::WriteToFile", DevFullCase);
    failed += Run("the spool of a received message: a file that takes every byte is written whole, and on /dev/full the message is counted as not written", SpoolCase);
    failed += Run("FileUtilities::CopyOver puts the whole of a file in another's place and leaves nothing beside it", CopyOverCase);
+   failed += Run("a file named with characters outside ASCII is one file to File::Open, FileUtilities, Boost.Filesystem, stat() and a directory's listing, all in UTF-8 whatever LANG says", FileNameEncodingCase);
+   failed += Run("a locale named that the machine does not have (LC_ALL=xx_YY.UTF-8): this program run again under it reaches main and names a file in UTF-8", MissingLocaleCase);
+#if HM_LIVE_UPDATE
+   failed += Run("the AppImage's update helper: APPDIR, where the image is mounted, read as UTF-8, and refused with the reason when it is not", AppImageHelperCase);
+#else
+   std::printf("not run: the AppImage's update helper - this build has no live update (HM_LIVE_UPDATE OFF)\n");
+#endif
+   failed += Run("a message under folders named outside ASCII, above U+00FF and within it, is read by MimeBody, MessageStore::LoadMime and MessageData and written back by SaveAllToFile by its name", MessageFileNamesCase);
+   failed += Run("a backup's secret the legacy Blowfish scheme refuses - above U+00FF, or 249 characters long - is left out with one HM7280 naming whose it was and why, and one it takes is written", BackupSecretCase);
    failed += Run("a backup restore's member list" + ADownload() + " and MoveOver where the disk takes them: each whole, and MoveOver's result in the message's place with nothing beside it", WritersWithRoomCase);
    failed += Run("FileUtilities::WriteToFileAtomically with the body copied from a file: the head and the whole range, onto another file and onto the one it came from, and a range past the source's end refused with the file as it was", BodyCopiedFromFileCase);
    failed += Run("a message over 80 MB read header only when asked: its loop count read, raised and written back with the body byte for byte, as are a header past the first step it is read in, one ending across a step's edge and a message held in memory; and a changed body, a source cut short and a header with no end refused and reported", LargeMessageCase);

@@ -152,7 +152,7 @@ namespace HM
 
       std::shared_ptr<SpamAssassinClient> client = std::shared_ptr<SpamAssassinClient>(
          new SpamAssassinClient(messageFile, ioService->GetIOContext(), ioService->GetClientContext(), disconnected, completed));
-      client->SetUser(Unicode::ToANSI(user));
+      client->SetUser(SpamAssassinClient::UserHeaderValue(user));
       client->SetLearning(spam);
 
       if (!client->Connect(*ipAddresses.begin(), config.GetSpamAssassinPort(), IPAddress()))

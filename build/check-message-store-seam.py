@@ -209,7 +209,7 @@ REQUIRED = [
     "IMAP FETCH BODY[] no longer reads through the store"),
    ("IMAP/IMAPFetch.cpp", "MessageStore::LoadMime(fileName, *pMimeBody)",
     "IMAP FETCH no longer parses the message through the store"),
-   ("Common/Util/Imip.cpp", "MessageStore::LoadMime(Utf8Of(fileName), *body)",
+   ("Common/Util/Imip.cpp", "MessageStore::LoadMime(fileName, *body)",
     "a calendar reply filed at delivery is no longer read through the store"),
    ("SMTP/LocalDelivery.cpp", "accountLevelMessage->SetSize(MessageStore::Size(account, accountLevelMessage));",
     "a delivered copy's size is no longer the message's size"),

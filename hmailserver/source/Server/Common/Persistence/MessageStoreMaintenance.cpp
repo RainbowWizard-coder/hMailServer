@@ -1392,7 +1392,7 @@ namespace HM
          return 0;
 
       const String path = FileUtilities::Combine(IniFileSettings::Instance()->GetLogDirectory(), _T("hmailserver-store.lock"));
-      const AnsiString narrow = path.c_str();
+      const AnsiString narrow = FileUtilities::NarrowPath(path);
 
       const int descriptor = ::open(narrow.c_str(), O_RDWR | O_CREAT | O_CLOEXEC, 0640);
       if (descriptor < 0)

@@ -26,7 +26,9 @@ namespace HM
    //   verify-full  TLS, the certificate's chain checked against TlsCaFile (or the
    //                system's trust store when that is empty) and its name against
    //                the server's name - or its address, when the server is named by
-   //                one.
+   //                one. MariaDB Connector/C checks no name on a connection it takes
+   //                as one to this machine, and with no CA file nothing, which is
+   //                refused (MySQLConnection::VerifyFullCheck, HM7535).
    //
    // What each backend does with them:
    //
@@ -82,9 +84,11 @@ namespace HM
       static Mode Effective(Mode mode) { return mode == ModeDefault ? ModePrefer : mode; }
 
       // The mode and CA file from hMailServer.ini, checked for the backend about to
-      // connect. False with the reason in error - and reported, HM7530 or HM7531 -
-      // for a mode this server does not know and for a TlsCaFile that verify-full
-      // would read and that is not there; the connection is not attempted. The CA
+      // connect. False with the reason in error - and reported, HM7530, HM7531 or
+      // HM7534 - for a mode this server does not know, for a TlsCaFile that
+      // verify-full would read and that is not there, and for one whose name
+      // cannot be handed to the client as it is named (DALConnection::
+      // FileNameBytes); the connection is not attempted. The CA
       // file is returned only for verify-full, the one mode that reads it. For SQL
       // Server a TlsCaFile is not read at all, which is said once (HM7532).
       static bool FromConfiguration(DatabaseSettings::SQLDBType type, Mode &mode, String &caFile, String &error);
@@ -112,8 +116,13 @@ namespace HM
       static bool LooksLikeTlsFailure(const String &error);
 
       // One line about a connection that has been made: whether it is encrypted,
-      // what with, whether the certificate was checked, and the mode.
-      static String Describe(DatabaseSettings::SQLDBType type, bool encrypted, const String &detail, bool verified, Mode mode);
+      // what with, whether the certificate was checked, and the mode. checkedHow,
+      // when the certificate was checked, follows "the server's certificate
+      // checked" and says how where the client checks less, or other, than the
+      // mode's words alone would say (MySQLConnection::VerifyFullCheck,
+      // PGConnection::DescribeCheck).
+      static String Describe(DatabaseSettings::SQLDBType type, bool encrypted, const String &detail, bool verified, Mode mode,
+                             const String &checkedHow = String());
 
       // The sentence added to a connection failure that looks like TLS, saying which
       // setting to change.

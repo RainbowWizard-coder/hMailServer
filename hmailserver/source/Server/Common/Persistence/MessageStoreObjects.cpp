@@ -158,7 +158,7 @@ namespace HM
       AnsiString LocalStampOf(const String &name, bool withChangeTime = true)
       {
 #ifdef HM_PLATFORM_POSIX
-         const AnsiString narrow = name.c_str();
+         const AnsiString narrow = FileUtilities::NarrowPath(name);
          struct stat status;
          if (::stat(narrow.c_str(), &status) != 0 || !S_ISREG(status.st_mode))
             return AnsiString();

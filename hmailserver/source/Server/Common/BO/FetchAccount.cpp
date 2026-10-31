@@ -8,6 +8,7 @@
 #include "FetchAccount.h"
 #include "FetchAccountUIDs.h"
 #include "FetchAccountUID.h"
+#include "../Application/Backup.h"
 #include "../Util/Crypt.h"
 #include "../Util/XmlTree.h"
 
@@ -122,7 +123,11 @@ namespace HM
       // overload the Windows build already selects, and no port value is lost.
       pNode->AppendAttr(_T("Port"), StringParser::IntToString((int) port_));
       pNode->AppendAttr(_T("Username"), username_);
-      pNode->AppendAttr(_T("Password"), Crypt::Instance()->EnCrypt(password_, Crypt::ETBlowFish));
+      // The two secrets as a backup carries them, and not at all for a person
+      // export (Backup::BOLeaveOutCredentials), which would strip them again.
+      const bool credentials = (iOptions & Backup::BOLeaveOutCredentials) == 0;
+      if (credentials)
+         pNode->AppendAttr(_T("Password"), Crypt::Instance()->EnCryptForXml(password_, Formatter::Format("The password of the external account {0} (server {1}, user {2})", name_, server_address_, username_)));
       pNode->AppendAttr(_T("Minutes"), StringParser::IntToString(minutes_));
       pNode->AppendAttr(_T("DaysToKeep"), StringParser::IntToString(days_to_keep_));
       // DaysToKeep in the one meaning FetchAccount.h states; an archive without
@@ -137,7 +142,8 @@ namespace HM
       pNode->AppendAttr(_T("EnableRouteRecipients"), enable_route_recipients_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("MirrorFolders"), mirror_folders_ ? _T("1") : _T("0"));
       pNode->AppendAttr(_T("OAuthProvider"), oauth_provider_);
-      pNode->AppendAttr(_T("OAuthToken"), oauth_token_.IsEmpty() ? String() : Crypt::Instance()->EnCrypt(oauth_token_, Crypt::ETBlowFish));
+      if (credentials)
+         pNode->AppendAttr(_T("OAuthToken"), Crypt::Instance()->EnCryptForXml(oauth_token_, Formatter::Format("The OAuth token of the external account {0} (server {1}, user {2})", name_, server_address_, username_)));
       pNode->AppendAttr(_T("MirrorSkip"), mirror_skip_);
       pNode->AppendAttr(_T("MirrorSeen"), mirror_seen_);
       pNode->AppendAttr(_T("Origin"), StringParser::IntToString((int) origin_));

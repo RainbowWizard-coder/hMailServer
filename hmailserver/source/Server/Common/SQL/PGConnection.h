@@ -56,6 +56,44 @@ namespace HM
       // backslash before each single quote and each backslash among them.
       static AnsiString QuoteConninfoValue(const AnsiString &bytes);
 
+      // The root certificate Connect hands libpq as sslrootcert: PostgreSQLSslRootCert
+      // when it is set, which wins over TlsCaFile; otherwise, for TlsMode=verify-full
+      // without PostgreSQLSslMode, the TlsCaFile DatabaseTls::FromConfiguration
+      // gave, or - when that is empty and libpq reads the system's trust store
+      // for it (16 and later, on POSIX) - "system". Empty: none, and libpq's own
+      // default stands.
+      static String SslRootCert(bool tlsVerifyFull, const String &tlsCaFile, bool legacySslMode,
+                                const String &configuredRootCert, bool readsSystemStore);
+
+      // Whether this libpq takes sslrootcert=system for the system's trust store:
+      // on POSIX, 16 and later. On Windows OpenSSL's store is not the Windows one,
+      // and the word is not given there.
+      static bool ReadsSystemStore();
+
+      // What --check-database's TLS line says of the certificate after the mode
+      // (DatabaseTls::RunCheckCommand), from what SslRootCert gave: the file or
+      // the store libpq was handed, and when PostgreSQLSslRootCert is what named
+      // it, that it wins over TlsCaFile and that a TlsCaFile set beside it is not
+      // used. Up to 6.3.7 the line named TlsCaFile whenever it was set, while
+      // libpq was handed PostgreSQLSslRootCert.
+      static String DescribeSslRoot(bool tlsVerifyFull, const String &tlsCaFile, bool legacySslMode,
+                                    const String &configuredRootCert, const String &root);
+
+      // Whether libpq checked the server's certificate on a connection, and how,
+      // for the connection's line (DatabaseTls::Describe's verified and
+      // checkedHow): under verify-full its chain and its name; under verify-ca
+      // its chain alone; and under require, prefer or allow its chain too when
+      // libpq was handed a root certificate file that is there - libpq reads one
+      // whenever it can stat it, whatever the mode (fe-secure-openssl.c), and
+      // refuses a certificate the file's CA did not issue. Up to 6.3.7 the line
+      // said "not checked" for that last. A root file of libpq's own default,
+      // which this server does not hand over, is not counted.
+      static bool DescribeCheck(bool encrypted, const String &sslMode, const String &root, bool rootExists, String &checkedHow);
+
+      // The refusal of a root certificate's name that DALConnection::FileNameBytes
+      // cannot write so that libpq and its OpenSSL both read that file (HM7534).
+      static String RootCertRefusal(const String &rootCert);
+
       // Whether the server treats a backslash in a string literal as an
       // ordinary character (standard_conforming_strings on, the default since
       // 9.1) - read from the server's own answer when a connection comes up,

@@ -503,8 +503,13 @@ as it is, so a man in the middle could ask for `mysql_clear_password` and read t
 database password. Fixed in 3.4.10 by MariaDB's CONC-846 (commit e8c0a16d94dd),
 whose change to `plugins/auth/my_auth.c` refuses such a plugin after any failed
 check, where only an untrusted issuer did. hMailServer 6.2.3 to 6.3.6 shipped
-3.4.9, and reach that code only with `TlsMode=verify-full`, no `TlsCaFile` and a
-database on another machine ([DatabaseTls.md](DatabaseTls.md), "CVE-2026-107819").
+3.4.9, and reach that code only with `TlsMode=verify-full` (from 6.3.4), a
+database on another machine and no CA file handed to the client: no `TlsCaFile`,
+or, before 6.3.8, one whose name holds a character above U+00FF, which the client
+was handed as none, so that for such a name a named `TlsCaFile` was no mitigation;
+6.3.8 hands the name over or refuses it (HM7534). On Linux the client is the
+distribution's, which should be Connector/C 3.4.11 or later, for this and for
+MariaDB's CONC-853 ([DatabaseTls.md](DatabaseTls.md), "CVE-2026-107819").
 
 **Why 3.4.11 and not 3.4.10.** 3.4.10 is a tag in MariaDB's repository that MariaDB
 never released: there is no 3.4.10 on its download site or among its GitHub

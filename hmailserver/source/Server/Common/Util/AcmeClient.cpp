@@ -114,7 +114,7 @@ namespace HM
          if (!FileUtilities::Exists(certificateFile))
             return false;
 
-         AnsiString narrowFileName = certificateFile;
+         AnsiString narrowFileName = FileUtilities::NarrowPath(certificateFile);
 
          BIO *bio = BIO_new_file(narrowFileName.c_str(), "r");
          if (bio == nullptr)
@@ -453,7 +453,7 @@ namespace HM
          if (!FileUtilities::Exists(file))
             return nullptr;
 
-         AnsiString narrowFileName = file;
+         AnsiString narrowFileName = FileUtilities::NarrowPath(file);
 
          BIO *bio = BIO_new_file(narrowFileName.c_str(), "r");
          if (bio == nullptr)
@@ -664,7 +664,7 @@ namespace HM
       if (!FileUtilities::Exists(certificateFile))
          return false;
 
-      AnsiString narrowFileName = certificateFile;
+      AnsiString narrowFileName = FileUtilities::NarrowPath(certificateFile);
 
       BIO *bio = BIO_new_file(narrowFileName.c_str(), "r");
       if (bio == nullptr)
@@ -1442,7 +1442,7 @@ namespace HM
       FileUtilities::CreateDirectory(directory);
 
       String keyFile = directory + FileUtilities::PathSeparator + _T("account.key");
-      AnsiString narrowKeyFile = keyFile;
+      AnsiString narrowKeyFile = FileUtilities::NarrowPath(keyFile);
 
       if (FileUtilities::Exists(keyFile))
       {
@@ -1832,7 +1832,7 @@ namespace HM
 
       if (IniFileSettings::Instance()->GetAcmeReuseKey())
       {
-         AnsiString keyPath = AnsiString(GetCertificateDirectory() + FileUtilities::PathSeparator + _T("privkey.pem"));
+         AnsiString keyPath = FileUtilities::NarrowPath(GetCertificateDirectory() + FileUtilities::PathSeparator + _T("privkey.pem"));
 
          // A BIO, not a FILE*: see GetCertificateTlsa for why a FILE* of this
          // executable's C runtime handed to the OpenSSL DLL ends the process
@@ -2029,7 +2029,7 @@ namespace HM
       String pendingKeyFile = keyFile + _T(".new");
       String pendingCertificateFile = certificateFile + _T(".new");
 
-      AnsiString narrowPendingKeyFile = pendingKeyFile;
+      AnsiString narrowPendingKeyFile = FileUtilities::NarrowPath(pendingKeyFile);
 
       bool keyWritten = false;
 
@@ -2309,7 +2309,7 @@ namespace HM
       // because this ran before the deployment. Every other file this client
       // reads or writes already goes through BIO_new_file; this function and
       // the key reuse in FinalizeOrder_ were the two that did not.
-      AnsiString narrowPath = certificate_file;
+      AnsiString narrowPath = FileUtilities::NarrowPath(certificate_file);
 
       BIO *bio = BIO_new_file(narrowPath.c_str(), "r");
       if (bio == nullptr)

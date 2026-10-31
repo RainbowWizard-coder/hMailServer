@@ -9,6 +9,9 @@
 #include "DatabaseTls.h"
 #include "DALConnection.h"
 #include "DALConnectionFactory.h"
+#include "PGConnection.h"
+#include "MySQLConnection.h"
+#include "MySQLInterface.h"
 #include "../Util/Assert.h"
 #include "../Util/Unicode.h"
 
@@ -122,6 +125,24 @@ namespace HM
       // the file on to PostgreSQL's require would quietly turn it into verify-ca.
       if (mode != ModeVerifyFull)
          return true;
+
+      // The name as the database's client opens the file (DALConnection::
+      // FileNameBytes), refused when it cannot be written so. Up to 6.3.7 the MySQL
+      // client was handed Unicode::ToANSI's bytes, which are none at all for a name
+      // with a character outside ASCII on Linux, and above U+00FF on Windows: the
+      // CA option was then not set, and the client checked the server's
+      // certificate against the system's trust store while this server said it had
+      // checked it against this file.
+      AnsiString caFileBytes;
+      if (!DALConnection::FileNameBytes(configuredCaFile, caFileBytes))
+      {
+         const String why = DALConnection::FileNameRefusal();
+         error = Formatter::Format("TlsCaFile under [Database] in hMailServer.ini names {0}, which holds {1}, and TlsMode=verify-full checks the "
+            "database server's certificate against that file: it cannot be handed to the database's client as it is named, so the file it opened "
+            "would not be this one. Move the file to a path without it and name that. The connection was not attempted.", configuredCaFile, why);
+         ErrorManager::Instance()->ReportError(ErrorManager::Critical, 7534, "DatabaseTls::FromConfiguration", error);
+         return false;
+      }
 
       if (!FileUtilities::Exists(configuredCaFile))
       {
@@ -309,7 +330,8 @@ namespace HM
    }
 
    String
-   DatabaseTls::Describe(DatabaseSettings::SQLDBType type, bool encrypted, const String &detail, bool verified, Mode mode)
+   DatabaseTls::Describe(DatabaseSettings::SQLDBType type, bool encrypted, const String &detail, bool verified, Mode mode,
+                         const String &checkedHow)
    {
       String text = BackendName_(type) + _T(": ");
 
@@ -320,8 +342,8 @@ namespace HM
             text += _T(" (") + detail + _T(")");
 
          text += verified
-            ? _T(", the server's certificate checked")
-            : _T(", the server's certificate not checked");
+            ? _T(", the server's certificate checked") + checkedHow
+            : String(_T(", the server's certificate not checked"));
       }
       else
       {
@@ -493,29 +515,53 @@ namespace HM
 
       String settingsLine = _T("TLS: TlsMode ") + ModeName(mode);
 
-      if (type == DatabaseSettings::TypePGServer && !ini->GetDatabasePostgreSQLSslMode().IsEmpty())
+      if (type == DatabaseSettings::TypePGServer)
       {
-         settingsLine = _T("TLS: PostgreSQLSslMode ") + ini->GetDatabasePostgreSQLSslMode() + _T(", which wins over TlsMode for PostgreSQL");
-      }
-      else if (type == DatabaseSettings::TypePGServer && mode == ModeDefault)
-      {
-         settingsLine = _T("TLS: libpq's own default, prefer - or PGSSLMODE when this process's environment sets it");
+         // The root as PGConnection::Connect chooses it, so that the line names
+         // what libpq is handed: PostgreSQLSslRootCert wins over TlsCaFile, and
+         // up to 6.3.7 the line named TlsCaFile all the same.
+         const String legacyMode = ini->GetDatabasePostgreSQLSslMode();
+         const String configuredRoot = ini->GetDatabasePostgreSQLSslRootCert();
+         const bool verifyFull = mode == ModeVerifyFull;
+         const String root = PGConnection::SslRootCert(verifyFull, caFile, !legacyMode.IsEmpty(), configuredRoot, PGConnection::ReadsSystemStore());
+
+         if (!legacyMode.IsEmpty())
+            settingsLine = _T("TLS: PostgreSQLSslMode ") + legacyMode + _T(", which wins over TlsMode for PostgreSQL");
+         else if (mode == ModeDefault)
+            settingsLine = _T("TLS: libpq's own default, prefer - or PGSSLMODE when this process's environment sets it");
+
+         settingsLine += PGConnection::DescribeSslRoot(verifyFull, caFile, !legacyMode.IsEmpty(), configuredRoot, root);
       }
       else if (mode == ModeVerifyFull && type == DatabaseSettings::TypeMSSQLServer)
       {
          settingsLine += _T(", the certificate checked by the provider against the Windows certificate store");
       }
+      else if (mode == ModeVerifyFull && type == DatabaseSettings::TypeMYSQLServer)
+      {
+         // As the client that is loaded checks it (MySQLConnection::VerifyFullCheck):
+         // MariaDB Connector/C checks no name on a connection it takes as local and,
+         // with no TlsCaFile, neither the issuer nor the name; Oracle's client
+         // checks against a CA file alone. Up to 6.3.7 this line said "checked" for
+         // each. Where the client would check neither, the connection below is
+         // refused (HM7535) and says so.
+         MySQLInterface *client = MySQLInterface::Instance();
+         String loadError;
+         if (!client->IsLoaded() && !client->Load(loadError))
+         {
+            Print_(false, settingsLine);
+            Print_(true, _T("Not connected: ") + loadError);
+            return 1;
+         }
+
+         String words;
+         String checkedHow;
+         String refusal;
+         if (MySQLConnection::VerifyFullCheck(client->IsMariaDbClient(), server, caFile, words, checkedHow, refusal))
+            settingsLine += words;
+      }
       else if (mode == ModeVerifyFull && !caFile.IsEmpty())
       {
          settingsLine += _T(", the certificate checked against ") + caFile;
-      }
-      else if (mode == ModeVerifyFull && type == DatabaseSettings::TypePGServer)
-      {
-#ifdef HM_PLATFORM_POSIX
-         settingsLine += _T(", the certificate checked against the system's trust store (sslrootcert=system; TlsCaFile is not set)");
-#else
-         settingsLine += _T(", the certificate checked against libpq's own root.crt in the service account's %APPDATA%\\postgresql (TlsCaFile is not set)");
-#endif
       }
       else if (mode == ModeVerifyFull)
       {

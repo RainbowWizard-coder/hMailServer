@@ -115,10 +115,36 @@ namespace HM
       // a password with such a letter that connects today was set in those bytes,
       // on a database server whose encoding is WIN1252 or LATIN1, and goes on
       // connecting. Any other value goes as UTF-8, where ToANSI left the whole
-      // value empty - on Windows for a character beyond U+00FF, on POSIX for any
-      // outside ASCII - and the client connected with its own defaults. False, with
+      // value empty - on Windows for a character beyond U+00FF, and on POSIX, up
+      // to 6.3.7, for any outside ASCII (it gives Windows' bytes there now) - and
+      // the client connected with its own defaults. False, with
       // nothing written, for text UTF-8 cannot carry (half of a surrogate pair).
       static bool ClientBytes(const String &value, AnsiString &bytes);
+
+      // A file's name - the CA file TlsCaFile names, PostgreSQLSslRootCert - as a
+      // client library opens it with a narrow call, so that the file it opens is
+      // the one FileUtilities found. On POSIX, UTF-8: the bytes of the name on the
+      // file system, which the server makes every file name in (FileUtilities::
+      // NarrowPath), and which libpq's and OpenSSL's fopen and GnuTLS's file
+      // reader take as they are. On Windows, the ANSI code page, with no best-fit
+      // letter put in a character's place: MariaDB Connector/C's Schannel build,
+      // the one this server bundles, opens the CA file with CreateFileA
+      // (libmariadb/secure/schannel_certs.c, which is built without UNICODE), and
+      // libpq stat()s its root certificate in that code page before it hands the
+      // same bytes to OpenSSL, whose fopen reads them as UTF-8 first and in the
+      // code page only when no file is at that reading (crypto/o_fopen.c). When
+      // the code page is UTF-8 (the system-wide "Beta: Use Unicode UTF-8"
+      // setting) the name is UTF-8. False, with nothing written, for a name the
+      // code page cannot carry, for one whose bytes outside ASCII in it also read
+      // as UTF-8 - another name, which OpenSSL would open first when a file is
+      // there - or half of a surrogate pair: such a name would open another file
+      // or none, and a CA file that is not the one named is a certificate checked
+      // against something else. Up to 6.3.7 the second was handed over.
+      static bool FileNameBytes(const String &path, AnsiString &bytes);
+
+      // What a name FileNameBytes refuses holds, for the sentence that refuses it:
+      // "TlsCaFile ... names <file>, which holds <this>".
+      static String FileNameRefusal();
 
       virtual ConnectionResult Connect(String &sErrorMessage) = 0;
       virtual bool Disconnect() = 0;

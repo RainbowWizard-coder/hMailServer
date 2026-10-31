@@ -80,8 +80,9 @@ namespace HM
 
       // Bin\hMailServer.Updater.exe, beside the running executable; on Linux the
       // packaged /usr/lib/hmailserver/hmailserver-update, or the copy an AppImage
-      // carries at the same relative path.
-      static String HelperSourcePath();
+      // carries at the same relative path. Empty, with why saying so, when the
+      // AppImage's APPDIR is not UTF-8, the encoding every name is made in here.
+      static String HelperSourcePath(String &why);
       static String OutcomePath();
 
 #ifdef HM_PLATFORM_POSIX

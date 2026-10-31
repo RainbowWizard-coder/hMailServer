@@ -2467,7 +2467,7 @@ namespace HM
       if (certificate_file.IsEmpty() || !FileUtilities::Exists(certificate_file))
          return 0;
 
-      AnsiString narrowFileName = certificate_file;
+      AnsiString narrowFileName = FileUtilities::NarrowPath(certificate_file);
 
       BIO *bio = BIO_new_file(narrowFileName.c_str(), "r");
       if (bio == nullptr)

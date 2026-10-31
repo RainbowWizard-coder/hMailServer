@@ -43,14 +43,50 @@ TlsCaFile=C:\hMailServer\certs\database-ca.pem
 | `disable` | No TLS. SQL Server's providers still encrypt the login itself. |
 | `prefer` | As the default, said explicitly. |
 | `require` | TLS or no connection; the certificate is not checked. Encryption against a listener on the wire; not against someone who can stand in for the server. On MySQL and MariaDB through MariaDB Connector/C the refusal of a server without TLS comes after the login exchange, not before it (*What is thinner*, below). |
-| `verify-full` | TLS or no connection, the server's certificate checked: its chain to a CA in `TlsCaFile` (or, when that is empty, the system's trust store), and its name - or its address, when `Server=` is an address - against `Server=`. |
+| `verify-full` | TLS or no connection, the server's certificate checked: its chain to a CA in `TlsCaFile` (or, when that is empty, the system's trust store), and its name - or its address, when `Server=` is an address - against `Server=`. Two exceptions are MariaDB Connector/C's, the MySQL and MariaDB client this server bundles and the one the Linux packages suggest: on a connection it takes as one to this machine - `Server=` exactly `127.0.0.1`, `::1` or `localhost`, or empty (a Unix socket on Linux), or `.` for a named pipe on Windows, or a `Server=` with a comma, which the client reads as a list of servers to try in turn, holding one of those, since which of them answers is known only once one has - it checks the chain against `TlsCaFile` and never the name, and with no `TlsCaFile` neither the issuer nor the name, only the certificate's dates, so `verify-full` there without a `TlsCaFile` is refused without an attempt (HM7535); and over the network with no `TlsCaFile`, a certificate the system's store does not vouch for is still taken from a MariaDB server that proves it holds the account's password (*What the server does not do for you*, below). Oracle's client refuses `verify-full` without a `TlsCaFile`. |
 
 `TlsCaFile` is a PEM file of CA certificates, read by `verify-full` and by nothing
 else, so that a CA file left beside `require` cannot quietly make it something
-stronger or weaker than it says. Keep its path to ASCII: the MySQL client takes it
-in the system's code page. A `TlsCaFile` that `verify-full` would read and that is
-not there refuses the connection (HM7531) rather than falling back to the system's
-store.
+stronger or weaker than it says. A `TlsCaFile` that `verify-full` would read and that
+is not there refuses the connection (HM7531) rather than falling back to the system's
+store, and so does one whose name cannot be handed to the database's client as it is
+named (HM7534). The client opens the file by its name in an encoding of its own: on
+Linux the file system's bytes, UTF-8, which every name outside ASCII can be written
+in; on Windows the ANSI code page, in which MariaDB Connector/C's Schannel build, the
+client this server bundles, opens it (`CreateFileA`) and libpq looks for it, so that a
+name with a character the code page does not have - a Cyrillic or CJK letter on code
+page 1252 - is refused there whichever client is loaded, since the name is judged
+before the client is known. libpq hands those bytes to OpenSSL, which reads a name as
+UTF-8 first and opens the file at that reading when there is one: a name whose bytes
+in the code page also read as UTF-8 is therefore refused too, `TlsCaFile` and
+`PostgreSQLSslRootCert` alike. No other name outside ASCII reads as UTF-8 in a code
+page that is not UTF-8. Within the code page, Oracle's client is handed the name's
+UTF-8, which its OpenSSL reads before the code page's bytes and which names the same
+file. The TLS line `--check-database` prints names the file that was handed over - for
+PostgreSQL that is `PostgreSQLSslRootCert` when it is set, which wins over `TlsCaFile`,
+and the line says so and that `TlsCaFile` is not used - and the log's line names no
+file: it says whether the certificate was checked, and how where the client checks
+less than `verify-full`'s words: on a MariaDB client's connection to this machine,
+`the server's certificate checked for its issuer alone, not for its name, on a
+connection to this machine`; and for PostgreSQL under `require`, `prefer` or `allow`
+with a root certificate file handed to libpq, which libpq reads under any mode, `...
+checked for its issuer alone, against the root certificate libpq was handed, which it
+reads under sslmode require too, not for its name`, where up to 6.3.7 that line said
+the certificate was not checked.
+
+**Up to 6.3.7 a name with a character outside ASCII on Linux, or above U+00FF on
+Windows, was handed to the MySQL and MariaDB client as nothing**, so that the client
+was given no CA file and checked the server's certificate against the system's trust
+store, or with some versions of MariaDB Connector/C less than that: on a connection
+the client takes as one to this machine, with 3.4.1 and later, neither its issuer nor
+its name; over the network, with 3.4.2 to 3.4.10 CONC-853, and with 3.4.1 to 3.4.9
+CVE-2026-107819 (under *What is thinner than it could be*) - while `--check-database`
+said it was checked against `TlsCaFile`, and the log that it had been checked. With
+`LANG` unset, and on Alpine, such a name failed the connection instead. From 6.3.6
+PostgreSQL's root certificate was handed to libpq, in UTF-8 on Linux and in the code
+page on Windows (in 6.3.4 and 6.3.5 its whole connection string went through the same
+conversion, which 6.3.6 fixed). From the release after 6.3.7 the name is passed as
+above, or refused.
 
 Anything else is refused without an attempt and reported (HM7530) - a typo in the
 one setting meant to require verification must not switch verification off.
@@ -75,7 +111,7 @@ own.
 | Backend | Before | After |
 |---|---|---|
 | **MySQL / MariaDB, Windows** (the bundled `libmysql.dll`, MariaDB Connector/C 3.4.11 since 6.3.7, 3.4.9 before it) | **Plaintext, always** - to a server offering TLS as well; an account with `REQUIRE SSL` refused. `AllowUnencryptedConnection=1` set `MYSQL_OPT_SSL_ENFORCE` off, which was already the case: no difference. No way to ask for TLS or a certificate check. | **prefer** by default: TLS whenever offered, unchecked; plaintext when not; one attempt without TLS when the TLS offered cannot be agreed on (client error 2026). `require`, `verify-full` (SChannel, the CA file or the Windows store) and `disable` as above. |
-| **MySQL / MariaDB, Linux** (`libmariadb.so.3`, Ubuntu 26.04's 1:11.8.6, Connector/C 3.4.9) | **Plaintext, always**, as on Windows. | As on Windows; the CA file or the system's store (`/etc/ssl/certs`). The distribution's client, which the distribution patches (CVE-2026-107819, below, is the distribution's to fix; `TlsCaFile` set is the mitigation until then). |
+| **MySQL / MariaDB, Linux** (`libmariadb.so.3`, Ubuntu 26.04's 1:11.8.6, Connector/C 3.4.9) | **Plaintext, always**, as on Windows. | As on Windows; the CA file or the system's store (`/etc/ssl/certs`). The distribution's client, which the distribution patches: CVE-2026-107819 and MariaDB's CONC-853, below, are the distribution's to fix, and Connector/C 3.4.11 or later fixes both; until then `TlsCaFile` set is the mitigation, from 6.3.8, which hands its name over or refuses it (HM7534) - before 6.3.8 a name outside ASCII was handed over as none. |
 | **MySQL / MariaDB, Linux, Oracle's client** (`libmysqlclient`, loaded only where no `libmariadb` is) | Its own default, PREFERRED: TLS when offered, unchecked. `AllowUnencryptedConnection=1` set option 38 - which to this client is not TLS at all but `MYSQL_OPT_OPTIONAL_RESULTSET_METADATA`, harmlessly to its default. | The same four modes through its own option, `MYSQL_OPT_SSL_MODE`: DISABLED, PREFERRED, REQUIRED, VERIFY_IDENTITY, and `MYSQL_OPT_SSL_CA` - whose number is not MariaDB's, which is why the client is told apart when it is loaded. |
 | **PostgreSQL, both platforms** (libpq) | libpq's default, prefer - or `PGSSLMODE` from the service's environment - unless `PostgreSQLSslMode` and `PostgreSQLSslRootCert` said otherwise. | **Unchanged when nothing is set**: no `sslmode` is added, so libpq's prefer (which falls back without TLS on its own) or `PGSSLMODE` stands. `TlsMode` and `TlsCaFile` become `sslmode` and `sslrootcert` when the two PostgreSQL keys are not set; those keys, which came first, win when they are. `verify-full` with no `TlsCaFile` is `sslrootcert=system` on Linux (libpq 16 and later), and libpq's own default file (`%APPDATA%\postgresql\root.crt` of the service's account) on Windows, where OpenSSL's store is not Windows'. |
 | **SQL Server, Windows** (ADO) | The provider's default: MSOLEDBSQL 18 and SQL Native Client encrypt the login and nothing after it unless the server forces encryption; `ConnectionStringOptions` appended verbatim. | **The whole session encrypted by default** through two of the three providers this server picks for itself when `[Database] Provider` is empty - MSOLEDBSQL, when version 18 or later is installed, and SQLNCLI for a failover partner - with `Use Encryption for Data=True;Trust Server Certificate=True`: every SQL Server since 2005 can, with the certificate it makes for itself. The third is SQLOLEDB, which the server picks when MSOLEDBSQL 18 or later is not installed, and on it only the login is encrypted (below). A failure that reads as TLS takes those two keywords away again for one more attempt, so a server that connected before still does. `MSOLEDBSQL19`, which encrypts and checks by default, is left to its default; SQLOLEDB, which cannot encrypt without checking the certificate against the Windows store, encrypts only the login unless `TlsMode` is `require` or `verify-full`, where it encrypts the session and checks. (SQLOLEDB takes `Trust Server Certificate` without complaint and does not honour it: against SQL Server 2022 and the certificate it made for itself, it was refused at the handshake - `[DBNETLIB][ConnectionOpen (SECDoClientHandshake()).]SSL Security error` - with the keyword as without it, measured on 25 September 2026.) `verify-full` is `Trust Server Certificate=False` against the Windows store; `TlsCaFile` is not read (HM7532 says so once). `ConnectionStringOptions` naming `Encrypt`, `Use Encryption for Data` or `TrustServerCertificate` wins while `TlsMode` is not set, as before, and is refused beside a `TlsMode` (HM7533). |
@@ -142,7 +178,17 @@ put your CA where the database's client will find it. For `verify-full`:
   `Server=` and chain to `TlsCaFile`. A MariaDB 11.4 server's own self-signed
   certificate is also accepted, without a CA file, when the account's password
   proves it (MariaDB's zero-configuration TLS, for `mysql_native_password`,
-  `ed25519` and `parsec` accounts); with a CA file named, it is not.
+  `ed25519` and `parsec` accounts); with a CA file named, it is not, and the
+  settings line of `--check-database` and the log's line say so. To a database on
+  this machine - `Server=127.0.0.1`, `::1`, `localhost` or empty, or a list of servers
+  with a comma that holds one of those - MariaDB Connector/C
+  checks the issuer and not the name, so `TlsCaFile` must name a CA that issues
+  nothing but the database's certificates (not the system's whole bundle), and
+  without it `verify-full` is refused (HM7535). **Up to 6.3.7 such a connection with
+  no `TlsCaFile` was made, with neither the certificate's issuer nor its name
+  checked**, while
+  `--check-database` said it had been checked against the system's trust store and
+  the log that it had been checked.
 * **PostgreSQL**: `ssl=on` and a certificate in `postgresql.conf`; `hostssl` lines in
   `pg_hba.conf` to make the server insist on it too.
 * **SQL Server**: a certificate for the server's name bound to the instance, and its
@@ -192,6 +238,8 @@ The IMAP migration client already did the same.
 | HM7531 | `TlsMode=verify-full` and `TlsCaFile` names a file that does not exist or cannot be read. The connection was not attempted |
 | HM7532 | `TlsCaFile` is set and the database is SQL Server, whose provider checks against the Windows store and reads no file. Once a process; nothing is refused |
 | HM7533 | `TlsMode` is set and `ConnectionStringOptions` names SQL Server's encryption as well. The connection was not attempted |
+| HM7534 | `TlsMode=verify-full` and `TlsCaFile`, or for PostgreSQL `PostgreSQLSslRootCert`, names a file whose name cannot be handed to the database's client as it is named: on Windows a character the ANSI code page does not have, or characters whose bytes in it also read as another name in UTF-8, which OpenSSL opens first; on either platform half of a surrogate pair or a U+0000. The connection was not attempted |
+| HM7535 | `TlsMode=verify-full` on MySQL or MariaDB through MariaDB Connector/C, with no `TlsCaFile`, and `Server=` a connection the client takes as one to this machine (`127.0.0.1`, `::1`, `localhost`, an empty `Server=`, a socket or a named pipe), or a list of servers with a comma that holds one of them, on which it would check neither the certificate's issuer nor its name. The connection was not attempted |
 
 A connection refused for TLS - no TLS offered to `require`, a certificate
 `verify-full` does not accept - is the connect failure it always was (HM4354 at the
@@ -237,30 +285,40 @@ None of these is raised on a server whose `[Database]` has neither `TlsMode` nor
   not encrypted.
 * **Oracle's `libmysqlclient.so.24`** (MySQL 8.4's client, which Ubuntu 26.04
   packages) is not among the names the Linux server loads; `libmariadb3` is what the
-  packages depend on.
+  packages suggest and the server loads.
 * **CVE-2026-107819, in MariaDB Connector/C 3.4.1 to 3.4.9, reached only
-  `verify-full` with no `TlsCaFile`.** When the client checked the certificate's
-  host name against `Server=` and it failed - a certificate a trusted authority
-  issued, for another name - the authentication switch that follows did not refuse
-  a plugin that sends the password unhashed, so a man in the middle with such a
-  certificate could ask for `mysql_clear_password` and read the password inside the
-  TLS connection it stood up. It was reached only with `TlsMode=verify-full`, an
-  empty `TlsCaFile` (so the system's store decides who is trusted) and a database
-  on another host: `prefer` and `require` do not check the certificate, `disable`
-  does not use TLS, and a named `TlsCaFile` refuses any mismatch before the login.
-  The Windows build ships Connector/C 3.4.11 since 6.3.7, which refuses the switch
-  on any failed check (the fix is 3.4.10's, a version MariaDB tagged and never
-  released: [ThirdPartyBinaries.md](ThirdPartyBinaries.md), "Connector/C 3.4.11,
-  built from MariaDB's source"); on Linux it is the distribution's client, and a
-  `TlsCaFile` naming the CA is the mitigation on a distribution that has not patched
-  it. What shows the fix is the source - 3.4.11's `my_auth.c` refuses after any
+  `verify-full` with no CA file handed to the client.** When the client checked the
+  certificate's host name against `Server=` and it failed - a certificate a trusted
+  authority issued, for another name - the authentication switch that follows did
+  not refuse a plugin that sends the password unhashed, so a man in the middle with
+  such a certificate could ask for `mysql_clear_password` and read the password
+  inside the TLS connection it stood up. It was reached only with
+  `TlsMode=verify-full`, a database on another host and no CA file handed to the
+  client (so the system's store decides who is trusted): an empty `TlsCaFile`, or,
+  before 6.3.8, a `TlsCaFile` whose name held a character outside ASCII on Linux,
+  or above U+00FF on Windows, which the client was handed as no file at all - so
+  for such a name a named `TlsCaFile` was no mitigation. 6.3.8 hands the name over
+  or refuses it (HM7534). `prefer` and `require` do not check the certificate,
+  `disable` does not use TLS, and a CA file handed to the client refuses any
+  mismatch before the login. The Windows build ships Connector/C 3.4.11 since
+  6.3.7, which refuses the switch on any failed check (the fix is 3.4.10's, a
+  version MariaDB tagged and never released:
+  [ThirdPartyBinaries.md](ThirdPartyBinaries.md), "Connector/C 3.4.11, built from
+  MariaDB's source"); on Linux it is the distribution's client, which should be
+  Connector/C 3.4.11 or later: that fixes CVE-2026-107819 and MariaDB's CONC-853,
+  by which 3.4.2 to 3.4.10, with no CA file, take a certificate whose issuer they
+  cannot find unchecked (a client with CVE-2026-107819's fix alone still does). On a
+  distribution that has not patched them, a `TlsCaFile` naming the CA, on 6.3.8 or
+  later, is the mitigation. What shows the fix is the source - 3.4.11's `my_auth.c` refuses after any
   failed check, 3.4.9's after a failed trust check alone - and the built
   `libmysql.dll`, which carries 3.4.11's refusal message where 3.4.9's does not. The
   flaw itself needs a certificate that a root in Windows' own store trusts, issued
   for another name, and no test here stages one. What was measured, on 12 October
   2026 with `--check-database` through both clients against MariaDB 11.8 and MySQL
   8.4, is the mitigation and that the swap changes nothing else: with a `TlsCaFile`,
-  `verify-full` refuses a certificate for another host name before the login on
+  over the network (on a connection to this machine the client checks no name:
+  *The four modes*, above), `verify-full` refuses a certificate for another host
+  name before the login on
   3.4.9 and 3.4.11 alike, and the nineteen other cases - each authentication plugin,
   `REQUIRE SSL`, a server without TLS, a wrong password, a certificate the CA did
   not issue, and a MariaDB server's own certificate taken on the password's proof -

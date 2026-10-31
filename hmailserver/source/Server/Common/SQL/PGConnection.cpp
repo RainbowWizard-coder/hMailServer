@@ -10,6 +10,7 @@
 #include "DatabaseSettings.h"
 #include "DatabaseTls.h"
 #include "../Util/Unicode.h"
+#include "../Util/FileUtilities.h"
 #include "../Application/IniFileSettings.h"
 #include "Macros/PGSQLMacroExpander.h"
 
@@ -99,27 +100,25 @@ namespace HM
          }
 
          // A Windows path's backslashes are escaped with the rest (MakeConninfo).
-         String sslRootCert = IniFileSettings::Instance()->GetDatabasePostgreSQLSslRootCert();
          const bool legacySslMode = !IniFileSettings::Instance()->GetDatabasePostgreSQLSslMode().IsEmpty();
-         if (sslRootCert.IsEmpty() && !legacySslMode && tlsMode == DatabaseTls::ModeVerifyFull)
-         {
-            // FromConfiguration hands the file over for verify-full only, so that
-            // libpq's require is never quietly made verify-ca by a root file beside it.
-            sslRootCert = tlsCaFile;
-
-#ifdef HM_PLATFORM_POSIX
-            // No file named: the system's trust store, which libpq 16 and later read
-            // for sslrootcert=system. On Windows OpenSSL's store is not the Windows
-            // one, so there libpq is left to its own default and says what it looked
-            // for when it is not there.
-            if (sslRootCert.IsEmpty() && PQlibVersion() >= 160000)
-               sslRootCert = _T("system");
-#endif
-         }
+         const String sslRootCert = SslRootCert(tlsMode == DatabaseTls::ModeVerifyFull, tlsCaFile, legacySslMode,
+            IniFileSettings::Instance()->GetDatabasePostgreSQLSslRootCert(), ReadsSystemStore());
 
          // Every value quoted and escaped as libpq's conninfo syntax asks, so that a
          // password - or a user, a host, a database or a path - with a quote, a
          // backslash or a space in it reaches the server as it was written.
+         // The root certificate's name as libpq and its OpenSSL read it, refused -
+         // with HM7534, as TlsCaFile is in DatabaseTls::FromConfiguration - where it
+         // cannot be written so that both read this file: PostgreSQLSslRootCert is
+         // not judged there.
+         AnsiString rootBytes;
+         if (!sslRootCert.IsEmpty() && !FileNameBytes(sslRootCert, rootBytes))
+         {
+            sErrorMessage = RootCertRefusal(sslRootCert);
+            ErrorManager::Instance()->ReportError(ErrorManager::Critical, 7534, "PGConnection::Connect", sErrorMessage);
+            return FatalError;
+         }
+
          AnsiString conninfo;
          if (!MakeConninfo(sServer, lDBPort, sUsername, sPassword, sDatabase, sslMode, sslRootCert, conninfo, sErrorMessage))
             return FatalError;
@@ -199,8 +198,10 @@ namespace HM
          else
             transportDetail = _T("the server offered no TLS");
 
-         const bool verified = encrypted && (effectiveSslMode == _T("verify-ca") || effectiveSslMode == _T("verify-full"));
-         String description = DatabaseTls::Describe(DatabaseSettings::TypePGServer, encrypted, transportDetail, verified, tlsMode);
+         String checkedHow;
+         const bool rootExists = !sslRootCert.IsEmpty() && sslRootCert != _T("system") && FileUtilities::Exists(sslRootCert);
+         const bool verified = DescribeCheck(encrypted, effectiveSslMode, sslRootCert, rootExists, checkedHow);
+         String description = DatabaseTls::Describe(DatabaseSettings::TypePGServer, encrypted, transportDetail, verified, tlsMode, checkedHow);
          if (legacySslMode)
             description += _T(", sslmode ") + sslMode + _T(" from PostgreSQLSslMode");
          else if (sslMode.IsEmpty() && effectiveSslMode != _T("prefer"))
@@ -717,33 +718,114 @@ namespace HM
       return quoted;
    }
 
-   namespace
+   bool
+   PGConnection::DescribeCheck(bool encrypted, const String &sslMode, const String &root, bool rootExists, String &checkedHow)
    {
-      // A path as libpq's fopen reads it: on Windows the ANSI code page, refusing a
-      // character it does not have rather than writing a best fit that names
-      // another file; elsewhere UTF-8, which is what a POSIX file name is here.
-      bool PathBytes(const String &path, AnsiString &bytes)
+      checkedHow.Empty();
+
+      if (!encrypted)
+         return false;
+
+      String mode = sslMode;
+      mode.MakeLower();
+
+      if (mode == _T("verify-full"))
+         return true;
+
+      if (mode == _T("verify-ca"))
       {
-#ifdef HM_PLATFORM_POSIX
-         return Unicode::ToUtf8Exact(path, bytes);
-#else
-         bytes.Empty();
-         if (path.IsEmpty())
-            return true;
-
-         BOOL defaulted = FALSE;
-         const int size = WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, path.c_str(), path.GetLength(), nullptr, 0, nullptr, &defaulted);
-         if (size <= 0 || defaulted)
-            return false;
-
-         std::string narrow((size_t) size, '\0');
-         if (WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, path.c_str(), path.GetLength(), &narrow[0], size, nullptr, &defaulted) != size || defaulted)
-            return false;
-
-         bytes = narrow.c_str();
-         return bytes.GetLength() == size;
-#endif
+         checkedHow = _T(" for its issuer alone, not for its name");
+         return true;
       }
+
+      // require, prefer and allow: a root file libpq could stat was read, and the
+      // chain checked against it. "system" is refused by libpq beside these modes.
+      if (!root.IsEmpty() && root != _T("system") && rootExists)
+      {
+         checkedHow = Formatter::Format(_T(" for its issuer alone, against the root certificate libpq was handed, which it reads under sslmode {0} too, not for its name"),
+            mode);
+         return true;
+      }
+
+      return false;
+   }
+
+   String
+   PGConnection::RootCertRefusal(const String &rootCert)
+   {
+      return Formatter::Format("The PostgreSQL root certificate's path, {0}, holds {1}, so libpq and its OpenSSL would not both read this file by "
+         "it. Move the file to a path without it and name that. The connection was not attempted.", rootCert, DALConnection::FileNameRefusal());
+   }
+
+   String
+   PGConnection::SslRootCert(bool tlsVerifyFull, const String &tlsCaFile, bool legacySslMode,
+                             const String &configuredRootCert, bool readsSystemStore)
+   {
+      if (!configuredRootCert.IsEmpty())
+         return configuredRootCert;
+
+      // FromConfiguration hands the file over for verify-full only, so that
+      // libpq's require is never quietly made verify-ca by a root file beside it.
+      if (legacySslMode || !tlsVerifyFull)
+         return String();
+
+      if (!tlsCaFile.IsEmpty())
+         return tlsCaFile;
+
+      // No file named: the system's trust store, which libpq 16 and later read
+      // for sslrootcert=system. On Windows OpenSSL's store is not the Windows
+      // one, so there libpq is left to its own default and says what it looked
+      // for when it is not there.
+      return readsSystemStore ? String(_T("system")) : String();
+   }
+
+   bool
+   PGConnection::ReadsSystemStore()
+   {
+#ifdef HM_PLATFORM_POSIX
+      return PQlibVersion() >= 160000;
+#else
+      return false;
+#endif
+   }
+
+   String
+   PGConnection::DescribeSslRoot(bool tlsVerifyFull, const String &tlsCaFile, bool legacySslMode,
+                                 const String &configuredRootCert, const String &root)
+   {
+      // A TlsCaFile set beside the key that wins is not handed over, and the line
+      // says so rather than leaving it to be taken for the one used.
+      const String notUsed = tlsCaFile.IsEmpty() ? String() : String(_T("; TlsCaFile ")) + tlsCaFile + _T(" is not used");
+
+      if (!configuredRootCert.IsEmpty())
+      {
+         const String what = configuredRootCert == _T("system")
+            ? String(_T("the system's trust store (PostgreSQLSslRootCert=system"))
+            : configuredRootCert + _T(" (PostgreSQLSslRootCert");
+
+         // libpq checks a certificate against the root under verify-ca and
+         // verify-full, and - when the root is a file - under require too; what
+         // the mode does with it is libpq's, so the line says what it was handed.
+         if (tlsVerifyFull && !legacySslMode)
+            return _T(", the certificate checked against ") + what + _T(", which wins over TlsCaFile for PostgreSQL") + notUsed + _T(")");
+
+         return _T(", sslrootcert handed to libpq: ") + what + notUsed + _T(")");
+      }
+
+      if (legacySslMode || !tlsVerifyFull)
+         return notUsed;
+
+      if (root == _T("system"))
+         return _T(", the certificate checked against the system's trust store (sslrootcert=system; TlsCaFile is not set)");
+
+      if (!root.IsEmpty())
+         return _T(", the certificate checked against ") + root;
+
+#ifdef HM_PLATFORM_POSIX
+      return _T(", the certificate checked against libpq's own ~/.postgresql/root.crt of the account the server runs as (TlsCaFile is not set, and this libpq is older than 16)");
+#else
+      return _T(", the certificate checked against libpq's own root.crt in the service account's %APPDATA%\\postgresql (TlsCaFile is not set)");
+#endif
    }
 
    bool
@@ -803,9 +885,12 @@ namespace HM
       if (!sslRootCert.IsEmpty())
       {
          AnsiString bytes;
-         if (!PathBytes(sslRootCert, bytes))
+         // As libpq's stat() reads it, and OpenSSL's fopen opens no other file by it
+         // (DALConnection::FileNameBytes). Connect has refused such a name with
+         // HM7534; this refuses it for any other caller.
+         if (!FileNameBytes(sslRootCert, bytes))
          {
-            error = _T("The PostgreSQL root certificate's path, ") + sslRootCert + _T(", holds a character this system's code page does not have, and libpq opens the file by that name. Move the file to a path without it. The connection was not attempted.");
+            error = RootCertRefusal(sslRootCert);
             conninfo.Empty();
             return false;
          }
@@ -933,10 +1018,146 @@ namespace HM
          std::string("the root certificate's path was not read back as given: ") + conninfo.c_str());
       CheckConninfo(!ParsedValue(conninfo, "sslmode", parsed, why) || parsed.empty(), std::string("sslmode was written when none was given: ") + conninfo.c_str());
 
+#ifdef HM_PLATFORM_POSIX
+      // A root certificate's path outside ASCII goes as its UTF-8, the bytes of
+      // the name on the file system (DALConnection::FileNameBytes), which libpq's
+      // fopen takes as they are.
+      const wchar_t rootName[] = { L'/', L'c', 0x00E0, L'/', 0x20AC, L'/', L'r', L'.', L'p', L'e', L'm', 0 };
+      CheckConninfo(PGConnection::MakeConninfo(_T("h"), 1, _T("u"), _T("p"), String(), _T("verify-full"), String(rootName), conninfo, error),
+         "MakeConninfo refused a root certificate's path outside ASCII");
+      CheckConninfo(ParsedValue(conninfo, "sslrootcert", parsed, why) && parsed == "/c\xC3\xA0/\xE2\x82\xAC/r.pem",
+         std::string("a root certificate's path outside ASCII was not written as its UTF-8: ") + conninfo.c_str());
+#endif
+
+      // Half of a surrogate pair in the root certificate's path: refused, not
+      // written as some other name.
+      String loneRoot(L"/ca");
+      loneRoot += (wchar_t) 0xD800;
+      CheckConninfo(!PGConnection::MakeConninfo(_T("h"), 1, _T("u"), _T("p"), String(), _T("verify-full"), loneRoot, conninfo, error) && conninfo.IsEmpty() && !error.IsEmpty(),
+         "a root certificate's path with half a surrogate pair was not refused");
+
       // A value UTF-8 cannot carry is refused, not written as something else.
       String lone(L"half");
       lone += (wchar_t) 0xD800;
       CheckConninfo(!PGConnection::MakeConninfo(_T("h"), 1, _T("u"), lone, _T("d"), String(), String(), conninfo, error) && conninfo.IsEmpty() && !error.IsEmpty(),
          "a password with half a surrogate pair was not refused");
+
+      // The root libpq is handed, and what --check-database's line says of it. The
+      // line names TlsCaFile only when TlsCaFile is the root handed over; up to
+      // 6.3.7 it named it beside PostgreSQLSslRootCert, which libpq was given.
+      const String caB(_T("/c/ca-b.pem"));
+      const String caA(_T("/c/ca-a.pem"));
+      auto line = [](const String &text) { return std::string(Unicode::ToUtf8(text).c_str()); };
+
+      String root = PGConnection::SslRootCert(true, caB, false, caA, true);
+      String said = PGConnection::DescribeSslRoot(true, caB, false, caA, root);
+      CheckConninfo(root == caA, "PostgreSQLSslRootCert beside TlsCaFile was not the root handed to libpq");
+      CheckConninfo(said.Find(caA) >= 0 && said.Find(_T("PostgreSQLSslRootCert")) >= 0 && said.Find(_T("wins over TlsCaFile")) >= 0,
+         "the line does not name PostgreSQLSslRootCert's file as the root: " + line(said));
+      CheckConninfo(said.Find(caB + _T(" is not used")) >= 0 && said.Find(_T("checked against ") + caB) < 0,
+         "the line names TlsCaFile as the root libpq was not handed: " + line(said));
+
+      root = PGConnection::SslRootCert(true, caB, false, _T("system"), true);
+      said = PGConnection::DescribeSslRoot(true, caB, false, _T("system"), root);
+      CheckConninfo(root == _T("system") && said.Find(_T("system's trust store (PostgreSQLSslRootCert=system")) >= 0 && said.Find(_T("checked against ") + caB) < 0,
+         "PostgreSQLSslRootCert=system beside TlsCaFile was not said as the system's store: " + line(said));
+
+      // Under a non-ASCII name, as the defect was found under.
+      const wchar_t cyrillic[] = { L'/', 0x043A, 0x0430, L'/', L'c', L'a', L'-', L'b', L'.', L'p', L'e', L'm', 0 };
+      root = PGConnection::SslRootCert(true, String(cyrillic), false, caA, true);
+      said = PGConnection::DescribeSslRoot(true, String(cyrillic), false, caA, root);
+      CheckConninfo(root == caA && said.Find(_T("checked against ") + String(cyrillic)) < 0 && said.Find(String(cyrillic) + _T(" is not used")) >= 0,
+         "PostgreSQLSslRootCert beside a TlsCaFile outside ASCII was not said as the root: " + line(said));
+
+      // TlsCaFile alone is the root, and the line names it.
+      root = PGConnection::SslRootCert(true, caB, false, String(), true);
+      said = PGConnection::DescribeSslRoot(true, caB, false, String(), root);
+      CheckConninfo(root == caB && said == _T(", the certificate checked against ") + caB, "TlsCaFile alone was not the root, or not named: " + line(said));
+
+      // Neither: the system's store where libpq reads it for "system", and none
+      // given where it does not.
+      root = PGConnection::SslRootCert(true, String(), false, String(), true);
+      CheckConninfo(root == _T("system") && PGConnection::DescribeSslRoot(true, String(), false, String(), root).Find(_T("sslrootcert=system")) >= 0,
+         "verify-full with no root file was not handed the system's store");
+      CheckConninfo(PGConnection::SslRootCert(true, String(), false, String(), false).IsEmpty(), "a libpq without sslrootcert=system was handed it");
+
+      // require, and PostgreSQLSslMode: TlsCaFile is never handed over; a
+      // PostgreSQLSslRootCert is, and the line says it was, not that it decided.
+      CheckConninfo(PGConnection::SslRootCert(false, caB, false, String(), true).IsEmpty(), "TlsCaFile was handed over for a mode other than verify-full");
+      CheckConninfo(PGConnection::SslRootCert(true, caB, true, String(), true).IsEmpty(), "TlsCaFile was handed over beside PostgreSQLSslMode");
+      root = PGConnection::SslRootCert(true, caB, true, caA, true);
+      said = PGConnection::DescribeSslRoot(true, caB, true, caA, root);
+      CheckConninfo(root == caA && said.Find(_T("sslrootcert handed to libpq: ") + caA) >= 0 && said.Find(caB + _T(" is not used")) >= 0,
+         "PostgreSQLSslRootCert beside PostgreSQLSslMode was not said as handed over: " + line(said));
+      said = PGConnection::DescribeSslRoot(true, caB, true, String(), String());
+      CheckConninfo(said == _T("; TlsCaFile ") + caB + _T(" is not used"), "TlsCaFile beside PostgreSQLSslMode was not said to be unused: " + line(said));
+
+      // The connection's line: libpq checks the chain against a root file it is
+      // handed and can stat under require, prefer and allow too, which up to 6.3.7
+      // was said as not checked; a file that is not there, the system's store
+      // beside those modes (which libpq refuses) and no root are not a check.
+      String how;
+      CheckConninfo(PGConnection::DescribeCheck(true, _T("verify-full"), caA, true, how) && how.IsEmpty(), "verify-full was not said as checked: " + line(how));
+      CheckConninfo(PGConnection::DescribeCheck(true, _T("verify-full"), String(), false, how) && how.IsEmpty(), "verify-full with libpq's own root was not said as checked");
+      CheckConninfo(PGConnection::DescribeCheck(true, _T("verify-ca"), caA, true, how) && how == _T(" for its issuer alone, not for its name"),
+         "verify-ca was not said as a check of the issuer alone: " + line(how));
+      for (const wchar_t *weak : { L"require", L"prefer", L"allow", L"Require" })
+      {
+         CheckConninfo(PGConnection::DescribeCheck(true, weak, caA, true, how) && how.Find(_T("for its issuer alone")) >= 0 && how.Find(_T("not for its name")) >= 0,
+            "a root file handed to libpq under a weaker sslmode was not said as a check of the issuer: " + line(how));
+         CheckConninfo(how.Find(caA) < 0, "the connection's line named the root file, which the log's line does not: " + line(how));
+         CheckConninfo(!PGConnection::DescribeCheck(true, weak, caA, false, how) && how.IsEmpty(), "a root file that is not there was said as a check");
+         CheckConninfo(!PGConnection::DescribeCheck(true, weak, _T("system"), true, how), "the system's store beside a weaker sslmode was said as a check");
+         CheckConninfo(!PGConnection::DescribeCheck(true, weak, String(), false, how), "no root file under a weaker sslmode was said as a check");
+      }
+      CheckConninfo(!PGConnection::DescribeCheck(false, _T("prefer"), caA, true, how) && !PGConnection::DescribeCheck(false, _T("verify-full"), caA, true, how),
+         "a connection without TLS was said as checked");
+      const String requireLine = DatabaseTls::Describe(DatabaseSettings::TypePGServer, true, _T("TLSv1.3, TLS_AES_256_GCM_SHA384"),
+         PGConnection::DescribeCheck(true, _T("require"), caA, true, how), DatabaseTls::ModeDefault, how);
+      CheckConninfo(requireLine == _T("PostgreSQL: encrypted with TLS (TLSv1.3, TLS_AES_256_GCM_SHA384), the server's certificate checked for its issuer alone, against ")
+         _T("the root certificate libpq was handed, which it reads under sslmode require too, not for its name (TlsMode prefer, the default)"),
+         "the connection's line under require with a root file: " + line(requireLine));
+
+#ifndef HM_PLATFORM_POSIX
+      // A name whose bytes in the code page also read as UTF-8 - on code page 1252
+      // U+00C3 U+00A9, C3 A9, which is U+00E9 in UTF-8 - names another file to
+      // libpq's OpenSSL, which opens that reading first when a file is there. Made
+      // from those two bytes in whatever code page this is, and refused when they
+      // come back as themselves, as RootCertRefusal says.
+      if (GetACP() != CP_UTF8)
+      {
+         const char twoBytes[] = { (char) 0xC3, (char) 0xA9 };
+         wchar_t wide[4] = { 0 };
+         const int count = MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, twoBytes, 2, wide, 3);
+         if (count > 0)
+         {
+            const String ambiguous = String(_T("C:\\certs\\")) + String(wide) + _T("\\root.pem");
+            AnsiString back;
+            BOOL defaulted = FALSE;
+            char narrow[8] = { 0 };
+            const int length = WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, wide, count, narrow, (int) sizeof(narrow), nullptr, &defaulted);
+            if (length == 2 && !defaulted && narrow[0] == twoBytes[0] && narrow[1] == twoBytes[1])
+            {
+               CheckConninfo(!DALConnection::FileNameBytes(ambiguous, back) && back.IsEmpty(),
+                  "a root certificate's name whose bytes in the code page also read as UTF-8 was handed over, which OpenSSL may read as another file");
+               AnsiString conninfoOut;
+               String refusal;
+               CheckConninfo(!PGConnection::MakeConninfo(_T("db"), 5432, _T("u"), _T("p"), _T("d"), _T("verify-full"), ambiguous, conninfoOut, refusal) &&
+                  refusal.Find(_T("UTF-8")) >= 0 && refusal.Find(_T("not attempted")) >= 0,
+                  "MakeConninfo took a root certificate's name OpenSSL would read as another: " + line(refusal));
+            }
+         }
+
+         // Within the code page and not UTF-8 - U+00E9 alone, E9 on 1252 - is the
+         // file's name to both, and is handed over.
+         if (GetACP() == 1252)
+         {
+            const wchar_t eacute[] = { L'C', L':', L'\\', 0x00E9, L'\\', L'r', L'.', L'p', L'e', L'm', 0 };
+            AnsiString bytes;
+            CheckConninfo(DALConnection::FileNameBytes(String(eacute), bytes) && bytes == AnsiString("C:\\\xE9\\r.pem"),
+               "a root certificate's name within code page 1252 that is not UTF-8 was not handed over in it");
+         }
+      }
+#endif
    }
 }

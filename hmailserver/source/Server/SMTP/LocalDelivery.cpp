@@ -461,8 +461,8 @@ namespace HM
       // a name-count limit - leaves its reason in errno, which is what
       // GetLastError reads here, and takes the same branch as before: no shared
       // template, and every local copy written on its own.
-      const AnsiString linkExisting = queueFile.c_str();
-      const AnsiString linkNew = templateFile.c_str();
+      const AnsiString linkExisting = FileUtilities::NarrowPath(queueFile);
+      const AnsiString linkNew = FileUtilities::NarrowPath(templateFile);
 
       if (::link(linkExisting.c_str(), linkNew.c_str()) != 0)
       {

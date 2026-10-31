@@ -13,6 +13,12 @@ namespace HM
       Unicode();
       virtual ~Unicode();
 
+      // The text one byte a character, on both platforms the bytes Windows'
+      // wcstombs_s gives in the C runtime's "C" locale: a character up to U+00FF
+      // as the byte of its value, and NOTHING - an empty result - for a text
+      // that holds any character above it. Not an encoding of the text in
+      // general: a caller that hands a name or a secret on must test for that
+      // empty result, or use ToUtf8Exact or a conversion of its own.
       static AnsiString ToANSI(const String &sString);
       static bool WideToMultiByte(const String &sInput, AnsiString &sOutput);
       static bool MultiByteToWide(const AnsiString &sInput, String &sOutput);

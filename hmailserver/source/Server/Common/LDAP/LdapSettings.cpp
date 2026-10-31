@@ -226,7 +226,7 @@ namespace HM
       // and a file that cannot be stat'ed leaves the token at zero exactly as a
       // failed GetFileAttributesEx does.
       struct stat attributes;
-      if (::stat(AnsiString(iniFile).c_str(), &attributes) == 0)
+      if (::stat(FileUtilities::NarrowPath(iniFile).c_str(), &attributes) == 0)
       {
          writeTime = (ULONGLONG) attributes.st_mtim.tv_sec * 1000000000ULL +
                      (ULONGLONG) attributes.st_mtim.tv_nsec;

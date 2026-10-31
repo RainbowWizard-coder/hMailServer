@@ -902,11 +902,14 @@ Administration and monitoring:
                                  ; preferences (a user_prefs file, or its SQL preference store) instead of its
                                  ; global configuration. Empty (the default) sends no header, which is what every
                                  ; earlier release did; a spamd that cannot change to the user named may refuse
-                                 ; the scan, so set this only for a spamd prepared for it
+                                 ; the scan, so set this only for a spamd prepared for it. A name outside ASCII
+                                 ; goes as UTF-8 (on Windows, one within Latin-1 as its Latin-1 bytes, as before)
    SpamAssassinUserFromRecipient=0 ; 1 = a message with exactly one recipient is scanned as that recipient (its
-                                 ; address as the User: header - the shape a virtual-user spamd expects). A scan
+                                 ; address as the User: header - the shape a virtual-user spamd expects; an
+                                 ; address received under SMTPUTF8 as the bytes it came in). A scan
                                  ; runs once per message, so a message to several recipients falls back to
-                                 ; SpamAssassinUser, or to no header
+                                 ; SpamAssassinUser, or to no header. A user the header cannot carry (a control
+                                 ; character) is sent as no header, with HM5514 in the error log
    ManageSieveServerPort=0       ; ManageSieve (RFC 5804) script-management service (0 = disabled, standard port 4190)
    ManageSieveServerBindAddress=127.0.0.1  ; STARTTLS is offered when a TLS certificate is configured, and an
                                  ; IP range can require TLS before authentication; otherwise SASL PLAIN

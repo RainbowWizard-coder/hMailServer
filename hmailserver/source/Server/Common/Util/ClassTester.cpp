@@ -165,6 +165,7 @@ namespace
 #include "WebServicesServer.h"
 #include "../AntiSpam/SURBL.h"
 #include "../AntiSpam/SpamAssassin/SpamAssassinReturnPath.h"
+#include "../AntiSpam/SpamAssassin/SpamAssassinClient.h"
 #include "RateLimiter.h"
 #include "TransparentTransmissionBuffer.h"
 #include "../Cache/Cache.h"
@@ -278,6 +279,12 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing a message too large to be read whole\n"));
       LargeMessageTester largeMessageTester;
       largeMessageTester.Test(IniFileSettings::Instance()->GetTempDirectory());
+
+      // A message under folders named outside ASCII, read and written by every
+      // reader and writer of the message store's MIME paths (MessageData.h).
+      OutputDebugString(_T("hMailServer: Testing a message under folders named outside ASCII\n"));
+      MessageFileNameTester messageFileNameTester;
+      messageFileNameTester.Test(IniFileSettings::Instance()->GetTempDirectory());
 
       // And no edit resets it: a Sieve script's addheader or deleteheader, refused
       // when stored and skipped when run, a rule that sets it, and a line break in a
@@ -595,6 +602,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing SpamAssassinReturnPath\n"));
       SpamAssassinReturnPathTester spamAssassinReturnPathTester;
       spamAssassinReturnPathTester.Test();
+
+      // The bytes of spamd's User: header for a name: within Latin-1 as before,
+      // beyond it in UTF-8 where it was nothing, an address held as its bytes as
+      // those bytes, and a control character refused. platform/unicode_tests_main.cpp
+      // runs the same on Linux.
+      OutputDebugString(_T("hMailServer: Testing SpamAssassin's User: header\n"));
+      SpamAssassinUserTester spamAssassinUserTester;
+      spamAssassinUserTester.Test();
 
       // The command lines of the custom virus scanner and ClamWin: the file's
       // path one argument wherever %FILE% stands, quoted or not, and ClamWin's

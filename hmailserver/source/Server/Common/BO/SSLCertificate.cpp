@@ -42,7 +42,7 @@ namespace HM
       // with the built-in key is obfuscation, not protection - anyone holding the
       // backup AND the hMailServer source can decode it - so a backup file must
       // still be treated as containing the passphrase.
-      pNode->AppendAttr(_T("PrivateKeyPassword"), Crypt::Instance()->EnCrypt(private_key_password_, Crypt::ETBlowFish));
+      pNode->AppendAttr(_T("PrivateKeyPassword"), Crypt::Instance()->EnCryptForXml(private_key_password_, Formatter::Format("The private key password of the SSL/TLS certificate {0}", name_)));
 
       return true;
    }

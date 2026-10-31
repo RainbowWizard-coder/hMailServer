@@ -112,7 +112,10 @@ namespace HM
    AnsiString 
    Formatter::FormatAsAnsi(const AnsiString &fmt, const FormatArgument &argument1, const FormatArgument &argument2,const FormatArgument &argument3, const FormatArgument &argument4, const FormatArgument &argument5)
    {
-      String value = Format(fmt, argument1, argument2, argument5);
+      // All five. Up to 6.3.7 this passed the first, the second and the fifth to
+      // the three-argument Format, so that {2} was the fifth argument and {3} and
+      // {4} were left in the text.
+      String value = Format(fmt, argument1, argument2, argument3, argument4, argument5);
 
       return Unicode::ToANSI(value);
    }
@@ -281,5 +284,74 @@ namespace HM
       if (Formatter::Format(_T("{0} {1}"), true, false) != _T("True False"))
          HM_TEST_FAILED();
 
+      // FormatAsAnsi with each count of arguments, every one in its place: up to
+      // 6.3.7 the five-argument form gave "one|two|five|{3}|{4}".
+      if (Formatter::FormatAsAnsi("{0}", "one") != AnsiString("one"))
+         HM_TEST_FAILED();
+      if (Formatter::FormatAsAnsi("{1}|{0}", "one", "two") != AnsiString("two|one"))
+         HM_TEST_FAILED();
+      if (Formatter::FormatAsAnsi("{0}|{1}|{2}", "one", "two", "three") != AnsiString("one|two|three"))
+         HM_TEST_FAILED();
+      if (Formatter::FormatAsAnsi("{0}|{1}|{2}|{3}", "one", "two", "three", "four") != AnsiString("one|two|three|four"))
+         HM_TEST_FAILED();
+      if (Formatter::FormatAsAnsi("{0}|{1}|{2}|{3}|{4}", "one", "two", "three", "four", "five") != AnsiString("one|two|three|four|five"))
+         HM_TEST_FAILED();
+      if (Formatter::FormatAsAnsi("{4}{3}{2}{1}{0}", 1, 2, 3, 4, 5) != AnsiString("54321"))
+         HM_TEST_FAILED();
+
+      // Unicode::ToANSI, which FormatAsAnsi ends in, gives the same bytes on both
+      // platforms: a character up to U+00FF as its byte, and nothing at all for a
+      // text with any character above it. Up to 6.3.7 Linux gave nothing for any
+      // character outside ASCII.
+      struct AnsiCase
+      {
+         const wchar_t *text;
+         const char *bytes;
+      };
+
+      const wchar_t agrave[] = { 0x00E0, 0 };
+      const wchar_t inLatin1[] = { L'a', 0x00E0, L'b', 0x00FF, 0x0080, 0x009F, 0x00A0, 0 };
+      const wchar_t idot[] = { 0x0130, 0 };
+      const wchar_t euro[] = { L'a', 0x00E0, 0x20AC, L'b', 0 };
+      const wchar_t cjk[] = { L'x', 0x65E5, 0 };
+      const wchar_t stopped[] = { L'a', L'b', 0, 0x00E0, 0 };
+      const AnsiCase ansiCases[] =
+      {
+         { L"plain ASCII", "plain ASCII" },
+         { L"", "" },
+         { agrave, "\xE0" },
+         { inLatin1, "a\xE0" "b\xFF\x80\x9F\xA0" },
+         { idot, "" },
+         { euro, "" },
+         { cjk, "" },
+         { stopped, "ab" },
+      };
+
+      for (const AnsiCase &ansiCase : ansiCases)
+      {
+         const AnsiString bytes = Unicode::ToANSI(String(ansiCase.text));
+         if (bytes != AnsiString(ansiCase.bytes))
+            throw std::logic_error(std::string("FormatterTester: Unicode::ToANSI gave ") + std::to_string(bytes.GetLength()) +
+               " byte(s) where " + std::to_string(strlen(ansiCase.bytes)) + " were expected");
+      }
+
+      // A character U+FFFF cannot hold, where wchar_t can hold it (four bytes on
+      // Linux; on Windows it is a surrogate pair, each half above U+00FF): nothing.
+      String beyondBmp(_T("a"));
+#ifdef HM_PLATFORM_POSIX
+      beyondBmp += (wchar_t) 0x1F600;
+#else
+      beyondBmp += (wchar_t) 0xD83D;
+      beyondBmp += (wchar_t) 0xDE00;
+#endif
+      if (!Unicode::ToANSI(beyondBmp).IsEmpty())
+         HM_TEST_FAILED();
+
+      // And through FormatAsAnsi, a name above U+00FF empties the whole text as
+      // ToANSI does, where one within Latin-1 is its bytes.
+      if (Formatter::FormatAsAnsi("file {0}", String(agrave)) != AnsiString("file \xE0"))
+         HM_TEST_FAILED();
+      if (!Formatter::FormatAsAnsi("file {0}", String(idot)).IsEmpty())
+         HM_TEST_FAILED();
    }
 }

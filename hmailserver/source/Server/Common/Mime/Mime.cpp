@@ -1735,7 +1735,7 @@ namespace HM
    }
 
    MimeLoadResult
-      MimeBody::LoadFromFile(const AnsiString &pszFilename)
+      MimeBody::LoadFromFile(const String &pszFilename)
    {
       File oFile;
       if (!oFile.Open(pszFilename, File::OTReadOnly))
@@ -1904,7 +1904,7 @@ namespace HM
    }
 
    MimeLoadResult
-      MimeBody::LoadHeaderFromFile(const AnsiString &pszFilename)
+      MimeBody::LoadHeaderFromFile(const String &pszFilename)
    {
       File oFile;
       if (!oFile.Open(pszFilename, File::OTReadOnly))
@@ -2077,7 +2077,7 @@ namespace HM
       return false;
    }
 
-   bool MimeBody::SaveHeaderOnlyToFile_(const AnsiString &pszFilename)
+   bool MimeBody::SaveHeaderOnlyToFile_(const String &pszFilename)
    {
       AnsiString headerBuffer;
       MimeHeader::Store(headerBuffer);  // includes trailing blank line \r\n
@@ -2104,7 +2104,7 @@ namespace HM
    }
 
    // write the entire header and content to file.
-   bool MimeBody::SaveAllToFile(const AnsiString & pszFilename)
+   bool MimeBody::SaveAllToFile(const String &pszFilename)
    {
       LOG_DEBUG(Formatter::Format("Rewriting message file {0}.", String(pszFilename)));
 

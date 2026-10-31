@@ -740,7 +740,12 @@ namespace HM
 
       szPath[pathLength] = '\0';
 
-      String sPath(szPath);
+      // The bytes of the name, read as UTF-8 (FileUtilities::WidePath), so that
+      // the program folder made from it names the same directory again. Up to
+      // 6.3.7 they were widened one to a character, which a folder with a
+      // character outside ASCII did not survive.
+      String sPath;
+      FileUtilities::WidePath(szPath, sPath);
       return sPath;
 #else
       // A TCHAR array, not alloca(2048): the count passed to GetModuleFileName is

@@ -508,6 +508,38 @@ namespace HM
       return DeCrypt(sStored, ETBlowFish);
    }
 
+   String
+   Crypt::EnCryptForXml(const String &secret, const String &whose) const
+   {
+      if (secret.IsEmpty())
+         return String();
+
+      // One line, naming whose secret and which of the scheme's two limits
+      // refused it - its length or a character above U+00FF - where
+      // EncryptToString's own report would be a second line naming neither.
+      String written;
+      if (!legacy_blowfish_.TryEncryptToString(secret, written))
+      {
+         const String message = BackupRefusal(secret, whose);
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7280, "Crypt::EnCryptForXml", message);
+         Logger::Instance()->LogBackup(message);
+         return String();
+      }
+
+      return written;
+   }
+
+   String
+   Crypt::BackupRefusal(const String &secret, const String &whose)
+   {
+      const String refusal = LegacyBlowfish::Refusal(secret);
+      if (refusal.IsEmpty())
+         return String();
+
+      return Formatter::Format("{0} was written to the backup without it, since the legacy Blowfish scheme a backup carries secrets in refused it: {1}. "
+         "A restore of this backup gives it no value; enter it again after a restore.", whose, refusal);
+   }
+
    bool
    Crypt::IsSecretEnvelope(const String &stored)
    {

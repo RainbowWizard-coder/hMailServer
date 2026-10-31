@@ -175,7 +175,7 @@ namespace HM
       AnsiString selector = pDomain->GetDKIMSelector();
       // the senderDomain is either the main domain or it is allowed to sign using the key from the main domain
       AnsiString domain = senderDomain;
-      AnsiString privateKeyFile = pDomain->GetDKIMPrivateKeyFile();
+      String privateKeyFile = pDomain->GetDKIMPrivateKeyFile();
 
       if (selector.IsEmpty() || privateKeyFile.IsEmpty())
       {
@@ -297,7 +297,7 @@ namespace HM
       // it; asked here for every member's copy of a posting, it would be the
       // same line a thousand times.
       AnsiString selector = pDomain->GetDKIMSelector();
-      AnsiString privateKeyFile = pDomain->GetDKIMPrivateKeyFile();
+      String privateKeyFile = pDomain->GetDKIMPrivateKeyFile();
       if (selector.IsEmpty() || privateKeyFile.IsEmpty())
          return false;
 

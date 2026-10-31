@@ -38,7 +38,8 @@ namespace HM
    //    little-endian (the byte order of every machine the scheme ran on, where
    //    it read them as the machine's own words; the published test vectors
    //    read them big-endian, which EncryptBlock/DecryptBlock below take);
-   //  - text is taken as Unicode::ToANSI makes it, at most as many bytes as the
+   //  - text is taken as Unicode::ToANSI makes it - a character up to U+00FF as
+   //    its byte, on both platforms - at most as many bytes as the
    //    text has characters, zero-padded to whole blocks, and written as
    //    lowercase hexadecimal; hexadecimal is read two characters at a time as
    //    strtol reads them, and the text ends at the first zero byte.
@@ -61,9 +62,26 @@ namespace HM
       LegacyBlowfish(const unsigned char *key, size_t keyLength);
 
       // The scheme's two operations (see above). Empty gives empty both ways.
-      // Neither changes the object, so one instance serves every thread.
+      // Neither changes the object, so one instance serves every thread. A text
+      // the scheme cannot carry - one with a character above U+00FF, or longer
+      // than MaxPlainLength - is refused, reported (HM7278, HM7277) and answered
+      // with an empty string, never encrypted as some other text; up to 6.3.7
+      // the first was encrypted as an empty one.
       String EncryptToString(const String &plainText) const;
+
+      // EncryptToString without the report: false, with nothing written, for a
+      // text the scheme cannot carry. For a caller that says it itself, and for
+      // the tester, which runs inside the service on Windows and must leave
+      // nothing in its error log.
+      bool TryEncryptToString(const String &plainText, String &hexText) const;
       String DecryptFromString(const String &hexText) const;
+
+      // Why the scheme refuses a text, as the end of a sentence that has named the scheme
+      // ("it has 300 characters, and the scheme holds at most 248", or "it holds
+      // a character above U+00FF, which the scheme cannot carry"), for a
+      // caller that says whose secret was not written and why; empty for a text
+      // TryEncryptToString takes.
+      static String Refusal(const String &plainText);
 
       // One block, its halves as the published algorithm and its test vectors
       // name them: left is bytes 0-3 read big-endian, right bytes 4-7.

@@ -426,7 +426,7 @@ namespace HM
       // that did not need moving.
       bool GetVolumePathPosix_(const String &path, String &volume)
       {
-         AnsiString candidate = AnsiString(path);
+         AnsiString candidate = FileUtilities::NarrowPath(path);
 
          if (candidate.empty())
             return false;

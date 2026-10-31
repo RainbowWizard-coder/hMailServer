@@ -154,12 +154,13 @@ namespace HM
       // write a POSIX side for and nothing is lost by having none: fopen with the
       // same mode string is the same call.
       //
-      // The path and the mode are narrowed the way the rest of the tree narrows a
-      // String for a C API. A path that cannot be represented in the filesystem's
-      // own encoding could not be opened by any other call here either, and fopen
-      // answers null for it - which is the failure this function already returns
-      // for two lines below.
-      const AnsiString narrow_name = sFilename;
+      // The path as every narrow call names a file here (FileUtilities::
+      // NarrowPath, UTF-8), so that this opens the file Boost.Filesystem's calls
+      // find by the same name. Up to 6.3.7 it was AnsiString(String)'s Latin-1, so
+      // that a name with a character outside ASCII was another file here than
+      // there. A name UTF-8 cannot carry is empty, and fopen answers null for it -
+      // the failure this function already returns two lines below.
+      const AnsiString narrow_name = FileUtilities::NarrowPath(sFilename);
       const AnsiString narrow_mode = open_mode.c_str();
 
       file_ = ::fopen(narrow_name.c_str(), narrow_mode.c_str());

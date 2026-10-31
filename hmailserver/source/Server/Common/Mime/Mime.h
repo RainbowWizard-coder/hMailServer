@@ -547,8 +547,8 @@ namespace HM
       int GetAttachmentList(std::shared_ptr<MimeBody> pThis, BodyList& rList) const;
       void ClearAttachments();
       void RemoveAttachment(std::shared_ptr<MimeBody> pAttachment);
-      MimeLoadResult LoadFromFile(const AnsiString &pszFilename);
-      bool SaveAllToFile(const AnsiString &pszFilename);
+      MimeLoadResult LoadFromFile(const String &pszFilename);
+      bool SaveAllToFile(const String &pszFilename);
 
       // A message held in memory - one the message store decoded and never
       // wrote out, a mailbox encrypted at rest's above all (docs/
@@ -570,7 +570,7 @@ namespace HM
       // never read cannot be written with it. ParseFailed when the first
       // MaxHeaderOnlyBytes hold no end of the header, or a field the parser
       // refuses; OpenFailed when the file could not be opened or read.
-      MimeLoadResult LoadHeaderFromFile(const AnsiString &pszFilename);
+      MimeLoadResult LoadHeaderFromFile(const String &pszFilename);
       MimeLoadResult LoadHeaderFromMemory(const std::shared_ptr<const std::string> &message);
       bool IsHeaderOnly() const { return header_only_; }
 
@@ -673,7 +673,7 @@ namespace HM
       BodyList bodies_;       // list of all child body parts
       BodyList::iterator find_;
 
-      AnsiString source_file_;          // Path of file this was loaded from
+      String source_file_;              // Path of file this was loaded from
       std::shared_ptr<const std::string> source_bytes_;   // Or the bytes, when they were never a file (LoadFromMemory)
       size_t body_byte_offset_ = 0;    // Byte offset where body starts in source file (after headers + blank line)
       size_t body_byte_end_ = 0;       // Byte offset one past last meaningful body byte (end of closing boundary marker)
@@ -726,7 +726,7 @@ namespace HM
       // SaveAllToFile for a header-only message read from a file: the header,
       // then the unread body copied from the file in chunks, into a file beside
       // the target that is renamed over it.
-      bool SaveHeaderOnlyToFile_(const AnsiString &pszFilename);
+      bool SaveHeaderOnlyToFile_(const String &pszFilename);
 
       String GenerateFileNameFromEncapsulatedSubject(bool unicode) const;
    };

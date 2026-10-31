@@ -17,6 +17,40 @@ namespace HM
 
       static const String PathSeparator;
 
+      // The bytes a narrow call of the system is given for a file's name - fopen,
+      // open, stat, link, a libstdc++ stream, an OpenSSL or Boost.Asio file call,
+      // execvp. On POSIX, UTF-8 of the name's characters: the one encoding the
+      // server names files in, the one Boost.Filesystem's paths are given too
+      // (UseUtf8FileNames), and the one IniFile, DataProtector and libpq's root
+      // certificate already wrote. Up to 6.3.7 most of these calls were handed
+      // AnsiString(String)'s bytes instead - Latin-1, and '?' above U+00FF - so
+      // that one name outside ASCII was one file to Boost and another, or none,
+      // to them. Empty for a name UTF-8 cannot carry (half of a surrogate pair),
+      // which no call then finds. On Windows AnsiString(String), as it has always
+      // been: the narrow calls there read the ANSI code page.
+      static AnsiString NarrowPath(const String &path);
+
+      // The way back, for a name the system gives as bytes: an argument of the
+      // command line, /proc/self/exe, a directory of PATH. On POSIX the bytes
+      // read as UTF-8, and false - with the bytes widened one to a character, so
+      // that the name can at least be shown - for bytes that are not UTF-8,
+      // which no name NarrowPath writes is. On Windows the bytes widened as
+      // String(const char *) widens them, and true.
+      static bool WidePath(const char *bytes, String &path);
+
+#ifdef HM_PLATFORM_POSIX
+      // Gives Boost.Filesystem's paths a UTF-8 conversion between a wide name and
+      // the file system's bytes, in place of the locale's the process started
+      // with: the "C" locale's when LANG is unset, and libstdc++'s on musl
+      // whatever LANG says, both of which refuse - throw for - every character
+      // outside ASCII. Up to 6.3.7 a UTF-8 LANG on glibc gave UTF-8, and any other
+      // start an exception for such a name. Done once, before main, by this
+      // file's own initializer, so that every program linked with the core - the
+      // server and the testers - converts a name as NarrowPath does; calling it
+      // again does nothing.
+      static void UseUtf8FileNames();
+#endif
+
       static String GetFilePath(const String &FileName);
       static String GetFileNameFromFullPath(const String & sFullPath);
 
@@ -133,6 +167,12 @@ namespace HM
       // because file-utilities-tests (platform/file_utilities_tests_main.cpp) runs
       // it on Linux, where ClassTester does not run; Test() runs it on Windows.
       void TestFailedClose();
+
+      // A name with characters outside ASCII is one file to every call: Boost.
+      // Filesystem's paths, File::Open, NarrowPath's bytes for a narrow call, and
+      // the name read back from a directory's listing - on POSIX in UTF-8 whatever
+      // LANG says. Public for file-utilities-tests, as TestFailedClose is.
+      void TestFileNameEncoding();
    private:
 
       void TestDeleteFile_();

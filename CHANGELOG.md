@@ -90,6 +90,69 @@ with `--check`).
 
 ### Security
 
+- **Fixed: `TlsMode=verify-full` on MySQL and MariaDB checks the database server's certificate against the file
+  `TlsCaFile` names when that name holds a character outside ASCII, where the client was given no CA file at all.**
+  In 6.3.4 to 6.3.7 such a name - on Linux any character outside ASCII, on Windows one above U+00FF - reached the
+  MySQL client as no CA file while certificate verification stayed on, so that the certificate was checked against
+  the system's trust store in place of the named CA, and with some versions of MariaDB Connector/C less than that:
+  on a connection the client takes as one to this machine, 3.4.1 and later checked neither the certificate's issuer
+  nor its name; and over the network, with 3.4.2 to 3.4.10 a certificate whose issuer the client could not find was
+  taken unchecked (MariaDB's CONC-853, fixed in Connector/C 3.4.11), and with 3.4.1 to 3.4.9 such a connection was
+  open to CVE-2026-107819. The Windows
+  builds of 6.3.4 to 6.3.6 bundle Connector/C 3.4.9; on Linux the distribution's client is used. The settings line of
+  `--check-database` named the configured file all the same, and the application log and the diagnostics said the
+  certificate had been checked. So 6.3.7's notes, which called a named `TlsCaFile` the mitigation for CVE-2026-107819,
+  did not hold for such a name. On Linux with no locale set, and on Alpine, such a name failed the connection instead.
+  From 6.3.6 PostgreSQL's root certificate was handed to libpq, in UTF-8 on Linux and in the code page on Windows (in
+  6.3.4 and 6.3.5 its whole connection string went through the same conversion, which 6.3.6 fixed), and SQL Server
+  reads no file. Now the name is handed to the
+  client in the encoding it opens the file in - on Linux UTF-8, on Windows the ANSI code page - and a name that cannot
+  be written so is refused before anything is attempted, with HM7534 (new) in the error log, and never handed over as
+  nothing. `DALConnection::FileNameBytes` is the one conversion, which PostgreSQL's root certificate goes through
+  too. `hmailserver/docs/DatabaseTls.md` says what the client is given, no
+  longer asks for the path in ASCII, and asks on Linux for MariaDB Connector/C 3.4.11 or later. connection-string-tests'
+  MySQLConnectionTester, which ClassTester runs on Windows, holds the name's bytes for both clients and the refusals.
+  Found by the project's own review.
+
+- **Changed: a command run as root on Linux examines and opens the folders it will work in by the names the server
+  uses for them, through one function.** The store commands, the object-store copies, `--sample-domain`,
+  `--apply-profile`, `--revert-profile` and `--apply-environment`, run as root, decide whether to become the data
+  directory's owner or to go on as root by examining the data directory, the log, temporary, event and database folders
+  and the configuration that names them (`RootCommand`, `docs/ServiceAccount.md`). In 6.3.6 and 6.3.7 they examined
+  those folders by the Latin-1 bytes of their names, while the server reaches them by the UTF-8 ones, and their own
+  file operations in the log, temporary, event and database folders went by the same bytes, so that for a name with a
+  character outside ASCII the commands missed the folder the server uses. Now the examination and
+  the commands' own file operations both go by the name the server uses, through one function
+  (`FileUtilities::NarrowPath`, below), so that they stay on the same folder.
+
+- **Fixed: `TlsMode=verify-full` on MySQL and MariaDB is refused without `TlsCaFile` on a connection the client takes
+  as one to this machine, where neither the database server's certificate's issuer nor its name was checked.** In
+  6.3.4 to 6.3.7, with MariaDB Connector/C 3.4.1 or later as the client - the one this server bundles on Windows, and
+  the one the Linux packages suggest and the server loads - such a connection, to a database server on this machine by
+  a loopback address, `localhost`, a Unix socket or a named pipe, or through a `Server=` list that holds such a server,
+  was made with neither the certificate's issuer nor its name checked, while the settings line of `--check-database`
+  said it had been checked against the system's trust store, and the application log and the diagnostics that it had
+  been checked. It is now refused before anything is attempted, with HM7535 (new) in the error log, which says to name
+  the CA that issued the database server's certificate in `TlsCaFile`, or to set `TlsMode=require`. The lines that
+  say what was checked now say what the client checks (`MySQLConnection::VerifyFullCheck`). Connector/C 3.3 and 3.4.0
+  and Oracle's MySQL client were not affected. `hmailserver/docs/DatabaseTls.md` says what each client checks, with
+  HM7535 in its table. connection-string-tests' MySQLConnectionTester, which ClassTester runs on Windows, holds which
+  servers the client takes as local, the refusal and each line. Found by the project's own review.
+
+- **Fixed: on Windows a root certificate's name whose bytes in the ANSI code page outside ASCII also read as UTF-8 is
+  refused, where the database's client could check the server's certificate against another file than the one
+  named.** In 6.2.25 to 6.3.7 on Windows the file `PostgreSQLSslRootCert` names (from 6.2.25) or, with
+  `TlsMode=verify-full`, `TlsCaFile` (from 6.3.4) was handed to libpq - and `TlsCaFile` to Oracle's MySQL client where
+  one is put in place of the bundled MariaDB Connector/C - by its bytes in the code page (up to 6.3.5, and to Oracle's
+  client up to 6.3.7, by its Latin-1 bytes), which the client's OpenSSL could open as a file at another name. Such a
+  name is now refused before anything is attempted, with HM7534 in the error log, whichever client is loaded, as one
+  the code page cannot carry is: `TlsCaFile` by `DatabaseTls::FromConfiguration`, `PostgreSQLSslRootCert` by
+  `PGConnection::Connect`, where 6.3.6 and 6.3.7 refused only a character the code page lacks. The bundled MariaDB
+  Connector/C and the Linux builds were not affected, and a Windows whose code page is UTF-8 is handed the name in
+  UTF-8 (6.3.6 and 6.3.7 refused every PostgreSQL root certificate name there). `DALConnection::FileNameBytes` says
+  so, and connection-string-tests'
+  PGConnectionTester, which ClassTester runs on Windows, holds the refusal. Found by the project's own review.
+
 - **Fixed: the container image secures a new installation by itself, whatever the container's command, as the
   packaged systemd unit's and OpenRC service's first starts do.** Its entrypoint now runs `hmailserver
   --apply-new-install-defaults --if-marked` last, before the command: a database the entrypoint's `--create-database`
@@ -556,6 +619,163 @@ with `--check`).
   rewriters stop at a format's end: one that ended inside a conversion - a `%` at its end, or flags, a width or a
   length with nothing after them - made them step past its terminating NUL and read on into what lay after it, on
   glibc and musl alike, which AddressSanitizer reported of the new tester.
+
+- **Fixed: `Unicode::ToANSI` gives on Linux the bytes it gives on Windows: each character up to U+00FF as its byte,
+  and nothing at all for a text with a character above it.** Up to 6.3.7 Linux ran `wcstombs` in the C locale, which
+  the server never changes, and gave nothing for any character outside ASCII, where Windows' `wcstombs_s` in its own C
+  locale gives Latin-1 (measured with MSVC 19.51 on 30 October 2026: U+00E0 is e0, U+0080 80, U+00FF ff, and U+0130 or
+  U+20AC anywhere in the text empties it). What reached it on Linux: the legacy Blowfish scheme, spamd's `User:`
+  header and `Formatter::FormatAsAnsi`, whose exception texts name files (the entries below), and a 503's text from
+  the CRL endpoint, which is ASCII. unicode-tests (new, run by linux-build's jobs, the APKBUILD's check() on musl and
+  the source packages' builds - debian/rules' TESTERS and the spec's loop, which `build/check-source-tarball.py` holds
+  to CMakeLists.txt) runs FormatterTester, which ClassTester runs on Windows, over each case, with `LANG=C.UTF-8` and
+  unset.
+
+- **Fixed: `Formatter::FormatAsAnsi` with five arguments puts each in its place.** It passed the first, the second and
+  the fifth to the three-argument `Format`, so that `{0}|{1}|{2}|{3}|{4}` gave `one|two|five|{3}|{4}`. Nothing called
+  it with five; FormatterTester now holds every count of arguments.
+
+- **Fixed: the legacy Blowfish scheme refuses a secret it cannot carry, and its writers say whose it was and why,
+  where it was written as an empty secret without a word.** `LegacyBlowfish::EncryptToString` takes a text as
+  `Unicode::ToANSI`'s bytes, which for a text with a character above U+00FF are none, and encrypted those: the value
+  written read back as no secret at all - on Linux for any character outside ASCII. It now refuses such a text, HM7278
+  (new) in the error log, and answers nothing, as it does for one longer than 248 characters (HM7277). A backup's XML,
+  which carries secrets in that scheme, says in the error log and the backup log, in one line, which secret it was
+  written without and which of the two limits refused it - a character above U+00FF, or more characters than the
+  scheme holds, as an external account's OAuth refresh token often has (HM7280, new; `LegacyBlowfish::Refusal`,
+  `Crypt::BackupRefusal`): an external account's password and OAuth token, a route's relayer password, a certificate's
+  private key password - so that it is entered again after a restore (`Crypt::EnCryptForXml`). A person export, whose
+  file carries no credential, encrypts none and reports nothing to the backup log (`Backup::BOLeaveOutCredentials`).
+  `IniFileSettings::SetPassword` leaves the database password in hMailServer.ini, and the running process's copy, as
+  they were, with HM7279 (new) naming the limit, where it wrote an empty one, and answers false; COM's
+  `Database.CreateInternalDatabase`, `CreateExternalDatabase` and `SetDefaultDatabase` answer an error for it, where
+  they answered success, and the last two refuse a password the scheme would refuse before anything is created, when
+  the machine's own store is not used. COM's `Utilities.BlowfishEncrypt` answers an error for such a text; and
+  `Crypt::ProtectSecret`'s fall-back to the scheme on Windows answers empty with HM7278, which its callers already
+  read as not stored. A text within Latin-1 is written on Linux as Windows writes it, and a value Windows wrote reads
+  back on Linux as the text it was: legacy-blowfish-tests' table of what 6.3.4 wrote on Windows now holds on both
+  platforms, where at the commit before this Linux wrote dbd2989fb2ae94d1, an empty text, for each of its four texts
+  outside ASCII; its LegacyBlowfishTester, which ClassTester runs on Windows, holds each refusal's reason and HM7280's
+  words; file-utilities-tests holds that a password above U+00FF and a token of 249 characters are each left out of a
+  backup with one HM7280 naming whose it was and why, and no HM7277 or HM7278, where at the commit before this change
+  each was reported a second time, by HM7278 or HM7277; and the regression suite's `BlowfishRefusesATextItCannotCarry`
+  holds COM's error and HM7278 on Windows.
+
+- **Fixed: spamd's `User:` header carries a name outside ASCII, where it was left out without a word and the message
+  was scanned, or the lesson told, as spamd's default user.** `SpamAssassinUser`, and a recipient's address with
+  `SpamAssassinUserFromRecipient=1`, went through `Unicode::ToANSI`, which gave nothing for a name with a character
+  outside ASCII on Linux and above U+00FF on Windows, and an empty user sends no header. spamd reads the header's
+  bytes as they are and refuses a request whose `User:` holds a control character (`got_user_header` in spamd,
+  `PROTOCOL`: the meaning of the name is spamd's own). Now an address held as the bytes it arrived in - SMTPUTF8's -
+  goes as those bytes, any other name as UTF-8, and on Windows a name within Latin-1 as its Latin-1 bytes, as before
+  (`SpamAssassinClient::UserBytes`); a name the header cannot carry, a control character or half of a surrogate pair,
+  is sent as no header with HM5514 (new) in the error log. unicode-tests' SpamAssassinUserTester, which ClassTester
+  runs on Windows, holds each, where at the commit before this the first name outside ASCII went as nothing.
+  README.md's lines on the two settings say so.
+
+- **Fixed: on Linux a file's name outside ASCII is one name to every call that opens the file, UTF-8, whatever `LANG`
+  says.** Boost.Filesystem converted a wide name with the locale the process started in: UTF-8 under a UTF-8 `LANG` on
+  glibc, and an uncaught exception (`boost::filesystem::path codecvt to string`) with `LANG` unset - as the container
+  image leaves it - and on Alpine whatever `LANG` says, since libstdc++ on musl has no UTF-8 locale. `File::Open` and
+  the other narrow calls - `stat`, `open`, `link`, `rename`, `access`, `chmod`, `statvfs`, libstdc++'s streams, the
+  listeners' and ACME's certificate and key files, the client-certificate CA, OpenSSL's `BIO_new_file`, `execvp`'s
+  command line, working directory and output file - were handed `AnsiString(String)`'s Latin-1 bytes, '?' above U+00FF.
+  So one name outside ASCII was two files, or a file and an exception. Now Boost.Filesystem is given a UTF-8 conversion
+  of its own before `main` (`FileUtilities::UseUtf8FileNames`, Boost's own facet, the same on glibc and musl), every
+  narrow call the bytes of `FileUtilities::NarrowPath`, UTF-8, beside `IniFile`, `DataProtector`, OAuth's key file and
+  libpq's root certificate, which wrote UTF-8 already, and a name the system gives as bytes is read as UTF-8
+  (`FileUtilities::WidePath`): `--config` and `--if-marked`, refused with exit 2 when they are not UTF-8,
+  `/proc/self/exe`, from which the program folder is made, a directory of `PATH` where 7-Zip is looked for, `APPIMAGE`,
+  the image an update replaces, and `APPDIR`, where the AppImage runtime mounts that image under `TMPDIR` and from where
+  the update helper is copied - each of the two refusing the update, with the reason, when it is not UTF-8, where under
+  a `TMPDIR` outside ASCII the helper's name was its UTF-8 encoded a second time, the copy found nothing (HM6891) and
+  the image could not update itself - and `RUNTIME_DIRECTORY`, where the update's request is put, which systemd names in
+  ASCII for the packaged unit. Functions that held a file's name narrow take it as it is: `MimeBody`'s `LoadFromFile`,
+  `LoadHeaderFromFile` and `SaveAllToFile` and `MessageStore::LoadMime`, so that a message under a folder named above
+  U+00FF, which was written, is read - by IMAP's FETCH of a part or of the structure, the rules, scripts, signatures and
+  the indexer, the virus scan's pass over each attachment, attachment stripping and a Sieve script's header edits -
+  where it was looked for under '?', and iMIP's look for an invitation, which handed `LoadMime` the name's UTF-8 to be
+  encoded again and read nothing under any name outside ASCII; and DKIM's signer, which looked for a key file under such
+  a folder with '?' in its name and signed nothing (HM5306). On Windows these narrowings put '?' for a character outside
+  the code page, and they take the name there too. The crash record is written under a `LogFolder` outside ASCII, where
+  its name was in no directory there is; the update helper is made executable by its name, and a failure to is refused
+  (HM6891), where `chmod` named another file and nothing was said; and the update's request names the package, the
+  rollback image, the outcome and the log in UTF-8, as the helper is given the Updates directory, where under a
+  `DataFolder` outside ASCII the helper found them outside it and refused the update. The values `--set-setting` takes,
+  on the command line or from standard input, and `--apply-profile`, `--account` and `--domain` are read as UTF-8 too
+  and refused with exit 2 when they are not, where each byte was widened to a character and a value outside ASCII was
+  stored, or looked for, as other text - for a path, its UTF-8 encoded a second time, the name of no file.
+  `--set-admin-password` still widens its bytes, which is safe: the hash is made over `Unicode::ToUtf8`'s bytes, which
+  for UTF-8 widened so are the bytes typed, the ones a sign-in's UTF-8 gives. What `hmailserver` prints to a terminal is
+  UTF-8 throughout, as `--check-database`'s and `--apply-environment`'s lines were, where `platform/main.cpp` printed
+  some paths in UTF-8 and every other text, the configuration file's name among them, in Latin-1 with '?' above U+00FF.
+  That covers the `[Directories]` folders, `TlsCaFile`, the domain and account folders of the data directory and the
+  messages in them, the backup's and the archive's files, DKIM key files, the logs and the crash record, the message
+  store's links and stamps, the GeoIP database, the update's Sigstore bundles, helper and request, the stored-secrets
+  key and the files the REST API serves and keeps. On Windows the other narrow calls were and are given the code page's
+  bytes, and the wide ones the name. And a `LANG`, `LC_ALL` or `LC_CTYPE` naming a locale the machine does not have -
+  `LC_CTYPE=UTF-8` from a Mac's SSH session, which `sudo` keeps, or a container's `LANG` with no such locale generated -
+  changes nothing, and no longer stops the server: up to 6.3.7 its start ended at the first name Boost.Filesystem
+  converted (exit 134, `locale::facet::_S_create_c_locale name not valid`), Boost asking the C++ library for the locale
+  named there, which glibc's refuses for one it does not have; Boost.Filesystem now converts with a UTF-8 conversion of
+  its own and never asks for that locale, and the one answer Boost 1.90's `path::imbue` still makes from it, after the
+  conversion is in place, is caught. **Upgrading a Linux server that ran under a `LANG` that is not UTF-8**, a Latin-1
+  locale say: it named its files in that locale's bytes - Boost.Filesystem by the locale, `File::Open` in Latin-1 - and
+  from this release names them in UTF-8 whatever `LANG` says, so that a data directory, a domain or account folder,
+  `LogFolder` or `TlsCaFile` named outside ASCII under such a locale is not found after the upgrade, and new folders are
+  made beside the old ones: rename each to its UTF-8 name before upgrading, for example with `convmv -f iso-8859-1 -t
+  utf-8 -r --notest <folder>`. Under a UTF-8 `LANG`, the packages', a folder named outside ASCII was Boost's, in UTF-8,
+  and is found as it was. file-utilities-tests holds it (`FileUtilitiesTester::TestFileNameEncoding` and
+  `MessageFileNameTester`, which ClassTester runs on Windows too): a file named with U+00E0, U+0130 and U+20AC, made by
+  `File::Open`, is found by `FileUtilities::Exists`, Boost.Filesystem and `stat` and listed under its name, and a
+  message under folders named in CJK, Cyrillic, a character beyond U+FFFF, a combining accent and Latin-1 is read by
+  `MimeBody`, `LoadMime` and `MessageData` and written back by `SaveAllToFile`, with `LANG=C.UTF-8` and unset; before
+  this change `NarrowPath`'s stand-in, `AnsiString(String)`, gave 63 e0 2d 3f 2d 3f for the name's first six characters,
+  and at the commit before this change the message under the folder named in CJK was not read by
+  `MimeBody::LoadFromFile`; and the regression suite's `Signing.TestSigningWithAKeyFileNamedOutsideLatin1` signs with a
+  key file in a folder named in CJK and Cyrillic. file-utilities-tests also runs itself again under
+  `LC_ALL=xx_YY.UTF-8`, which reaches `main` and converts a name to UTF-8, and names the AppImage's update helper from
+  an `APPDIR` in UTF-8 and refuses one that is not, in a build with the live update; with the exception left uncaught
+  the run again ended by signal 6 before `main`, and with `APPDIR` widened as before the helper's name was other
+  characters, on glibc under each `LANG`. Measured on 31 October 2026 with `hmailserver --check-database` built in the
+  CI image, under `LC_ALL=xx_YY.UTF-8`, against MariaDB 13.0.2 and MySQL 8.4.11 (each by its image's digest): at the
+  commit before this change all 24 cases ended with exit 134, and with it each connected or was refused as under
+  `LANG=C.UTF-8`.
+
+- **Fixed: `--check-database` names the root certificate libpq is handed for PostgreSQL, where it named `TlsCaFile`
+  while libpq was handed `PostgreSQLSslRootCert`.** `PostgreSQLSslRootCert` wins over `TlsCaFile` for PostgreSQL, as
+  `hmailserver/docs/DatabaseTls.md` says, and with `TlsMode=verify-full` and both set the connection handed libpq the
+  first - a file, or `system`, the machine's trust store - while the settings line said the certificate was checked
+  against `TlsCaFile`; beside `PostgreSQLSslMode` it named no root at all. The line is now made from the root
+  `PGConnection::SslRootCert` chooses for the connection itself: the file or the store libpq is handed, that
+  `PostgreSQLSslRootCert` wins over `TlsCaFile`, and that a `TlsCaFile` beside it is not used.
+  connection-string-tests' PGConnectionTester, which ClassTester runs on Windows, holds the root and the line for each
+  pairing of the keys, a `TlsCaFile` outside ASCII among them. Measured on 30 October 2026 with `hmailserver
+  --check-database`, built in the CI image, against PostgreSQL 18.6 (by its image's digest) with a certificate from a
+  test CA, through libpq 18.6, in 9 cases, with `LANG=C.UTF-8` and with it unset: where libpq was handed
+  `PostgreSQLSslRootCert` beside `TlsCaFile` - a file of the CA that issued the certificate beside one of a CA that
+  issued nothing, or `system` with the issuing CA in the client's store, under an ASCII name and one in Cyrillic - the
+  line at the commit before this change named the other CA's file in all 4 cases, each of which connected, and beside
+  `PostgreSQLSslMode=require` it named no root; with this change it names the file or the store handed over and says
+  that `TlsCaFile` is not used, the other 4 cases - `TlsCaFile` alone, or neither - read as before, and each of the 9
+  connected or was refused as before. Found by the project's own review.
+
+- **Fixed: PostgreSQL's connection line says the server's certificate was checked, for its issuer alone, when libpq was
+  handed a root certificate file under `require`, `prefer` or `allow`, where it said it was not checked.** libpq reads a
+  root certificate file it can find whatever `sslmode` says, and refuses a certificate its CA did not issue
+  (`fe-secure-openssl.c`), so that with `PostgreSQLSslRootCert` naming a file beside `PostgreSQLSslMode=require`, or
+  beside `TlsMode=require` or `prefer`, the application log's and the diagnostics' line said `the server's certificate
+  not checked` of a certificate that had been checked against that file. It now says `checked for its issuer alone,
+  against the root certificate libpq was handed, which it reads under sslmode require too, not for its name`, and under
+  `verify-ca` `checked for its issuer alone, not for its name` (`PGConnection::DescribeCheck`); a root file that is not
+  there, and libpq's own default file, which this server does not hand over, are not counted. PGConnectionTester holds
+  each mode. Measured on 31 October 2026 with `hmailserver --check-database`, built in the CI image, through libpq 18.6
+  against PostgreSQL 18.6 (by its image's digest): under `require` with a root file of the CA that issued the
+  certificate, under an ASCII name and four outside ASCII, beside `TlsMode=require` and `prefer`, and under `verify-ca`,
+  the line said not checked, or checked, at the commit before this change in 8 cases, and says the issuer was checked
+  with this change; a file of a CA that issued nothing is refused as before, and `prefer` beside it connects without
+  TLS, which the line says.
+
 - **Fixed: the snap's first start reads the configuration it is made from.** `hmailserver-start`, which the service and
   `sudo hmailserver` run as `snap_daemon`, makes `/var/snap/hmailserver/common/etc/hMailServer.ini` from the snap's
   `etc/hmailserver/hMailServer.ini`, which the snap took from the `.deb` as it is: 0640 and root's since the `.deb`

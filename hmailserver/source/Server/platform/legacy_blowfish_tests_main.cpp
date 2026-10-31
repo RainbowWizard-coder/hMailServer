@@ -30,7 +30,7 @@ main(int /*argc*/, char * /*argv*/[])
 
    if (failures.empty())
    {
-      printf("ok    the legacy Blowfish scheme (Eric Young's vectors, and the values 6.3.4 wrote and read)\n");
+      printf("ok    the legacy Blowfish scheme (Eric Young's vectors, the values 6.3.4 wrote and read, the same on Linux as on Windows, and a text above U+00FF refused)\n");
       return 0;
    }
 

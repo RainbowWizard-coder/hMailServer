@@ -295,6 +295,34 @@ namespace RegressionTests.AntiSpam.DKIM
       }
 
       [Test]
+      [Description("A key file in a folder named in CJK and Cyrillic, characters above U+00FF, signs the message: up to 6.3.7 the signer held its name narrow and looked for it with '?' in it (HM5306, no signature).")]
+      public void TestSigningWithAKeyFileNamedOutsideLatin1()
+      {
+         // Built from the characters' numbers, so that the file's own encoding does
+         // not decide the name.
+         string folderName = "dkim-" + (char) 0x65E5 + (char) 0x672C + "-" + (char) 0x043A + (char) 0x043B + "-" + TestSetup.UniqueString();
+         string folder = Paths.Combine(Path.GetTempPath(), folderName);
+         Directory.CreateDirectory(folder);
+         string keyFile = Paths.Combine(folder, "example.key");
+         File.Copy(GetPrivateKeyFile(), keyFile);
+
+         try
+         {
+            _domain.DKIMPrivateKeyFile = keyFile;
+            _domain.DKIMSelector = "TestSelector";
+            _domain.DKIMSignEnabled = true;
+            _domain.Save();
+
+            var result = SendMessage();
+            Assert.IsTrue(result.ToLower().Contains("dkim-signature"), result);
+         }
+         finally
+         {
+            Directory.Delete(folder, true);
+         }
+      }
+
+      [Test]
       [Description("Test that no dkim-sigature is added if the private key is not specified.")]
       public void TestSigningEnabledNoPrivateKey()
       {

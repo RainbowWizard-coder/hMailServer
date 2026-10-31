@@ -238,8 +238,8 @@ namespace HM
 
 #ifdef HM_PLATFORM_POSIX
             // link(2) names the EXISTING file first and answers 0 for success.
-            const AnsiString narrowExisting = existing.c_str();
-            const AnsiString narrowLink = link.c_str();
+            const AnsiString narrowExisting = FileUtilities::NarrowPath(existing);
+            const AnsiString narrowLink = FileUtilities::NarrowPath(link);
             return ::link(narrowExisting.c_str(), narrowLink.c_str()) == 0;
 #else
             return ::CreateHardLink(link, existing, NULL) != FALSE;
@@ -257,7 +257,7 @@ namespace HM
             names = 0;
 
 #ifdef HM_PLATFORM_POSIX
-            const AnsiString narrow = name.c_str();
+            const AnsiString narrow = FileUtilities::NarrowPath(name);
             struct stat status;
             if (::stat(narrow.c_str(), &status) != 0)
                return false;
@@ -413,7 +413,7 @@ namespace HM
       AnsiString LastWrittenOf(const String &name)
       {
 #ifdef HM_PLATFORM_POSIX
-         const AnsiString narrow = name.c_str();
+         const AnsiString narrow = FileUtilities::NarrowPath(name);
          struct stat status;
          if (::stat(narrow.c_str(), &status) != 0)
             return AnsiString();
@@ -1214,9 +1214,9 @@ namespace HM
    }
 
    MimeLoadResult
-   MessageStore::LoadMime(const AnsiString &messageFile, MimeBody &body)
+   MessageStore::LoadMime(const String &messageFile, MimeBody &body)
    {
-      const String name = messageFile;
+      const String &name = messageFile;
 
       bool isContainer = false;
       MessageStoreHeader header;
@@ -2093,7 +2093,7 @@ namespace HM
       // blocks, which is what overwriting them means - as ZeroAccess::Scrub
       // does. Truncating first would free them and put the zeros elsewhere.
 #ifdef HM_PLATFORM_POSIX
-      const AnsiString narrow = messageFile.c_str();
+      const AnsiString narrow = FileUtilities::NarrowPath(messageFile);
       std::fstream over(narrow.c_str(), std::ios::in | std::ios::out | std::ios::binary);
 #else
       std::fstream over(messageFile.c_str(), std::ios::in | std::ios::out | std::ios::binary);

@@ -46,7 +46,12 @@ namespace HM
       {
          std::vector<AnsiString> arguments;
 
-         const AnsiString line = AnsiString(commandLine);
+         // In UTF-8, as every file name the server makes is (FileUtilities::
+         // NarrowPath): the program and the files on the line are named as the
+         // rest of the server names them. Up to 6.3.7 AnsiString(String)'s Latin-1.
+         // The split below reads only ASCII bytes, which UTF-8 never writes inside
+         // another character.
+         const AnsiString line = FileUtilities::NarrowPath(commandLine);
 
          AnsiString current;
          bool inArgument = false;
@@ -238,7 +243,7 @@ namespace HM
 
       argv.push_back(nullptr);
 
-      const AnsiString workingDirectory = AnsiString(working_directory_);
+      const AnsiString workingDirectory = FileUtilities::NarrowPath(working_directory_);
 
       // The standard input, when the caller gave one: a pipe whose whole content
       // is written, and whose writing end is closed, BEFORE the fork. Written
@@ -328,7 +333,7 @@ namespace HM
 
       if (!standard_output_file_.IsEmpty())
       {
-         const AnsiString narrowOutputFile(standard_output_file_);
+         const AnsiString narrowOutputFile(FileUtilities::NarrowPath(standard_output_file_));
          outputFile = ::open(narrowOutputFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0600);
 
          if (outputFile < 0)

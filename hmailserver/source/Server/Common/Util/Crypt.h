@@ -85,9 +85,11 @@ namespace HM
       // the result is a self-describing envelope: machine-bound "DPAPI:<base64>"
       // on Windows, key-file-bound "LINUX1:<base64>" on Linux (see DataProtector).
       // On Windows a DPAPI failure falls back to the legacy Blowfish form so a
-      // secret is never lost; on Linux it does not - the result is empty, an error
-      // says so, and the caller must treat empty as "not stored". Empty input
-      // returns empty on both.
+      // secret is not lost - unless it holds a character above U+00FF, which that
+      // form cannot carry: the result is then empty and HM7278 says so. On Linux
+      // there is no fall-back - the result is empty, an error says so. Either
+      // way the caller must treat empty as "not stored". Empty input returns
+      // empty on both.
       String ProtectSecret(const String &sInput) const;
 
       // Reverses ProtectSecret. A prefixed value goes to the store its prefix names
@@ -96,6 +98,22 @@ namespace HM
       // Linux); any other (legacy) value is decrypted with Blowfish, so existing
       // stored secrets keep working transparently. Empty input returns empty.
       String UnprotectSecret(const String &sStored) const;
+
+      // A secret as the XML of a backup carries it: the legacy Blowfish form, which
+      // every hMailServer restores (FetchAccount's password and OAuth token, a
+      // route's relayer password, a certificate's key password). A secret the
+      // scheme refuses - one with a character above U+00FF, or longer than
+      // LegacyBlowfish::MaxPlainLength - is written as nothing, as one with such
+      // a character was up to 6.3.7 in effect but without a word; now the error
+      // log and the backup log say whose it was and which limit refused it
+      // (HM7280, one line), so that it is entered again after a restore. Called
+      // for a backup only: a person export leaves the credentials out before any
+      // of them is encrypted (Backup::BOLeaveOutCredentials). Empty gives empty.
+      String EnCryptForXml(const String &secret, const String &whose) const;
+
+      // HM7280's words for a secret EnCryptForXml leaves out, naming whose it is
+      // and why (LegacyBlowfish::Refusal); empty for one the scheme takes.
+      static String BackupRefusal(const String &secret, const String &whose);
 
       // Whether a stored value is one of ProtectSecret's machine envelopes,
       // "DPAPI:" or "LINUX1:" - a value only the platform's own store opens.

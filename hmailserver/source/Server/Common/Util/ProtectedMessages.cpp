@@ -444,7 +444,7 @@ namespace HM
       {
          // A narrow path on POSIX: libstdc++'s streams take no wide one.
 #ifdef HM_PLATFORM_POSIX
-         const AnsiString narrowPath(path);
+         const AnsiString narrowPath(FileUtilities::NarrowPath(path));
          std::ofstream out(narrowPath.c_str(), std::ios::binary | std::ios::app);
 #else
          std::ofstream out(path.c_str(), std::ios::binary | std::ios::app);
@@ -683,7 +683,7 @@ namespace HM
       if (path.IsEmpty())
          return false;
 #ifdef HM_PLATFORM_POSIX
-      const AnsiString narrowPath(path);
+      const AnsiString narrowPath(FileUtilities::NarrowPath(path));
       std::ifstream in(narrowPath.c_str(), std::ios::binary);
 #else
       std::ifstream in(path.c_str(), std::ios::binary);

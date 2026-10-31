@@ -11,6 +11,7 @@
 #include "Unicode.h"
 #include "XmlTree.h"
 #include "../Application/Application.h"
+#include "../Application/Backup.h"
 #include "../Application/IniFileSettings.h"
 #include "../BO/Account.h"
 #include "../BO/IMAPFolder.h"
@@ -568,7 +569,7 @@ namespace HM
       XNode *root = document.AppendChild(_T("hMailServerPersonExport"));
       root->AppendAttr(_T("Address"), account->GetAddress());
       root->AppendAttr(_T("Exported"), Time::GetCurrentDateTime());
-      if (!account->XMLStore(root, 0))
+      if (!account->XMLStore(root, Backup::BOLeaveOutCredentials))
       {
          error = _T("The account's settings could not be written out.");
          return false;

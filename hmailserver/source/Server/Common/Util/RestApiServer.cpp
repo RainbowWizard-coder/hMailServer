@@ -11753,7 +11753,7 @@ namespace HM
       // MSVC's <fstream> has a constructor taking a wide path; libstdc++ has
       // none, because a file name here is bytes. Narrowed the way the rest of
       // the tree narrows a String for a C API.
-      const AnsiString narrowPath = filePath.c_str();
+      const AnsiString narrowPath = FileUtilities::NarrowPath(filePath);
       std::ifstream stream(narrowPath.c_str(), std::ios::binary);
 #else
       std::ifstream stream(filePath.c_str(), std::ios::binary);
@@ -13297,7 +13297,7 @@ namespace HM
       const std::streamoff MaxBytes = 512 * 1024;
 #ifdef HM_PLATFORM_POSIX
       // As above: a narrow path, because libstdc++ has no wide-path constructor.
-      const AnsiString narrowPath = path.c_str();
+      const AnsiString narrowPath = FileUtilities::NarrowPath(path);
       std::ifstream stream(narrowPath.c_str(), std::ios::binary);
 #else
       std::ifstream stream(path.c_str(), std::ios::binary);

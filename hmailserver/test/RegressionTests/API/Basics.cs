@@ -74,6 +74,30 @@ namespace RegressionTests.API
          Assert.AreEqual("Test", utilities.BlowfishDecrypt("08d04d2ef52d64ce0"));
       }
 
+      [Test]
+      [Description("A text the legacy Blowfish scheme cannot carry - one with a character above U+00FF - is refused with " +
+                   "an error, and HM7278 says so in the error log; up to 6.3.7 it was encrypted as an empty text, which " +
+                   "read back as nothing. A text within Latin-1 is written as 6.3.4 wrote it on Windows, and what 6.3.4 " +
+                   "wrote for a text it could not carry still reads as an empty one.")]
+      public void BlowfishRefusesATextItCannotCarry()
+      {
+         var utilities = SingletonProvider<TestSetup>.Instance.GetApp().Utilities;
+
+         // caf, U+00E9; and x, U+20AC, y, z - built from their numbers, so that the
+         // file holds ASCII alone.
+         var latin1 = "caf" + (char) 0x00E9;
+         var beyond = "x" + (char) 0x20AC + "yz";
+
+         Assert.AreEqual("df3dc19376c45323", utilities.BlowfishEncrypt(latin1));
+         Assert.AreEqual(latin1, utilities.BlowfishDecrypt("df3dc19376c45323"));
+
+         var refused = Assert.Throws<COMException>(() => { var unused = utilities.BlowfishEncrypt(beyond); });
+         StringAssert.Contains("was not encrypted", refused.Message);
+         CustomAsserts.AssertReportedError("HM7278", "above U+00FF");
+
+         Assert.AreEqual("", utilities.BlowfishDecrypt("dbd2989fb2ae94d1"));
+      }
+
       // Whether this server refuses an unauthenticated administrator - i.e. has an
       // administrator password. With none, hMailServer answers COM anonymously as
       // the server administrator by design, so there is no "unauthenticated" state

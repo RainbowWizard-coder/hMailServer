@@ -384,8 +384,10 @@ namespace HM
       static void ReadRange(const String &messageFile, BYTE *buffer, int start, int count);
 
       // MimeBody::LoadFromFile over the original bytes, with its three
-      // answers. The name is narrow because LoadFromFile's is.
-      static MimeLoadResult LoadMime(const AnsiString &messageFile, MimeBody &body);
+      // answers. The name is the file's own, as every other function here takes
+      // it: up to 6.3.7 it was narrow, as LoadFromFile's was, and a name with a
+      // character above U+00FF reached the file as another name.
+      static MimeLoadResult LoadMime(const String &messageFile, MimeBody &body);
 
       // A plain RFC 822 file holding the message, for a caller that must
       // hand one to another process by path: the file itself when it is

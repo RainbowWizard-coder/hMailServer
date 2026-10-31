@@ -12,6 +12,9 @@
 #include "Macros/MySQLMacroExpander.h"
 #include "../Util/Unicode.h"
 
+#include <string>
+#include <vector>
+
 #ifdef _DEBUG
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #define new DEBUG_NEW
@@ -99,6 +102,23 @@ namespace HM
             return FatalError;
 
          const DatabaseTls::Mode effectiveMode = DatabaseTls::Effective(tlsMode);
+
+         // verify-full as the client loaded checks it (VerifyFullCheck): refused
+         // here, before anything is attempted, where it would check neither the
+         // certificate's issuer nor its name, and
+         // otherwise said as it is in the connection's description below.
+         String verifyFullHow;
+         if (effectiveMode == DatabaseTls::ModeVerifyFull)
+         {
+            String settingsWords;
+            String refusal;
+            if (!VerifyFullCheck(MySQLInterface::Instance()->IsMariaDbClient(), sServer, tlsCaFile, settingsWords, verifyFullHow, refusal))
+            {
+               sErrorMessage = refusal;
+               ErrorManager::Instance()->ReportError(ErrorManager::Critical, 7535, "MySQLConnection::Connect", refusal);
+               return FatalError;
+            }
+         }
 
          unsigned int errorNumber = 0;
          hm_MYSQL *pResult = ConnectOnce_(sServer, sUsername, sPassword, sDatabase, lDBPort, effectiveMode, tlsCaFile, sErrorMessage, errorNumber);
@@ -212,7 +232,7 @@ namespace HM
             transportDetail = _T("the server offered no TLS");
 
          SetTransportSecurity_(encrypted, DatabaseTls::Describe(DatabaseSettings::TypeMYSQLServer, encrypted, transportDetail,
-            encrypted && effectiveMode == DatabaseTls::ModeVerifyFull, tlsMode));
+            encrypted && effectiveMode == DatabaseTls::ModeVerifyFull, tlsMode, verifyFullHow));
 
          SetConnectionCharacterSet_();
 
@@ -298,8 +318,11 @@ namespace HM
 #ifndef HM_PLATFORM_POSIX
       if (client->p_mysql_options != 0 && client->IsMariaDbClient())
       {
-         AnsiString sPluginDir = Unicode::ToANSI(client->GetLibraryDirectory() + _T("\\plugin"));
-         client->p_mysql_options(dbconn_, HM_MYSQL_PLUGIN_DIR, sPluginDir.c_str());
+         // In the code page the client's LoadLibraryA reads it in (DALConnection::
+         // FileNameBytes).
+         AnsiString sPluginDir;
+         if (FileNameBytes(client->GetLibraryDirectory() + _T("\\plugin"), sPluginDir) && !sPluginDir.IsEmpty())
+            client->p_mysql_options(dbconn_, HM_MYSQL_PLUGIN_DIR, sPluginDir.c_str());
       }
 #else
       // Nothing is pointed anywhere on POSIX, and that is the whole of the
@@ -364,9 +387,21 @@ namespace HM
          return false;
       }
 
-      // The file name as the client opens it, in the system's code page as the
-      // plugin directory is: an administrator should keep it to ASCII.
-      const AnsiString caFileName = caFile.IsEmpty() ? AnsiString() : Unicode::ToANSI(caFile);
+      // The file's name as the client opens it (CaFileBytes). A name that cannot be
+      // written so is refused here, with nothing attempted: a CA option left unset
+      // is a certificate checked against the system's trust store instead, which is
+      // what Unicode::ToANSI's empty answer did up to 6.3.7 for a name with a
+      // character outside ASCII on Linux, or above U+00FF on Windows.
+      AnsiString caFileName;
+      if (!caFile.IsEmpty() && !CaFileBytes(caFile, client->IsMariaDbClient(), caFileName))
+      {
+         error = Formatter::Format("TlsCaFile under [Database] in hMailServer.ini names {0}, which cannot be handed to the MySQL client as it is named, "
+            "so TlsMode={1} cannot check the server's certificate against it. Move the file to a path without the character and name that. "
+            "The connection was not attempted.", caFile, DatabaseTls::ModeName(mode));
+         ErrorManager::Instance()->ReportError(ErrorManager::Critical, 7534, "MySQLConnection::ApplyTlsOptions_", error);
+         return false;
+      }
+
       int refusedOption = 0;
 
       if (client->IsMariaDbClient())
@@ -393,7 +428,13 @@ namespace HM
          //                         does not support it"). With no CA file the system's
          //                         store is used - and a MariaDB 11.4 server's own
          //                         certificate is accepted when the password proves
-         //                         it, which is MariaDB's design, not a gap.
+         //                         it, which is MariaDB's design, not a gap. On a
+         //                         connection the client takes as local (127.0.0.1,
+         //                         ::1, localhost, a socket, or a Server= list
+         //                         holding one: ClientTakesAsLocal)
+         //                         the name is not checked, and the chain only
+         //                         against a CA file, so that Connect refuses
+         //                         verify-full there without one (VerifyFullCheck).
          //   a CA file beside VERIFY 0 is not read at all.
          char enforce = 1;
          if (mode == DatabaseTls::ModeDisable)
@@ -451,6 +492,36 @@ namespace HM
       }
 
       return true;
+   }
+
+   bool
+   MySQLConnection::CaFileBytes(const String &caFile, bool mariaDbClient, AnsiString &bytes)
+   {
+#ifndef HM_PLATFORM_POSIX
+      if (!mariaDbClient)
+      {
+         // Oracle's client hands the name to OpenSSL (vio/viosslfactories.cc,
+         // SSL_CTX_load_verify_locations), whose fopen on Windows reads it as UTF-8
+         // first and opens the file by its wide name (crypto/o_fopen.c), so UTF-8
+         // names the file whatever the code page. Half of a surrogate pair and a
+         // U+0000, which no name holds, are refused.
+         bytes.Empty();
+         if (!Unicode::ToUtf8Exact(caFile, bytes) || std::string(bytes.c_str(), (size_t) bytes.GetLength()).find('\0') != std::string::npos)
+         {
+            bytes.Empty();
+            return false;
+         }
+
+         return true;
+      }
+#else
+      (void) mariaDbClient;
+#endif
+
+      // MariaDB Connector/C opens it with CreateFileA on Windows (its Schannel
+      // build, the one bundled) and with OpenSSL's or GnuTLS's fopen on POSIX, as
+      // does Oracle's client there: DALConnection::FileNameBytes.
+      return DALConnection::FileNameBytes(caFile, bytes);
    }
 
    bool
@@ -1294,6 +1365,206 @@ namespace HM
       return _T("`") + quoted + _T("`");
    }
 
+   namespace
+   {
+      // The names MariaDB Connector/C connects to for Server=, in the bytes it is
+      // handed (DALConnection::ClientBytes), as mthd_my_real_connect reads them
+      // (3.4, libmariadb/mariadb_lib.c): the whole value when it holds no comma,
+      // and otherwise a list of servers tried in turn until one answers, each
+      // element cut by ma_get_host_list - strtok_r on ",", which skips empty
+      // elements; in an element with a "]", the name runs from its second byte to
+      // that "]" ("[::1]"), or, where the "]" is its first byte, from there to the
+      // element's end; and a ":" after the "]", or anywhere in an element with
+      // none, begins a port, which ends a name that runs to the element's end.
+      // The element that answers is the name the client keeps (mysql->host) and
+      // that my_auth.c's is_local_connection compares.
+      std::vector<std::string>
+      MariaDbServerNames_(const std::string &server)
+      {
+         std::vector<std::string> names;
+         if (server.find(',') == std::string::npos)
+         {
+            names.push_back(server);
+            return names;
+         }
+
+         size_t start = 0;
+         while (start <= server.size())
+         {
+            size_t end = server.find(',', start);
+            if (end == std::string::npos)
+               end = server.size();
+
+            const std::string element = server.substr(start, end - start);
+            start = end + 1;
+
+            if (element.empty())
+               continue;
+
+            std::string name;
+            const size_t bracket = element.find(']');
+            if (bracket != std::string::npos && bracket > 0)
+            {
+               name = element.substr(1, bracket - 1);
+            }
+            else
+            {
+               name = bracket == 0 ? element.substr(1) : element;
+               const size_t colon = name.find(':');
+               if (colon != std::string::npos)
+                  name.erase(colon);
+            }
+
+            names.push_back(name);
+         }
+
+         return names;
+      }
+
+      // Whether MariaDB Connector/C would take a connection to name as one to
+      // this machine: my_auth.c's list, compared as it compares it (strcmp:
+      // exactly, case and all), and the transports it takes as local whatever
+      // the name - a Unix socket, which the client uses on POSIX for localhost
+      // (mthd_my_real_connect: LOCAL_HOST with no protocol named), and on
+      // Windows a named pipe, which it uses for ".".
+      bool
+      MariaDbTakesAsLocal_(const std::string &name)
+      {
+#ifdef HM_PLATFORM_POSIX
+         static const char *const localNames[] = { "localhost", "127.0.0.1", "::1" };
+#else
+         static const char *const localNames[] = { "localhost", "127.0.0.1", "::1", "." };
+#endif
+         for (const char *local : localNames)
+         {
+            if (name == local)
+               return true;
+         }
+
+         return false;
+      }
+
+      // Whether some, and whether all, of the servers Server= names are ones
+      // MariaDB Connector/C takes as this machine. An empty name is no name to
+      // the client (mthd_my_real_connect: "if (!host || !host[0])"), which then
+      // connects as to localhost - by the Unix socket on POSIX, over TCP to
+      // localhost on Windows - so it is local too; an empty element of a list is
+      // a name, "", which the client looks up as one and checks as one. A value
+      // the client cannot be handed is taken as local, the stricter reading;
+      // Connect refuses it before this is asked. hMailServer names no protocol
+      // and reads no option file into the client, so nothing else makes a
+      // connection local.
+      void
+      MariaDbLocalServers_(const String &server, bool &some, bool &all)
+      {
+         some = true;
+         all = true;
+
+         AnsiString bytes;
+         if (!DALConnection::ClientBytes(server, bytes))
+            return;
+
+         const std::string value(bytes.c_str());
+         if (value.empty())
+            return;
+
+         some = false;
+         for (const std::string &name : MariaDbServerNames_(value))
+         {
+            if (MariaDbTakesAsLocal_(name))
+               some = true;
+            else
+               all = false;
+         }
+      }
+   }
+
+   bool
+   MySQLConnection::ClientTakesAsLocal(const String &server)
+   {
+      // Which server of a list answers is known only once one has: the
+      // connection is taken as local when any of them is.
+      bool some = false;
+      bool all = false;
+      MariaDbLocalServers_(server, some, all);
+      return some;
+   }
+
+   bool
+   MySQLConnection::VerifyFullCheck(bool mariaDbClient, const String &server, const String &caFile,
+                                    String &settingsWords, String &checkedHow, String &refusal)
+   {
+      settingsWords.Empty();
+      checkedHow.Empty();
+      refusal.Empty();
+
+      if (!mariaDbClient)
+      {
+         // Oracle's client checks the chain against the CA file and the name
+         // against Server= on every connection, and refuses VERIFY_IDENTITY with no
+         // CA file before it connects (sql-common/client.cc: "CA certificate is
+         // required if ssl-mode is VERIFY_CA or VERIFY_IDENTITY").
+         settingsWords = caFile.IsEmpty()
+            ? String(_T(", the certificate to be checked against a CA file, which TlsCaFile does not name: Oracle's MySQL client refuses VERIFY_IDENTITY without one"))
+            : _T(", the certificate checked against ") + caFile;
+         return true;
+      }
+
+      // MariaDB Connector/C, from 3.4.1 (plugins/auth/my_auth.c): on a connection it
+      // takes as local the certificate's name is never checked, and its issuer only
+      // when a CA file is named; elsewhere both, against the CA file or the system's
+      // trust store - and with no CA file, a certificate the store does not vouch
+      // for is still taken from a MariaDB server that proves it holds the account's
+      // password (MariaDB's zero-configuration TLS, for mysql_native_password,
+      // ed25519 and parsec accounts), never with a CA file named. Up to 6.3.7 this
+      // server said "checked" for all of them, and on a local connection with no CA
+      // file connected with neither the issuer nor the name checked, the
+      // certificate's dates alone. A Server= that lists
+      // servers (MariaDbServerNames_) is local when any of them is, since any may
+      // be the one that answers.
+      bool someLocal = false;
+      bool allLocal = false;
+      MariaDbLocalServers_(server, someLocal, allLocal);
+
+      if (!someLocal)
+      {
+         if (!caFile.IsEmpty())
+         {
+            settingsWords = _T(", the certificate checked against ") + caFile;
+            return true;
+         }
+
+         settingsWords = _T(", the certificate checked against the system's trust store (TlsCaFile is not set) - or, for a certificate the store does not ")
+            _T("vouch for, by a MariaDB server's proof that it holds the account's password, which MariaDB Connector/C takes in its place");
+         checkedHow = _T(" against the system's trust store, or by a MariaDB server's proof of the account's password");
+         return true;
+      }
+
+      if (!caFile.IsEmpty() && allLocal)
+      {
+         settingsWords = _T(", the certificate's issuer checked against ") + caFile +
+            _T(", and not its name: MariaDB Connector/C checks no name on a connection to this machine (Server=") + server + _T(")");
+         checkedHow = _T(" for its issuer alone, not for its name, on a connection to this machine");
+         return true;
+      }
+
+      if (!caFile.IsEmpty())
+      {
+         settingsWords = _T(", the certificate's issuer checked against ") + caFile +
+            _T(", and its name only where the server that answers is not this machine: Server=") + server +
+            _T(" lists servers MariaDB Connector/C tries in turn, among them one it takes as this machine, where it checks no name");
+         checkedHow = _T(" for its issuer, and for its name only if the server that answered is not this machine, which Server= also lists");
+         return true;
+      }
+
+      refusal = Formatter::Format("TlsMode=verify-full under [Database] in hMailServer.ini asks for the database server's certificate to be checked, and "
+         "Server={0} is a connection MariaDB Connector/C takes as one to this machine, or lists one among the servers it tries in turn - 127.0.0.1, ::1 "
+         "or localhost, alone or as an element of a list such as [::1]:3306, no name at all, a socket or a named pipe - "
+         "on which it checks neither the certificate's issuer nor its name unless a CA file is named. Name the CA that issued the database server's certificate "
+         "in TlsCaFile, or set TlsMode=require to encrypt without checking it. The connection was not attempted.", server);
+      return false;
+   }
+
    void
    MySQLConnectionTester::Test()
    {
@@ -1350,5 +1621,204 @@ namespace HM
       lone += (wchar_t) 0xD800;
       if (DALConnection::ClientBytes(lone, bytes) || !bytes.IsEmpty())
          throw std::logic_error("MySQLConnectionTester: half of a surrogate pair was not refused");
+
+      // TlsCaFile's name as the client opens the file (CaFileBytes), for both
+      // clients. Up to 6.3.7 Unicode::ToANSI's bytes, none at all for these names
+      // on Linux - the CA option was then not set, and the server's certificate
+      // was checked against the system's trust store.
+      struct CaName
+      {
+         const wchar_t *name;
+         const char *posix;
+      };
+
+      const wchar_t agrave[] = { L'/', L'c', 0x00E0, L'/', L'c', L'a', L'.', L'p', L'e', L'm', 0 };
+      const wchar_t idot[] = { L'/', 0x0130, L'/', L'c', L'a', L'.', L'p', L'e', L'm', 0 };
+      const wchar_t euro[] = { L'/', 0x20AC, L'/', L'c', L'a', L'.', L'p', L'e', L'm', 0 };
+      const CaName caNames[] =
+      {
+         { L"/etc/hmailserver/db-ca.pem", "/etc/hmailserver/db-ca.pem" },
+         { agrave, "/c\xC3\xA0/ca.pem" },
+         { idot, "/\xC4\xB0/ca.pem" },
+         { euro, "/\xE2\x82\xAC/ca.pem" },
+      };
+
+      for (const CaName &caName : caNames)
+      {
+         for (const bool mariaDb : { true, false })
+         {
+            AnsiString caBytes;
+            const bool written = MySQLConnection::CaFileBytes(String(caName.name), mariaDb, caBytes);
+#ifdef HM_PLATFORM_POSIX
+            // The file system's bytes, UTF-8, for either client.
+            if (!written || caBytes != AnsiString(caName.posix))
+               throw std::logic_error(std::string("MySQLConnectionTester: a CA file's name was handed to the ") + (mariaDb ? "MariaDB" : "Oracle") +
+                  " client as [" + caBytes.c_str() + "], not as its UTF-8 [" + caName.posix + "]");
+#else
+            // The Oracle client's OpenSSL reads UTF-8 first; MariaDB's Schannel
+            // build opens the file with CreateFileA, in the ANSI code page - and a
+            // name that code page cannot carry is refused, never handed over empty.
+            AnsiString utf8;
+            Unicode::ToUtf8Exact(String(caName.name), utf8);
+            AnsiString acp;
+            const bool acpWritten = DALConnection::FileNameBytes(String(caName.name), acp);
+            if (!mariaDb && (!written || caBytes != utf8))
+               throw std::logic_error("MySQLConnectionTester: a CA file's name was not handed to the Oracle client in UTF-8");
+            if (mariaDb && (written != acpWritten || caBytes != acp))
+               throw std::logic_error("MySQLConnectionTester: a CA file's name was not handed to the MariaDB client in the ANSI code page");
+#endif
+            if (!written && !caBytes.IsEmpty())
+               throw std::logic_error("MySQLConnectionTester: a CA file's name that was refused left bytes written");
+            if (written && caBytes.IsEmpty())
+               throw std::logic_error("MySQLConnectionTester: a CA file's name was taken and handed over as nothing");
+         }
+      }
+
+      // Half of a surrogate pair, and a U+0000 in the name: refused for both.
+      String loneName(L"/ca");
+      loneName += (wchar_t) 0xD800;
+      String nulName(L"/ca");
+      nulName += (wchar_t) 0;
+      nulName += L".pem";
+      for (const bool mariaDb : { true, false })
+      {
+         AnsiString caBytes;
+         if (MySQLConnection::CaFileBytes(loneName, mariaDb, caBytes) || !caBytes.IsEmpty())
+            throw std::logic_error("MySQLConnectionTester: a CA file's name with half of a surrogate pair was not refused");
+      }
+      if (DALConnection::FileNameBytes(loneName, bytes) || !bytes.IsEmpty())
+         throw std::logic_error("MySQLConnectionTester: FileNameBytes took half of a surrogate pair");
+      if (nulName.GetLength() == 8 && (DALConnection::FileNameBytes(nulName, bytes) || !bytes.IsEmpty()))
+         throw std::logic_error("MySQLConnectionTester: FileNameBytes took a name with U+0000 in it, which a narrow call would cut short");
+
+#ifndef HM_PLATFORM_POSIX
+      // A name the ANSI code page cannot carry - CJK on code page 1252 - is
+      // refused for the bundled client rather than given a best-fit letter that
+      // names another file.
+      if (GetACP() == 1252)
+      {
+         const wchar_t cjk[] = { L'C', L':', L'\\', 0x65E5, L'\\', L'c', L'a', L'.', L'p', L'e', L'm', 0 };
+         AnsiString caBytes;
+         if (MySQLConnection::CaFileBytes(String(cjk), true, caBytes) || !caBytes.IsEmpty())
+            throw std::logic_error("MySQLConnectionTester: a CA file's name code page 1252 cannot carry was handed to the MariaDB client");
+      }
+#endif
+
+      // verify-full as each client checks it. MariaDB Connector/C takes 127.0.0.1,
+      // ::1 and localhost - exactly so - as this machine, and checks there no name
+      // and, with no CA file, nothing: refused (HM7535), where up to 6.3.7 the
+      // connection was made and said to be checked. Elsewhere it checks both, and
+      // with no CA file takes a MariaDB server's proof of the password for a
+      // certificate the system's store does not vouch for, which is said.
+      const String caPath(_T("/etc/hmailserver/db-ca.pem"));
+      String words;
+      String how;
+      String refusal;
+      const auto failure = [](const std::string &what, const String &said)
+      {
+         return std::logic_error("MySQLConnectionTester: " + what + ": [" + std::string(Unicode::ToUtf8(said).c_str()) + "]");
+      };
+
+      // With a comma, Server= is a list of servers the client tries in turn
+      // (mthd_my_real_connect, ma_get_host_list): empty elements skipped, an
+      // element's name inside "[...]", and a ":" beginning its port. Each
+      // element of these is one the client takes as local.
+#ifdef HM_PLATFORM_POSIX
+      const wchar_t *const localServers[] = { L"127.0.0.1", L"::1", L"localhost", L"",
+         L"127.0.0.1,", L"127.0.0.1,127.0.0.1", L"127.0.0.1:3306,", L"[::1]:3306,", L",,[::1],", L"localhost,127.0.0.1", L"]127.0.0.1:3306,", L"[::1]x:1,localhost:0" };
+#else
+      const wchar_t *const localServers[] = { L"127.0.0.1", L"::1", L"localhost", L".", L"",
+         L"127.0.0.1,", L"127.0.0.1,127.0.0.1", L"127.0.0.1:3306,", L"[::1]:3306,", L",,[::1],", L"localhost,127.0.0.1", L"]127.0.0.1:3306,", L"[::1]x:1,localhost:0",
+         L".,", L".,localhost" };
+#endif
+      for (const wchar_t *server : localServers)
+      {
+         if (!MySQLConnection::ClientTakesAsLocal(server))
+            throw failure("a server the MariaDB client takes as local was not taken so", String(server));
+
+         if (MySQLConnection::VerifyFullCheck(true, server, String(), words, how, refusal))
+            throw failure("verify-full with no TlsCaFile on a local connection was not refused, though the MariaDB client checks neither issuer nor name there", words);
+         if (refusal.Find(String(_T("Server=")) + server) < 0 || refusal.Find(_T("TlsCaFile")) < 0 || refusal.Find(_T("not attempted")) < 0 || !words.IsEmpty() || !how.IsEmpty())
+            throw failure("the refusal of verify-full on a local connection does not name the server, TlsCaFile and that nothing was attempted", refusal);
+
+         if (!MySQLConnection::VerifyFullCheck(true, server, caPath, words, how, refusal) || !refusal.IsEmpty())
+            throw failure("verify-full with a TlsCaFile on a local connection was refused", refusal);
+         if (words.Find(_T("issuer checked against ") + caPath) < 0 || words.Find(_T("not its name")) < 0)
+            throw failure("the settings line of verify-full on a local connection does not say the name goes unchecked", words);
+         if (how != String(_T(" for its issuer alone, not for its name, on a connection to this machine")))
+            throw failure("the description of verify-full on a local connection does not say the name goes unchecked", how);
+
+         // Oracle's client checks the name wherever it connects, and refuses
+         // VERIFY_IDENTITY without a CA file itself.
+         if (!MySQLConnection::VerifyFullCheck(false, server, caPath, words, how, refusal) || words != _T(", the certificate checked against ") + caPath || !how.IsEmpty())
+            throw failure("verify-full through Oracle's client with a TlsCaFile was not said as checked against it", words);
+         if (!MySQLConnection::VerifyFullCheck(false, server, String(), words, how, refusal) || words.Find(_T("refuses VERIFY_IDENTITY")) < 0)
+            throw failure("verify-full through Oracle's client with no TlsCaFile was said as checked", words);
+      }
+
+      // A list with a server the client takes as local and one it does not:
+      // local, since which answers is not known before one has - refused with no
+      // CA file, and with one said as the issuer checked, and the name only where
+      // the server that answered is not this machine. Up to this change the
+      // whole value was compared, and these were taken as servers over the
+      // network: with no CA file the connection was made and said to be checked
+      // against the system's trust store while neither the issuer nor the name
+      // was checked.
+      const wchar_t umlautList[] = { 0x00E4, L'.', L'e', L'x', L'a', L'm', L'p', L'l', L'e', L',', L'1', L'2', L'7', L'.', L'0', L'.', L'0', L'.', L'1', 0 };
+#ifdef HM_PLATFORM_POSIX
+      const wchar_t *const mixedServers[] = { L"x,127.0.0.1", L"nonexistent.invalid,127.0.0.1", L"x,[::1]", L"x,localhost", L"db.example.com,[::1]:3306",
+         L"127.0.0.1,::1", L"127.0.0.1,.", umlautList };
+#else
+      const wchar_t *const mixedServers[] = { L"x,127.0.0.1", L"nonexistent.invalid,127.0.0.1", L"x,[::1]", L"x,localhost", L"db.example.com,[::1]:3306",
+         L"127.0.0.1,::1", L"x,.", umlautList };
+#endif
+      for (const wchar_t *server : mixedServers)
+      {
+         if (!MySQLConnection::ClientTakesAsLocal(server))
+            throw failure("a list of servers with one the MariaDB client takes as local was not taken so", String(server));
+
+         if (MySQLConnection::VerifyFullCheck(true, server, String(), words, how, refusal))
+            throw failure("verify-full with no TlsCaFile on a list of servers with one on this machine was not refused", words);
+         if (refusal.Find(String(_T("Server=")) + server) < 0 || refusal.Find(_T("lists one")) < 0 || refusal.Find(_T("not attempted")) < 0 || !words.IsEmpty() || !how.IsEmpty())
+            throw failure("the refusal of verify-full on a list of servers with one on this machine does not name the server and the list", refusal);
+
+         if (!MySQLConnection::VerifyFullCheck(true, server, caPath, words, how, refusal) || !refusal.IsEmpty())
+            throw failure("verify-full with a TlsCaFile on a list of servers with one on this machine was refused", refusal);
+         if (words.Find(_T("issuer checked against ") + caPath) < 0 || words.Find(_T("its name only where the server that answers is not this machine")) < 0)
+            throw failure("the settings line of verify-full on a list of servers with one on this machine does not say its name may go unchecked", words);
+         if (how != String(_T(" for its issuer, and for its name only if the server that answered is not this machine, which Server= also lists")))
+            throw failure("the description of verify-full on a list of servers with one on this machine does not say its name may go unchecked", how);
+      }
+
+      // Neither the whole value nor a list's element is one the client takes as
+      // local: without a comma no port and no "[...]" is read ("127.0.0.1:3306" is
+      // a name the client looks up as it is); "x,::1" lists "x" and "" (the
+      // element ends at its first ":"), which the client looks up and checks as
+      // names; and case, spaces and "." on POSIX count.
+#ifdef HM_PLATFORM_POSIX
+      const wchar_t *const remoteServers[] = { L"db.example.com", L"192.0.2.20", L"127.0.0.2", L"LOCALHOST", L"::2", L" ", L" 127.0.0.1",
+         L"a.example,b.example", L"127.0.0.2,", L"127.0.0.1:3306", L"[::1]", L"x,::1", L"x, 127.0.0.1", L"x,LOCALHOST", L"x,[::2]:3306", L"x,.", L"x,:3306", L"x,a]127.0.0.1" };
+#else
+      const wchar_t *const remoteServers[] = { L"db.example.com", L"192.0.2.20", L"127.0.0.2", L"LOCALHOST", L"::2", L" ", L" 127.0.0.1",
+         L"a.example,b.example", L"127.0.0.2,", L"127.0.0.1:3306", L"[::1]", L"x,::1", L"x, 127.0.0.1", L"x,LOCALHOST", L"x,[::2]:3306", L"x,:3306", L"x,a]127.0.0.1" };
+#endif
+      for (const wchar_t *server : remoteServers)
+      {
+         if (MySQLConnection::ClientTakesAsLocal(server))
+            throw failure("a server the MariaDB client checks in full was taken as local", String(server));
+
+         if (!MySQLConnection::VerifyFullCheck(true, server, caPath, words, how, refusal) || words != _T(", the certificate checked against ") + caPath || !how.IsEmpty())
+            throw failure("verify-full with a TlsCaFile over the network was not said as checked against it", words);
+         if (!MySQLConnection::VerifyFullCheck(true, server, String(), words, how, refusal))
+            throw failure("verify-full with no TlsCaFile over the network was refused", refusal);
+         if (words.Find(_T("system's trust store")) < 0 || words.Find(_T("password")) < 0 ||
+             how != String(_T(" against the system's trust store, or by a MariaDB server's proof of the account's password")))
+            throw failure("verify-full with no TlsCaFile over the network does not say a MariaDB server's password proof is taken", words + _T(" | ") + how);
+      }
+
+      const String local = DatabaseTls::Describe(DatabaseSettings::TypeMYSQLServer, true, _T("TLS_AES_256_GCM_SHA384"), true, DatabaseTls::ModeVerifyFull,
+         _T(" for its issuer alone, not for its name, on a connection to this machine"));
+      if (local != String(_T("MySQL/MariaDB: encrypted with TLS (TLS_AES_256_GCM_SHA384), the server's certificate checked for its issuer alone, not for its name, on a connection to this machine (TlsMode verify-full)")))
+         throw failure("the connection's line for verify-full on a local connection", local);
    }
 }

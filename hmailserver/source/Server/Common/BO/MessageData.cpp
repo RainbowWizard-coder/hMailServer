@@ -14,6 +14,7 @@
 #include "../BO/Attachments.h"
 #include "../Util/Time.h"
 #include "../Util/GUIDCreator.h"
+#include "../Util/Unicode.h"
 #include "../Util/Utilities.h"
 #include "../Util/File.h"
 #include "../Util/ByteBuffer.h"
@@ -1839,6 +1840,77 @@ namespace HM
       FileUtilities::DeleteFile(longHeaderName);
    }
 
+   namespace
+   {
+      void ExpectName_(bool condition, const String &folder, const char *what)
+      {
+         if (!condition)
+            throw std::logic_error(std::string("MessageFileNameTester: under ") + Unicode::ToUtf8(folder).c_str() + ": " + what);
+      }
+   }
 
+   void
+   MessageFileNameTester::Test(const String &directory)
+   {
+      // CJK, Cyrillic, a character beyond the BMP after a letter (a surrogate
+      // pair on Windows), a letter with a combining accent - all above U+00FF -
+      // and one within Latin-1.
+      const wchar_t *const names[] =
+      {
+         L"\x65e5\x672c\x8a9e",
+         L"\x043f\x043e\x0447\x0442\x0430",
+         L"e\U0001F600",
+         L"a\x0301",
+         L"donn\x00e9" L"es",
+      };
+
+      const AnsiString message("From: a@example.test\r\nTo: b@example.test\r\nSubject: one name\r\n\r\nThe body.\r\n");
+
+      for (const wchar_t *name : names)
+      {
+         const String folder = FileUtilities::Combine(directory, String(name) + _T("-") + GUIDCreator::GetGUID());
+         const String file = FileUtilities::Combine(folder, _T("m.eml"));
+
+         try
+         {
+            ExpectName_(FileUtilities::CreateDirectory(folder) && FileUtilities::WriteToFile(file, message) && FileUtilities::Exists(file),
+               folder, "the test message could not be written");
+
+            MimeBody loaded;
+            ExpectName_(loaded.LoadFromFile(file) == MimeLoadResult::Loaded && AnsiString(loaded.GetRawFieldValue("Subject")) == "one name",
+               folder, "MimeBody::LoadFromFile did not read the message by its name");
+
+            MimeBody header;
+            ExpectName_(header.LoadHeaderFromFile(file) == MimeLoadResult::Loaded && AnsiString(header.GetRawFieldValue("Subject")) == "one name",
+               folder, "MimeBody::LoadHeaderFromFile did not read the message by its name");
+
+            MimeBody stored;
+            ExpectName_(MessageStore::LoadMime(file, stored) == MimeLoadResult::Loaded && AnsiString(stored.GetRawFieldValue("Subject")) == "one name",
+               folder, "MessageStore::LoadMime did not read the message by its name");
+
+            MessageData data;
+            ExpectName_(data.LoadFromMessage(file, std::shared_ptr<Message>(new Message(false))) && data.GetSubject() == _T("one name"),
+               folder, "MessageData did not read the message by its name");
+
+            // Changed and written back - the body copied from the file it was
+            // read from, which is this one - and read again.
+            loaded.SetRawFieldValue("X-Name-Test", "written", "");
+            ExpectName_(loaded.SaveAllToFile(file), folder, "MimeBody::SaveAllToFile did not write the message back by its name");
+
+            MimeBody again;
+            ExpectName_(again.LoadFromFile(file) == MimeLoadResult::Loaded && AnsiString(again.GetRawFieldValue("X-Name-Test")) == "written" &&
+                        AnsiString(again.GetRawFieldValue("Subject")) == "one name",
+               folder, "the message written back is not the one read again by its name");
+         }
+         catch (...)
+         {
+            FileUtilities::DeleteDirectory(folder, true);
+            throw;
+         }
+
+         FileUtilities::DeleteDirectory(folder, true);
+         ExpectName_(!FileUtilities::Exists(file), folder, "the test's folder was not removed");
+      }
+   }
 
 }

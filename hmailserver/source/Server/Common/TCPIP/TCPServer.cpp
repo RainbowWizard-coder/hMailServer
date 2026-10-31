@@ -395,7 +395,7 @@ namespace HM
    bool
    TCPServer::InitInboundClientCertificateVerification_()
    {
-      AnsiString ca_file = client_certificate_ca_file_;
+      AnsiString ca_file = FileUtilities::NarrowPath(client_certificate_ca_file_);
 
       // The bundle goes into this listener's own SSL context, so it is the ONLY
       // trust anchor set for client certificates on this port - deliberately not
@@ -413,7 +413,7 @@ namespace HM
             client_certificate_policy_ == CCPRequire ? ErrorManager::High : ErrorManager::Medium, 6140,
             "TCPServer::InitInboundClientCertificateVerification_",
             Formatter::Format("Failed to load the client certificate CA file {0} for port {1}:{2}.",
-               String(ca_file), String(ipaddress_.ToString()), port_), error_code);
+               client_certificate_ca_file_, String(ipaddress_.ToString()), port_), error_code);
 
          // "Require" with no trust anchors can only reject every client - the
          // port is unreachable either way - so refusing to start loses nothing
@@ -439,7 +439,7 @@ namespace HM
             client_certificate_policy_ == CCPRequire ? ErrorManager::High : ErrorManager::Medium, 6140,
             "TCPServer::InitInboundClientCertificateVerification_",
             Formatter::Format("The client certificate CA file {0} for port {1}:{2} contains no CA certificate.",
-               String(ca_file), String(ipaddress_.ToString()), port_));
+               client_certificate_ca_file_, String(ipaddress_.ToString()), port_));
 
          return client_certificate_policy_ != CCPRequire;
       }

@@ -264,7 +264,7 @@ namespace HM
       }
 
       std::shared_ptr<MimeBody> body = std::shared_ptr<MimeBody>(new MimeBody);
-      if (MessageStore::LoadMime(Utf8Of(fileName), *body) != MimeLoadResult::Loaded)
+      if (MessageStore::LoadMime(fileName, *body) != MimeLoadResult::Loaded)
          return false;
 
       return FindCalendarPart(body, 0, calendarText) && !Trimmed(calendarText).IsEmpty();

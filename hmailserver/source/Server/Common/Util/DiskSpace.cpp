@@ -334,7 +334,7 @@ namespace HM
       {
          // statvfs takes a byte string and the tree's paths are wide, so the name
          // is narrowed for the call and nowhere else.
-         AnsiString query = AnsiString(directory);
+         AnsiString query = FileUtilities::NarrowPath(directory);
 
          struct statvfs volume;
 

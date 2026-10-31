@@ -7,6 +7,7 @@
 
 #include "stdafx.h"
 #include "LegacyBlowfish.h"
+#include "Crypt.h"
 
 #include "PasswordGenerator.h"
 #include "Unicode.h"
@@ -388,21 +389,66 @@ namespace HM
    String
    LegacyBlowfish::EncryptToString(const String &plainText) const
    {
-      const int characters = plainText.GetLength();
+      String hexText;
+      if (TryEncryptToString(plainText, hexText))
+         return hexText;
 
+      const int characters = plainText.GetLength();
       if (characters > MaxPlainLength)
       {
          ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7277, "LegacyBlowfish::EncryptToString",
             Formatter::Format("A value of {0} characters was not encrypted with the legacy Blowfish scheme, which holds at most {1}; nothing was written in its place. A secret stored this way (ProtectStoredSecretsWithDPAPI 0, or DPAPI unavailable) has to be shorter.",
                characters, static_cast<int>(MaxPlainLength)));
-         return String();
+      }
+      else
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::Medium, 7278, "LegacyBlowfish::EncryptToString",
+            "A value holding a character above U+00FF was not encrypted with the legacy Blowfish scheme, which carries only the characters up to U+00FF; nothing was written in its place.");
       }
 
-      // The text as the scheme has always taken it: Unicode::ToANSI's bytes -
-      // which end at a U+0000, and are none at all when the C runtime's locale
-      // cannot convert every character - and of those at most as many as the text
-      // has characters. The rest, to the end of the last block, is zero.
+      return String();
+   }
+
+   String
+   LegacyBlowfish::Refusal(const String &plainText)
+   {
+      const int characters = plainText.GetLength();
+      if (characters > MaxPlainLength)
+      {
+         return Formatter::Format("it has {0} characters, and the scheme holds at most {1}",
+            characters, static_cast<int>(MaxPlainLength));
+      }
+
+      // As TryEncryptToString tells it: ToANSI's nothing for a text that is not.
+      if (Unicode::ToANSI(plainText).IsEmpty() && plainText.c_str()[0] != 0)
+         return _T("it holds a character above U+00FF, which the scheme cannot carry");
+
+      return String();
+   }
+
+   bool
+   LegacyBlowfish::TryEncryptToString(const String &plainText, String &hexText) const
+   {
+      hexText.Empty();
+
+      const int characters = plainText.GetLength();
+      if (characters > MaxPlainLength)
+         return false;
+
+      // The text as the scheme has always taken it: Unicode::ToANSI's bytes, a
+      // character up to U+00FF as its byte on both platforms, which end at a
+      // U+0000 - and of those at most as many as the text has characters. The
+      // rest, to the end of the last block, is zero.
+      //
+      // A text with a character above U+00FF has no such bytes: ToANSI answers
+      // nothing for it. Up to 6.3.7 that nothing was encrypted, so that the value
+      // written read back as an empty secret - on Linux for any character outside
+      // ASCII, since ToANSI gave nothing for those there. It is refused instead,
+      // as a value too long is, and the caller says whose secret it was.
       const AnsiString narrow = Unicode::ToANSI(plainText);
+      if (narrow.IsEmpty() && plainText.c_str()[0] != 0)
+         return false;
+
       const size_t taken = strnlen(narrow.c_str(), static_cast<size_t>(characters));
 
       std::vector<unsigned char> bytes(WholeBlocks(static_cast<size_t>(characters)), 0);
@@ -412,15 +458,16 @@ namespace HM
       EncryptBlocks_(bytes);
 
       static const char digits[] = "0123456789abcdef";
-      AnsiString hexText;
-      hexText.reserve(bytes.size() * 2);
+      AnsiString hex;
+      hex.reserve(bytes.size() * 2);
       for (const unsigned char value : bytes)
       {
-         hexText += digits[value >> 4];
-         hexText += digits[value & 0x0F];
+         hex += digits[value >> 4];
+         hex += digits[value & 0x0F];
       }
 
-      return String(hexText);
+      hexText = String(hex);
+      return true;
    }
 
    String
@@ -602,8 +649,9 @@ namespace HM
 
       // The scheme itself: what hMailServer 6.3.4 - the Blowfish code every
       // version before it carried - wrote for these texts, which this must still
-      // write exactly and still read back as that version did (the text, but for
-      // a character the C runtime's locale cannot convert, which empties it).
+      // write exactly and still read back as that version did: the text. A text
+      // with a character above U+00FF, which 6.3.4 encrypted as an empty one, is
+      // refused now (below).
       static const wchar_t *const written[][3] =
       {
          { L"", L"", L"" },
@@ -622,13 +670,6 @@ namespace HM
             L"p@ss w0rd \"quoted\" \\ <tag> & % ~",
             L"06504221bd32eca0b981dea26b6cbcfc69538b851e32d696f1dc697252bc393f",
             L"p@ss w0rd \"quoted\" \\ <tag> & % ~"
-         },
-         { L"\x03a9", L"dbd2989fb2ae94d1", L"" },
-         {
-            L"abc\x0100"
-            L"def",
-            L"dbd2989fb2ae94d1",
-            L""
          },
          {
             L"!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdef"
@@ -678,7 +719,9 @@ namespace HM
             L"ghijklmnopqrstuvwxyz{|}~!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNO"
             L"PQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~!\"#$%&'()*+,-"
          },
-#ifndef HM_PLATFORM_POSIX
+         // Within Latin-1, the values 6.3.4 wrote on Windows - and on Linux too
+         // now: up to 6.3.7 Linux encrypted each of these as an empty text
+         // (dbd2989fb2ae94d1), which read back as nothing.
          { L"\x00e9", L"01fcb027fbf079b1", L"\x00e9" },
          { L"caf\x00e9", L"df3dc19376c45323", L"caf\x00e9" },
          { L"\x00ff\x0080", L"6226371f0c775f55", L"\x00ff\x0080" },
@@ -689,17 +732,6 @@ namespace HM
             L"\x00e9t\x00e9 \x00a3"
             L"100"
          },
-#else
-         { L"\x00e9", L"dbd2989fb2ae94d1", L"" },
-         { L"caf\x00e9", L"dbd2989fb2ae94d1", L"" },
-         { L"\x00ff\x0080", L"dbd2989fb2ae94d1", L"" },
-         {
-            L"\x00e9t\x00e9 \x00a3"
-            L"100",
-            L"dbd2989fb2ae94d1",
-            L""
-         },
-#endif
       };
 
       const LegacyBlowfish scheme;
@@ -760,6 +792,85 @@ namespace HM
             failures.push_back(AnsiString("the scheme read ") + AnsiString(String(value[0])) + " as \"" + AnsiString(decrypted) +
                                "\", where 6.3.4 read \"" + AnsiString(String(value[1])) + "\"");
       }
+
+      // A text with a character above U+00FF, which the scheme cannot carry: refused,
+      // with nothing written, on both platforms. Up to 6.3.7 each was encrypted as
+      // an empty text, dbd2989fb2ae94d1, and read back as no secret at all.
+      static const wchar_t *const refused[] =
+      {
+         L"\x03a9",
+         L"abc\x0100"
+         L"def",
+         L"x\x20acyz",
+         L"q\x0130rt",
+         L"p\x00e0ss\x65e5",
+      };
+
+      // TryEncryptToString, which EncryptToString is with the report: a tester run
+      // inside the service puts nothing in its error log, whose every line the
+      // regression suite reads as a fault.
+      for (const wchar_t *text : refused)
+      {
+         String encrypted(_T("unchanged"));
+         if (scheme.TryEncryptToString(String(text), encrypted) || !encrypted.IsEmpty())
+            failures.push_back(AnsiString("the scheme wrote ") + AnsiString(encrypted) +
+                               " for a text with a character above U+00FF, which it cannot carry, where it should have refused it");
+      }
+
+      // Why each refusal is: the reason a backup's line (HM7280) and the database
+      // password's (HM7279) give - the text's length, or a character above
+      // U+00FF; an external account's OAuth refresh token is often longer than
+      // the scheme holds. Agreeing with TryEncryptToString on every text below.
+      {
+         const String longToken(std::wstring((size_t) LegacyBlowfish::MaxPlainLength + 1, L't').c_str());
+         const String longAndWide(std::wstring((size_t) LegacyBlowfish::MaxPlainLength + 1, (wchar_t) 0x20AC).c_str());
+         const String fits(std::wstring((size_t) LegacyBlowfish::MaxPlainLength, L'x').c_str());
+         const String whose(_T("The OAuth token of the external account Mail (server imap.example, user jo)"));
+
+         struct Case { String text; const wchar_t *says; };
+         const Case cases[] =
+         {
+            { String(L"x\x20acyz"), L"it holds a character above U+00FF, which the scheme cannot carry" },
+            { String(L"p\x00e0ss\x65e5"), L"it holds a character above U+00FF, which the scheme cannot carry" },
+            { longToken, L"it has 249 characters, and the scheme holds at most 248" },
+            { longAndWide, L"it has 249 characters, and the scheme holds at most 248" },
+            { fits, L"" },
+            { String(L"caf\x00e9"), L"" },
+         };
+
+         for (const Case &c : cases)
+         {
+            const String said = LegacyBlowfish::Refusal(c.text);
+            if (said != String(c.says))
+               failures.push_back(AnsiString("Refusal said \"") + AnsiString(said) + "\" for a text of " + AnsiString(std::to_string(c.text.GetLength()).c_str()) +
+                                  " characters, where it should say \"" + AnsiString(String(c.says)) + "\"");
+
+            String written;
+            const bool taken = scheme.TryEncryptToString(c.text, written);
+            if (taken != said.IsEmpty() || (!taken && !written.IsEmpty()))
+               failures.push_back(AnsiString("Refusal and TryEncryptToString disagree, or something was written, for a text of ") +
+                                  AnsiString(std::to_string(c.text.GetLength()).c_str()) + " characters");
+
+            // HM7280's line, which names whose secret it was and why, and is
+            // nothing at all for a secret the scheme takes.
+            const String line = Crypt::BackupRefusal(c.text, whose);
+            if (said.IsEmpty() ? !line.IsEmpty() : (line.Find(whose + _T(" was written to the backup without it")) != 0 || line.Find(said) < 0))
+               failures.push_back(AnsiString("the backup's line for a refused secret reads \"") + AnsiString(line) + "\"");
+         }
+      }
+
+      // And a text within it is written by both alike.
+      String tried;
+      if (!scheme.TryEncryptToString(String(L"caf\x00e9"), tried) || tried != String(L"df3dc19376c45323"))
+         failures.push_back("TryEncryptToString did not write what EncryptToString writes");
+
+      // What 6.3.4 wrote for each of them still reads as it read: as nothing.
+      if (!scheme.DecryptFromString(String(L"dbd2989fb2ae94d1")).IsEmpty())
+         failures.push_back("the value 6.3.4 wrote for a text it could not carry no longer reads as an empty one");
+
+      // An empty text stays an empty value, not a refusal.
+      if (!scheme.EncryptToString(String()).IsEmpty())
+         failures.push_back("the scheme wrote a value for an empty text");
 
       // And a round trip of generated passwords, as the scheme's tester always
       // had, now asked to be exact.

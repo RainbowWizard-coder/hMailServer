@@ -2922,8 +2922,8 @@ namespace HM
                         // paths are narrowed the way the rest of the tree narrows a
                         // String for a C API, and a failure falls through to the copy
                         // below exactly as a failed CreateHardLink does.
-                        const AnsiString sLinkExisting = sArchiveSource.c_str();
-                        const AnsiString sLinkNew = sMessageArchivePath2.c_str();
+                        const AnsiString sLinkExisting = FileUtilities::NarrowPath(sArchiveSource);
+                        const AnsiString sLinkNew = FileUtilities::NarrowPath(sMessageArchivePath2);
                         BOOL fCreatedLink = ::link(sLinkExisting.c_str(), sLinkNew.c_str()) == 0 ? TRUE : FALSE;
 #else
                         // This function call is odd in that original is 2nd anc destination is 1st..

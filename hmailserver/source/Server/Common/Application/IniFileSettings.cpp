@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <thread>
 #include "../Util/Crypt.h"
+#include "../Util/LegacyBlowfish.h"
 #include "../Util/StoredSecrets.h"
 #include "../Util/Hashing/HashCreator.h"
 #include "../Util/DiskSpace.h"
@@ -2491,18 +2492,15 @@ namespace HM
       WriteIniSetting_("Database", "Username", sNewVal);
    }
 
-   void 
+   bool
    IniFileSettings::SetPassword(const String &sNewVal)
    //---------------------------------------------------------------------------()
    // DESCRIPTION:
-   // Updates a directory in hMailServer.ini.
+   // Updates the database password in hMailServer.ini, and this process's copy
+   // of it. False, with the reason in the error log, when it was not written:
+   // the file and this process then keep the password they had.
    //---------------------------------------------------------------------------()
    {
-      {
-         boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
-         password_ = sNewVal;
-      }
-
       // Prefer machine-scoped DPAPI so the database password in hMailServer.ini
       // cannot be decrypted off-box. Fall back to the legacy Blowfish scheme when
       // DPAPI is disabled or unavailable (so a non-empty password is never lost).
@@ -2513,7 +2511,8 @@ namespace HM
          {
             WriteIniSetting_("Database", "Password", protectedValue);
             WriteIniSetting_("Database", "PasswordEncryption", Crypt::ETDPAPI);
-            return;
+            SetPasswordInMemory_(sNewVal);
+            return true;
          }
 #ifdef HM_PLATFORM_POSIX
          // No Blowfish here. On this platform the key-file store is the only
@@ -2522,12 +2521,36 @@ namespace HM
          // scheme anybody with the file can reverse.
          ErrorManager::Instance()->ReportError(ErrorManager::High, 6418, "IniFileSettings::SetPassword",
             "The database password was NOT written: the secret store refused it (see the preceding error), and this build does not fall back to the reversible Blowfish scheme. Fix the key file and set the password again.");
-         return;
+         return false;
 #endif
       }
 
-      WriteIniSetting_("Database", "Password", Crypt::Instance()->EnCrypt(sNewVal, Crypt::ETBlowFish));
+      // A password the legacy scheme cannot carry - one with a character above
+      // U+00FF, or longer than it holds - is not written, and the report says
+      // which: up to 6.3.7 the scheme encrypted an empty text in place of the
+      // first, and the file then held a database password of nothing.
+      const String refusal = LegacyBlowfish::Refusal(sNewVal);
+      if (!refusal.IsEmpty())
+      {
+         ErrorManager::Instance()->ReportError(ErrorManager::High, 7279, "IniFileSettings::SetPassword",
+            Formatter::Format("The database password was NOT written to hMailServer.ini: the machine's own store did not take it (ProtectStoredSecretsWithDPAPI "
+               "is 0, or the store refused it), and the legacy Blowfish scheme the file then keeps it in refused it: {0}. "
+               "The file keeps the password it had, which the service reads again at its next start.", refusal));
+         return false;
+      }
+
+      const String legacyValue = Crypt::Instance()->EnCrypt(sNewVal, Crypt::ETBlowFish);
+      WriteIniSetting_("Database", "Password", legacyValue);
       WriteIniSetting_("Database", "PasswordEncryption", Crypt::ETBlowFish);
+      SetPasswordInMemory_(sNewVal);
+      return true;
+   }
+
+   void
+   IniFileSettings::SetPasswordInMemory_(const String &password)
+   {
+      boost::lock_guard<boost::mutex> guard(bootstrap_mutex_);
+      password_ = password;
    }
 
    void 

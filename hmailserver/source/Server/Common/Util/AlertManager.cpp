@@ -1124,7 +1124,7 @@ namespace HM
          if (file.IsEmpty() || !FileUtilities::Exists(file))
             continue;
 
-         AnsiString narrowFile = file;
+         AnsiString narrowFile = FileUtilities::NarrowPath(file);
 
          BIO *bio = BIO_new_file(narrowFile.c_str(), "r");
          if (bio == nullptr)

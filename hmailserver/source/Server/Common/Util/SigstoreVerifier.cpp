@@ -811,7 +811,7 @@ namespace HM
    {
       bundleJson.Empty();
 #ifdef HM_PLATFORM_POSIX
-      const AnsiString narrow_path = path;
+      const AnsiString narrow_path = FileUtilities::NarrowPath(path);
       std::ifstream file(narrow_path.c_str(), std::ios::binary);
 #else
       std::ifstream file(path.c_str(), std::ios::binary);
@@ -847,7 +847,7 @@ namespace HM
       // API - and a path that could not be represented that way could not be
       // opened by any other call here either, which is the failure the test just
       // below already reports by name.
-      const AnsiString narrow_path = path;
+      const AnsiString narrow_path = FileUtilities::NarrowPath(path);
       std::ifstream file(narrow_path.c_str(), std::ios::binary);
 #else
       std::ifstream file(path.c_str(), std::ios::binary);

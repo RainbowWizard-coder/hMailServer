@@ -143,7 +143,7 @@ namespace HM
          if (recipients.size() == 1 && recipients[0])
             spamd_user = recipients[0]->GetAddress();
       }
-      pSAClient->SetUser(Unicode::ToANSI(spamd_user));
+      pSAClient->SetUser(SpamAssassinClient::UserHeaderValue(spamd_user));
       pSAClient->SetReturnPath(sReturnPath);
 
       // Here we handle of the ownership to the TCPIP-connection layer.
