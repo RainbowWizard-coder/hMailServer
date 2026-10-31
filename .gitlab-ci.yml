@@ -384,9 +384,10 @@ checkers:
   rules:
     - !reference [.not-a-fuzz-pipeline, rules]
   before_script:
-    # git for the two "is the committed file still what this writes" steps below.
+    # git for the two "is the committed file still what this writes" steps below, and jq
+    # for the Proxmox VE install script's choice of the release (build/test-proxmox-install.sh).
     - apt-get update -qq
-    - apt-get install -y -qq --no-install-recommends git > /dev/null
+    - apt-get install -y -qq --no-install-recommends git jq > /dev/null
     - git config --global --add safe.directory "$CI_PROJECT_DIR"
   script:
     - |
@@ -520,6 +521,9 @@ checkers:
 
       # The Linux version stamps against Version.h.
       check bash build/check-linux-version-stamp.sh
+      # The Proxmox VE install script's choice of the release, run with jq against release
+      # lists in which an older line's release is the one published last: the highest version.
+      check bash build/test-proxmox-install.sh
 
       # And nothing above rewrote anything else.
       check unchanged .

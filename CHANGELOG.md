@@ -1593,8 +1593,13 @@ with `--check`).
   database in the container, and asks the REST API where `hMailServer.ini` then has it, its certificate unchecked
   since no password is sent, so that a port or certificate changed since the install does not fail it; a failure
   after the package was installed says that the server was upgraded; `update --dry-run` prints the commands of an
-  update and runs none. Nothing is fetched from GitHub, and the database password reaches the container in a
-  file of mode 0600, never on a command line. No Proxmox VE host was available: the install, its refusals and the
+  update and runs none. The release the install and `update` take, unless `var_hm_version` names one, is the one of
+  the highest version among the project's fifty most recent releases whose tag is a version, its parts compared as
+  numbers, not the one published last, which may be an older line's: chosen by date, a 6.2 release published after 6.3's, or a paired
+  security release whose older line's tag came last, would have been installed on a new container, and `update` on
+  one already on the newer line would have said there was nothing to do. `build/test-proxmox-install.sh`, which the
+  checkers job runs with jq, holds the choice against release lists of that kind. Nothing is fetched from GitHub, and
+  the database password reaches the container in a file of mode 0600, never on a command line. No Proxmox VE host was available: the install, its refusals and the
   update from 6.3.6 to 6.3.7 ran in a container made from Proxmox VE's own `debian-13-standard` 13.6-1 template,
   checked against Proxmox's signed index, with systemd as PID 1, and the host's script end to end and in dry runs
   against stand-ins of Proxmox VE's commands; each of the download's checks refused a file made to fail it, and

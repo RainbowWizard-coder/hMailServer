@@ -545,6 +545,7 @@ something which already exists.
 | `node build/check-portal-smime.js` | The webmail's S/MIME module against OpenSSL, both ways | Node 20 or later and `openssl` on `PATH` |
 | `node build/check-portal-openpgp.js` | The webmail's OpenPGP module against GnuPG's fixtures, and back to `gpg` when it is present | Node 20 or later; `gpg` optional |
 | `bash build/check-linux-version-stamp.sh` | The Linux stamps (the PKGBUILD's and the APKBUILD's `pkgver`, the source packages' versions) agree with `Version.h` | Git Bash, WSL or Linux |
+| `bash build/test-proxmox-install.sh` | The Proxmox VE install script chooses the release of the highest version, not the one published last, against release lists in which an older line's release is the newest by date | Bash and `jq` on `PATH`; no network. After any change to the install script's choice of the release |
 | `editorconfig-checker` | `.editorconfig` on every text file, with the exclusions in `.editorconfig-checker.json` | `ec -config .editorconfig-checker.json`. CI uses Alpine's package, 3.0.3, which reads the configuration only when named; the GitHub workflow used v3.11.3 |
 | `dotnet format --verify-no-changes` | C# formatting, on `"hmailserver/source/Tools/hMailServer Tools.sln"` and on `hmailserver/source/Tools/ControlPanel/ControlPanel.csproj` | Windows; the .NET 10 SDK. CI runs it in *windows-dotnet* |
 

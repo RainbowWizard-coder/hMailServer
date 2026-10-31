@@ -126,8 +126,13 @@ machine with systemd, as root: `hmailserver-lxc install`).
 
 1. **Tools from Debian's archive:** curl, jq, OpenSSL, cosign (2.5 in Debian 13) and
    iproute2.
-2. **The release:** `var_hm_version`, or the newest release of the project whose tag
-   is `v<major>.<minor>.<patch>`, read from GitLab's releases API.
+2. **The release:** `var_hm_version`, or the release of the highest version among
+   the project's fifty most recent releases whose tag is `v<major>.<minor>.<patch>`,
+   read from GitLab's releases API. The versions are compared as numbers, part by
+   part, and the date a release was published plays no part: the project publishes
+   an older line's release after a newer one's (a 6.2 release after 6.3.0, or a
+   line's security release after the newer line's), and the one published last would
+   otherwise be installed, or, by `update`, taken as the newest there is.
 3. **The download, verified.** The release's Debian 13 package for the container's
    architecture, `hmailserver-linux-<version>-SHA256SUMS.txt`, and the
    `.sigstore.json` bundle of each, from the release's package registry, each of them
@@ -240,10 +245,10 @@ is the yes - and its arguments go on to `ct/hmailserver.sh`: `update --dry-run` 
 run, the install script put in place and `hmailserver-lxc update`, and runs neither.
 The update:
 
-- does nothing when the newest release (or `var_hm_version`) is the installed one or
-  older: it installs only a newer release, since `apt-get` installs nothing over
-  the same version and refuses an older one, and an older server need not accept the
-  newer one's schema;
+- does nothing when the release of the highest version (or `var_hm_version`) is the
+  installed one or older: it installs only a newer release, since `apt-get` installs
+  nothing over the same version and refuses an older one, and an older server need not
+  accept the newer one's schema;
 - downloads and verifies the new release exactly as the install does;
 - with the database in the container, writes a `pg_dump` of it to
   `/var/backups/hmailserver-lxc/hmailserver-<old version>-<time>.dump` first

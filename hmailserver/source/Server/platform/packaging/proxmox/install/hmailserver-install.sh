@@ -15,10 +15,10 @@
 # What install does, in order:
 #   1. curl, jq, OpenSSL, cosign and iproute2 from Debian's own archive (cosign 2.5 in
 #      Debian 13). cosign fetches Sigstore's trust root from tuf-repo-cdn.sigstore.dev.
-#   2. The release: var_hm_version, or the newest release of the project at
-#      https://gitlab.com/hmailserver/hmailserver whose tag is v<major>.<minor>.<patch>
-#      (a release older than the first with Debian 13 packages carries none, and is refused
-#      as such).
+#   2. The release: var_hm_version, or the release of the highest version of the project
+#      at https://gitlab.com/hmailserver/hmailserver whose tag is v<major>.<minor>.<patch>,
+#      not the one published last, which may be an older line's (a release older than the
+#      first with Debian 13 packages carries none, and is refused as such).
 #   3. The release's Debian 13 package for this machine's architecture (amd64 or arm64),
 #      the release's Linux sums and the Sigstore bundle of each, from the release's
 #      package registry, each named by the release's own links. Each bundle is verified
@@ -66,7 +66,7 @@
 # assignments and then deleted (ct/hmailserver.sh writes it with mode 0600, so that a
 # database password is never on a command line):
 #   var_hm_version    the release to install or update to (<major>.<minor>.<patch>); default
-#                     the newest
+#                     the highest version released
 #   var_db            local (default) or external
 #   var_db_host, var_db_port (5432), var_db_name (hmailserver), var_db_user (hmailserver),
 #   var_db_password   the external database; the password may be given in
@@ -195,13 +195,19 @@ version_ok() {
   printf '%s\n' "$1" | grep -Eqx '[0-9]+\.[0-9]+\.[0-9]+'
 }
 
-# The newest release whose tag is a version: the project has releases of other
-# kinds (build inputs), which are never a server's.
+# The release of the highest version among the fifty released last whose tag is a
+# version: the project has releases of other kinds (build inputs), which are never a
+# server's, and it releases an older line after a newer one (an older line's release
+# after the newer line's first, or a line's security release published after the newer
+# line's), so the release published last is not always the newest version. The
+# versions are compared as numbers, part by part, so that a patch release numbered 10
+# is above one numbered 9. build/test-proxmox-install.sh holds this.
 newest_release() {
   fetch "$API/releases?per_page=50&order_by=released_at&sort=desc" "$work/releases.json" \
     || fail "the project's releases could not be read from $API/releases"
   jq -r '[.[] | select(.upcoming_release != true) | .tag_name
-          | select(test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))] | first // empty' "$work/releases.json"
+          | select(type == "string" and test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))]
+         | max_by(ltrimstr("v") | split(".") | map(tonumber)) // empty' "$work/releases.json"
 }
 
 # The installed package's release, without Debian's revision (<version>-1~debian13 is <version>).
