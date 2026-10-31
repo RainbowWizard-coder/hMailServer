@@ -14,8 +14,14 @@
 # What it does: an unprivileged Debian 13 container from Proxmox VE's own template
 # (pveam, which checks the template's checksum from Proxmox's signed index), with the
 # resources asked; install/hmailserver-install.sh fetched from the project's GitLab
-# repository at the same ref as this file, copied into the container as
+# repository at var_scripts_ref, copied into the container as
 # /usr/local/sbin/hmailserver-lxc and run there. Nothing is fetched from GitHub.
+# var_scripts_ref is master unless it is given, whatever ref this file was fetched
+# from, which a script run as bash -c "$(curl ...)" cannot know: this file fetched at
+# a release's tag still runs master's install script unless var_scripts_ref names
+# that tag too (var_scripts_ref=v<version>, with this file from the same tag), and
+# the 'update' it leaves in the container fetches both scripts at var_scripts_ref
+# again at every update, so that only a tag given to both holds them to the release.
 #
 # Run inside a container it made, it updates the server instead (the 'update' it
 # leaves in /usr/bin), as the Helper-Scripts' ct scripts do.
@@ -43,8 +49,10 @@
 #                     procfs and sysfs contents to the container. 0 makes the container
 #                     without it, and the service may then not start
 #   var_onboot        1: start the container with the host
-#   var_scripts_ref   the ref of the project's repository the install script is taken
-#                     from: master (default), or a release's tag, v<version>
+#   var_scripts_ref   the ref of the project's repository the install script, and
+#                     later 'update' and the install script it runs, are taken from:
+#                     master (default, whatever ref this file came from), or a
+#                     release's tag, v<version>
 #   var_install_script
 #                     a local copy of install/hmailserver-install.sh to use instead
 #   var_dry_run       yes: print every command that would change the host, change nothing

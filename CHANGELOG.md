@@ -1598,7 +1598,12 @@ with `--check`).
   numbers, not the one published last, which may be an older line's: chosen by date, a 6.2 release published after 6.3's, or a paired
   security release whose older line's tag came last, would have been installed on a new container, and `update` on
   one already on the newer line would have said there was nothing to do. `build/test-proxmox-install.sh`, which the
-  checkers job runs with jq, holds the choice against release lists of that kind. Nothing is fetched from GitHub, and
+  checkers job runs with jq, holds the choice against release lists of that kind. The install script, and the
+  scripts `update` runs later, are taken from `var_scripts_ref`, `master` unless it is given, whatever ref the host's
+  script was fetched from, which a script run by `bash -c "$(curl ...)"` cannot know: the host's script fetched at a
+  release's tag still runs `master`'s install script, as its header and Proxmox.md now say, where the header said the
+  install script was fetched at the same ref as itself, and Proxmox.md shows how to hold both to a release's tag,
+  `var_scripts_ref=v<version>` beside the tag's address. Nothing is fetched from GitHub, and
   the database password reaches the container in a file of mode 0600, never on a command line. No Proxmox VE host was available: the install, its refusals and the
   update from 6.3.6 to 6.3.7 ran in a container made from Proxmox VE's own `debian-13-standard` 13.6-1 template,
   checked against Proxmox's signed index, with systemd as PID 1, and the host's script end to end and in dry runs

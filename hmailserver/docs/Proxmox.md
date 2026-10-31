@@ -67,7 +67,7 @@ var_ctid=120 var_hostname=mail var_ram=4096 var_disk=32 var_net=192.0.2.25/24 va
 | `var_ssh_keys` | none | a file of public keys for root in the container (`pct create --ssh-public-keys`) |
 | `var_nesting` | 1 | 0 makes the container without nesting |
 | `var_onboot` | 1 | start the container with the host |
-| `var_scripts_ref` | `master` | the branch or tag of this repository the install script, and later `update`, are taken from, for example `v6.3.8` once a release carries these files |
+| `var_scripts_ref` | `master` | the branch or tag of this repository the install script, and later `update`, are taken from, for example `v6.3.8` once a release carries these files; `master` whatever ref the host's script itself was fetched from ([Holding the scripts to a release](#holding-the-scripts-to-a-release)) |
 | `var_hm_version` | the newest release | for example `6.3.7`; 6.3.6 or later |
 | `var_db` | `local` | `local`: PostgreSQL in the container; `external`: the server below |
 | `var_db_host`, `var_db_port`, `var_db_name`, `var_db_user`, `var_db_password` | -, 5432, `hmailserver`, `hmailserver` | the external PostgreSQL |
@@ -103,6 +103,28 @@ Control Deck's address, `https://<the container's address>:8443/` (an IPv6 addre
 in brackets). Sign in as `Administrator`. If a step after the password was set
 fails, the password is printed with the failure instead ([When the install
 stops](#when-the-install-stops)).
+
+### Holding the scripts to a release
+
+The commands above take both scripts from `master`. Fetching the host's script from
+a release's tag instead does not hold the install script to that release: a script
+run as `bash -c "$(curl ...)"` cannot know the address it was fetched from, so it
+takes the install script from `var_scripts_ref`, which is `master` unless it is
+given, and the `update` it leaves in the container fetches both scripts from
+`var_scripts_ref` again at every update. To run a release's scripts, now and at each
+later `update`, give the tag twice - in the address and as `var_scripts_ref` -
+the same tag, `v<version>`, a release that carries these files:
+
+```sh
+var_scripts_ref=v6.3.8 \
+  bash -c "$(curl -fsSL https://gitlab.com/hmailserver/hmailserver/-/raw/v6.3.8/hmailserver/source/Server/platform/packaging/proxmox/ct/hmailserver.sh)"
+```
+
+The server's package is held to its release's signature whichever ref the scripts
+come from ([What the install does](#what-the-install-does)); the ref decides only
+which scripts run, as root, on the host and in the container. With the scripts held
+to a tag, `update` runs that tag's scripts; to take a later release's, change the tag
+in the two lines of `/usr/bin/update` that name it, `url=` and `var_scripts_ref=`.
 
 ### Nesting
 
@@ -236,9 +258,11 @@ update
 ```
 
 `update` is a small script the host's script leaves in `/usr/bin`, as the
-Helper-Scripts do: it fetches `ct/hmailserver.sh` from the repository at the ref the
-container was made from, which, run inside its container, fetches the install script
-of that ref and runs `hmailserver-lxc update`. `hmailserver-lxc update` alone does the
+Helper-Scripts do: it fetches `ct/hmailserver.sh` from the repository at the
+`var_scripts_ref` the container was made with (`master` unless one was given,
+[Holding the scripts to a release](#holding-the-scripts-to-a-release)), which, run
+inside its container, fetches the install script of that ref and runs
+`hmailserver-lxc update`. `hmailserver-lxc update` alone does the
 same with the copy already in the container. `update` asks no question - running it
 is the yes - and its arguments go on to `ct/hmailserver.sh`: `update --dry-run` (or
 `var_dry_run=yes update`) fetches the scripts and prints the two commands it would
