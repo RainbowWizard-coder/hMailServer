@@ -642,6 +642,14 @@ that a refusal here leaves a running server running:
   among it, which setup cannot then keep the administrators' alone: the refusal says to
   install into a folder on that volume. A `Bin` or a `ControlPanel` that is a link to
   the root of a volume is refused too, with the `rmdir` that removes the link.
+- **A path Windows reads as another.** A program folder typed on the directory page
+  with a name that ends in a dot or a space, which Windows drops from a path, or with
+  `.` or `..` in it - `C:\hMailServer.`, which Windows reads as `C:\hMailServer` - is
+  refused before anything is looked at, with the path Windows reads: Inno Setup takes
+  such a path as typed and installs by the path Windows reads, so that setup would
+  prepare one folder and Inno Setup install into another. `/DIR=`, the earlier
+  installation's folder and the default are expanded by Inno Setup already. Setup never
+  makes a folder whose name ends in a dot or a space.
 - **Whether `Bin` and `ControlPanel` are made again** is decided here, before anything
   changes: one that is there and holds nothing is removed and made again in the next
   step, whoever could write it, since the program folder's hardening hands its

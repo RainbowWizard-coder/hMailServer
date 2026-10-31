@@ -2219,6 +2219,15 @@ begin
          szName := Copy(szRest, 1, separator - 1);
          szRest := Copy(szRest, separator + 1, Length(szRest));
       end;
+      // A name that ends in a dot or a space, . and .. among them, which NtCreateFile
+      // keeps and Windows drops from a path, is not made: no path would reach the folder
+      // (check 9 of R1 to R4, 31 October 2026; CheckProgramFolders refuses such a
+      // program folder before this).
+      if (szName <> '') and ((Copy(szName, Length(szName), 1) = '.') or (Copy(szName, Length(szName), 1) = ' ')) then
+      begin
+         Why := 'the name ' + szName + ' in ' + Folder + ' ends in a dot or a space, which Windows drops from a path, so that no path would reach the folder setup made';
+         Exit;
+      end;
       if szName <> '' then
       begin
          szPath := AddBackslash(szPath) + szName;
@@ -5064,6 +5073,23 @@ begin
    g_hBinPrepared := -1;
    g_hControlPanelPrepared := -1;
    g_bProgramFolderHardened := false;
+
+   // Work item 78's R1 (check 9 of R1 to R4, 31 October 2026): a path that Windows reads as
+   // another - a name that ends in a dot or a space, which Windows drops, or . and .. -
+   // is refused before anything is looked at. Inno Setup takes a folder typed on its
+   // directory page as typed, and makes {app} and copies the files by the path Windows
+   // reads, while setup would hold the path as given, find it missing, and make the folder
+   // the name names, which no Win32 path reaches; the folder Inno Setup then made would
+   // inherit what the folder above it hands down. /DIR=, the earlier installation's folder
+   // and the default are expanded by Inno Setup already.
+   szWhy := RemoveBackslashUnlessRoot(ExpandFileName(szApp));
+   if CompareText(szWhy, szApp) <> 0 then
+   begin
+      Result := 'Setup does not install into ' + szApp + ': Windows reads that path as ' + szWhy + ' - a name that ends in a dot or a space loses it, and . and .. ' +
+                'are read as folders - so that setup would prepare one folder and Inno Setup install into another. Give the path as Windows reads it, ' + szWhy +
+                ', and run setup again. Nothing has been changed.';
+      Exit;
+   end;
    CheckProgramFolderPermissions(szApp, false);
 
    // Work item 78's R2 and R3: not again before Windows has restarted, once setup has

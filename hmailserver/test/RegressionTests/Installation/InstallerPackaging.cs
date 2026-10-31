@@ -1417,7 +1417,7 @@ namespace RegressionTests.Installation
          new[] { "FolderAboveIsAdministratorsAlone", "a folder above the program folder that another account owns is gone through", "if not IsTrustedSid(pOwner) then Why := " },
          new[] { "FolderAboveIsAdministratorsAlone", "what may rename or empty a folder above the program folder, or change who may, is not asked", "else if AclLetsOthers(pDacl, HM_REPLACE_RIGHTS, true, szWho) then begin" },
          new[] { "IsAtOrAboveChecked", "Bin's and ControlPanel's walks pass folders the program folder's walk did not hold to the rule", "^function IsAtOrAboveChecked(Folder: String): Boolean; var szFolder: String; begin Result := false; if g_szFolderAboveChecked = '' then Exit; szFolder := AddBackslash(Folder); Result := CompareText(Copy(AddBackslash(g_szFolderAboveChecked), 1, Length(szFolder)), szFolder) = 0; end;$" },
-         new[] { "CheckProgramFolders", "the program folder's walk passes a folder above it unasked", "g_szFolderAboveChecked := ''; g_hProgramFolderPrepared := -1; g_hBinPrepared := -1; g_hControlPanelPrepared := -1; g_bProgramFolderHardened := false; CheckProgramFolderPermissions(szApp, false); @@if RestartNeededFor(szApp, szWhy) then begin Result := ~; Exit; end; if not HoldFolderChain(szApp, 0," },
+         new[] { "CheckProgramFolders", "the program folder's walk passes a folder above it unasked", "g_szFolderAboveChecked := ''; g_hProgramFolderPrepared := -1; g_hBinPrepared := -1; g_hControlPanelPrepared := -1; g_bProgramFolderHardened := false; @@szWhy := RemoveBackslashUnlessRoot(ExpandFileName(szApp)); if CompareText(szWhy, szApp) <> 0 then begin Result := ~; Exit; end; CheckProgramFolderPermissions(szApp, false); @@if RestartNeededFor(szApp, szWhy) then begin Result := ~; Exit; end; if not HoldFolderChain(szApp, 0," },
          new[] { "CheckProgramFolders", "Bin's and ControlPanel's walks are not held to the rule past what the program folder's walk held", "g_szFolderAboveChecked := g_szProgramFolderReal; if not HoldFolderChain(AddBackslash(szApp) + 'Bin', 0," },
          new[] { "SidIs", "a SID is taken for another, so that every owner is trusted or every group of every user is not one (the review of 26 October 2026)", "^function SidIs(pSid: cardinal; szSid: String): Boolean; var pOther: cardinal; begin Result := false; if pSid = 0 then Exit; pOther := 0; if SidOfText(szSid, pOther) then begin Result := SidsAreEqual(pSid, pOther); FreeWindowsMemory(pOther); end; end;$" },
          new[] { "IsBroadSid", "a group of every user - a domain's Domain Users and Domain Guests among them, as ServiceAccount.cpp's IsBroad_ counts them (check 6 of R1 to R4, 28 October 2026) - is not taken for one, so that an entry that lets every user write is kept", "^function IsBroadSid(pSid: cardinal): Boolean; var szSid: String; szName: String; group: Integer; begin Result := false; group := 0; szSid := BroadGroupSid(group, szName); while (not Result) and (szSid <> '') do begin if SidIs(pSid, szSid) then Result := true; group := group + 1; szSid := BroadGroupSid(group, szName); end; if not Result then begin szSid := TextOfSidAt(pSid); Result := (Length(szSid) > 13) and (CompareText(Copy(szSid, 1, 9), 'S-1-5-21-') = 0) and ((Copy(szSid, Length(szSid) - 3, 4) = '-513') or (Copy(szSid, Length(szSid) - 3, 4) = '-514')); end; end;$" },
@@ -1458,6 +1458,8 @@ namespace RegressionTests.Installation
          new[] { "MakeFolderIn", "the name made is not the one name given, relative to the folder above it, with its length", "CopyTextTo(pName + 8, Name, bytes); nameRecord.Lengths := bytes or ((bytes + 2) shl 16); nameRecord.Buffer := pName + 8; WriteNameRecord(pName, nameRecord, 8);" },
          new[] { "MakeFolderIn", "a folder made is not held until setup ends", "Result := handle; SetArrayLength(g_aHeldFolders, GetArrayLength(g_aHeldFolders) + 1); g_aHeldFolders[GetArrayLength(g_aHeldFolders) - 1] := Result; end;$" },
          new[] { "MakeFolderIn", "a failure to make room for the name is taken for a folder made", "Result := -1; Status := HM_STATUS_NO_MEMORY; bytes := Length(Name) * 2; pName := AllocateWindowsMemory(HM_LPTR, 8 + bytes + 2); if pName = 0 then Exit;" },
+         new[] { "CheckProgramFolders", "a program folder path Windows reads as another - a name ending in a dot or a space, . or .. - is held as given, so that setup prepares a folder no path reaches and Inno Setup installs into the one Windows reads, made with what the folder above hands down (check 9 of R1 to R4, 31 October 2026)", "szWhy := RemoveBackslashUnlessRoot(ExpandFileName(szApp)); if CompareText(szWhy, szApp) <> 0 then begin Result := ~; Exit; end; CheckProgramFolderPermissions(szApp, false);" },
+         new[] { "MakeFolders", "a name that ends in a dot or a space, which Windows drops from a path, is made by its name relative to the folder above, where no path reaches it (check 9 of R1 to R4, 31 October 2026)", "if (szName <> '') and ((Copy(szName, Length(szName), 1) = '.') or (Copy(szName, Length(szName), 1) = ' ')) then begin Why := ~; Exit; end; if szName <> '' then begin szPath := AddBackslash(szPath) + szName;" },
          new[] { "MakeFolders", "what is made is not the names below the deepest folder held", "szBase := AddBackslash(Held); if (Length(Folder) <= Length(szBase)) or (CompareText(Copy(Folder, 1, Length(szBase)), szBase) <> 0) then" },
          new[] { "MakeFolders", "the folder the walk held is not read again before a folder is made in it, so a link put in its place since is gone through (the review of 26 October 2026)", "Result := true; if HeldIsLink(HeldHandle, bKnown) then begin g_bFoldersChanged := true; if bKnown then Why := ~ else Why := ~; Result := false; end; index := 0; parent := HeldHandle; while Result and (index < count) do" },
          new[] { "MakeFolders", "a folder made is not held and read where it is through its handle, so one made through a link put on the way is taken", "if handle <> -1 then begin if not MadeWhereNamed(parent, handle, ExtractFileName(missing[index]), szWhere) then begin g_bFoldersChanged := true; Why := ~; Log(~); Result := false; end else begin @@szWhere := FinalPathOfHeld(handle); if Kind = 0 then" },
@@ -1897,7 +1899,7 @@ namespace RegressionTests.Installation
          new[] { "AddRestartFolder", "49938388fed2521d" },
          new[] { "BroadGroupSid", "8b255776e8013335" },
          new[] { "CheckFoldersBeforeTheStop", "a2e38e9db48a13e5" },
-         new[] { "CheckProgramFolders", "fb990829a08ad331" },
+         new[] { "CheckProgramFolders", "7e0c3340809c7fec" },
          new[] { "CheckWhatElseIsInside", "f6745410cf02c64f" },
          new[] { "CheckWhatIsInside", "d53f9875ea5c5d75" },
          new[] { "ControlPanelIsInstalled", "3ab47178b35c2ef7" },
@@ -1950,7 +1952,7 @@ namespace RegressionTests.Installation
          new[] { "MadeParentOffset", "3298776306b79064" },
          new[] { "MadeWhereNamed", "98d8f43dacc9751a" },
          new[] { "MakeFolderIn", "34f935fa5de4000f" },
-         new[] { "MakeFolders", "2c2296fc7c4ad8cc" },
+         new[] { "MakeFolders", "5d5589bec77ff4ad" },
          new[] { "MakePlaceholder", "0b825c9ab1d96d0e" },
          new[] { "NoteFolderOthersCouldChange", "f6ed4de1f7a769ea" },
          new[] { "NoteFoldersOthersCouldChange", "0649cbf4a983effb" },
@@ -2229,6 +2231,22 @@ namespace RegressionTests.Installation
          Assert.IsTrue(Regex.IsMatch(extension, @"external\s+'GetVolumeInformationByHandleW@kernel32\.dll stdcall';"), "The volume is not read through the held folder.");
          Assert.IsTrue(Regex.IsMatch(CodeBody(extension, "SplitAtRoot"), @"else\s+if\s+Copy\(Path,\s*1,\s*2\)\s*=\s*'\\\\'\s+then\s+Why\s*:="), "A program folder on a share is not refused.");
          Assert.IsTrue(Regex.IsMatch(extension, @"HM_DRIVE_REMOTE\s*=\s*4;"), "DRIVE_REMOTE is not 4.");
+      }
+
+      [Test]
+      [Description("Work item 78, R1 (check 9 of R1 to R4, 31 October 2026): a program folder path that Windows reads as another - typed on the directory page with a name ending in a dot or a space, which Windows drops, or with . or .. - is refused before the walk, with the path Windows reads, and MakeFolders makes no name ending in a dot or a space. Inno Setup takes such a path as typed and installs by the path Windows reads, while setup made the folder the name named relative to the folder above, which no path reaches, so that Inno Setup's own folder inherited what the folder above hands down for the whole copy.")]
+      public void AProgramFolderPathWindowsReadsAsAnotherIsRefused()
+      {
+         string extension = ReadInstallerScript("hMailServerInnoExtension.iss");
+         string check = CodeBody(extension, "CheckProgramFolders");
+         Match refusal = Regex.Match(check, @"szWhy\s*:=\s*RemoveBackslashUnlessRoot\(ExpandFileName\(szApp\)\);\s*if\s+CompareText\(szWhy,\s*szApp\)\s*<>\s*0\s+then\s+begin\s+Result\s*:=\s*'Setup does not install into '\s*\+\s*szApp\s*\+\s*': Windows reads that path as '");
+         Assert.IsTrue(refusal.Success, "A program folder path Windows reads as another is not refused, with the path Windows reads.");
+         int walk = check.IndexOf("HoldFolderChain(", StringComparison.Ordinal);
+         Assert.IsTrue(walk > refusal.Index, "The program folder path Windows reads as another is refused only after the walk has held what it names.");
+         string make = CodeBody(extension, "MakeFolders");
+         int guard = make.IndexOf("(Copy(szName, Length(szName), 1) = '.') or (Copy(szName, Length(szName), 1) = ' ')", StringComparison.Ordinal);
+         int made = make.IndexOf("MakeFolderIn(", StringComparison.Ordinal);
+         Assert.IsTrue(guard >= 0 && made > guard, "MakeFolders makes a name ending in a dot or a space, which no path reaches.");
       }
 
       /// <summary>

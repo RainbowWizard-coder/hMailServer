@@ -342,7 +342,11 @@ with `--check`).
   hands down with generic rights counts as the rights they mean for a folder, as the server counts it, so that
   `C:\Program Files\hMailServer`, where Program Files hands Users `(GR,GE)` down, gets its Users entry;
   `InstallerPackaging.cs` and `build/check-installer-scripts.py` hold every mask setup tests an entry's rights against
-  to the generic rights that mean one of its own. In 6.3.7 Inno Setup made the folder with the permissions the folder
+  to the generic rights that mean one of its own. A program folder typed on the directory page with a name that ends in
+  a dot or a space, which Windows drops from a path, or with `.` or `..` in it, is refused before anything is looked
+  at, with the path Windows reads - Inno Setup takes such a path as typed and installs by the path Windows reads, so
+  that setup would make the folder the name names, which no path reaches, and Inno Setup make and install into its own
+  with what the folder above hands down - and setup makes no folder whose name ends in a dot or a space. In 6.3.7 Inno Setup made the folder with the permissions the folder
   above hands down, and `icacls` replaced them just after, and made a missing `Bin` or `ControlPanel` with what the
   program folder handed down. The uninstaller is given each folder setup made (`section_dirs.iss`) and removes it when
   it is empty, and those still empty are removed when setup is cancelled or fails before its files: each recorded only
@@ -2786,7 +2790,7 @@ with `--check`).
   look after the files, one more in `CurStepChanged`, and `#if 0` around `section_dirs.iss`'s `{app}` entry had passed
   both and compiled. The fixture reads an installer script as ISCC and the checker read it, a lone carriage return
   ending the line, where three one-line changes behind one - code after a `//` comment, `#if 0` around a `[Dirs]`
-  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 659. The smoke test's dac-handle case gives the program folder an
+  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 663. The smoke test's dac-handle case gives the program folder an
   entry of its own for the standard account, as an account could write one through `Everyone`'s right to change the
   permissions, and requires it dropped and named, and none for it after the restart; copy-fails runs the watch's
   check of the program folder as it was made, taking setup's line on the folder by the path its handle gives, as on
