@@ -808,7 +808,7 @@ does before the files:
   only the administrators can add to it, each folder walked only when it is opened as
   itself, no link, where the folder above it says it is; an empty folder there before
   the installation in `Bin`, `ControlPanel` and the five folders that hold what is
-  run, and on the program folder's own level one of those five, or a data folder when
+  run, and on the program folder's own level, one of those five or a data folder when
   the server is installed, is removed, through a handle read as that folder, never by a
   path that may lead elsewhere since, and - one on the program folder's own level -
   made again at once by setup in the program folder it holds, by its one name
