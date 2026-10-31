@@ -352,10 +352,11 @@ with `--check`).
   it is empty, and those still empty are removed when setup is cancelled or fails before its files: each recorded only
   once it was found where it was named, with where that is, and removed only while it is still that folder, read
   through a handle opened on its path as itself while the folders above it are still held; a folder found made
-  elsewhere is left as it is. An empty `Bin` or `ControlPanel` that was there, which setup removes and makes again,
-  and an empty folder that was there, which setup's last look removes for Inno Setup to make again (R2), are removed
-  too when setup is cancelled or fails before its files: such an installation does not put back the empty folders
-  that were there. `InstallerPackaging.cs`, `build/check-installer-scripts.py` and the installer smoke
+  elsewhere is left as it is. An empty `Bin` or `ControlPanel` that was there, which setup removes and makes again, is
+  removed too when setup is cancelled or fails before its files: such an installation does not put back the empty
+  `Bin` or `ControlPanel` that was there. An empty folder on the program folder's own level that was there, which
+  setup's last look removes (R2), is made again by setup at once, and a cancel or a failure leaves it in place.
+  `InstallerPackaging.cs`, `build/check-installer-scripts.py` and the installer smoke
   test, which reads each folder's permissions the moment it appears, hold it
   ([ServiceAccount.md](hmailserver/docs/ServiceAccount.md), "Before the files"). Found by the hMailServer project
   (Progressive Robot Ltd).

@@ -747,10 +747,11 @@ does before the files:
   Setup's rollback leaves in it the files it never uninstalls - those of `Addons` and
   `Events` that it installs only when they are not there - the Administrators', with
   the permissions setup made it with, and nothing else in it. An empty `Bin` or
-  `ControlPanel` that was there, which setup removes and makes again, and an empty
-  folder that was there, which the last look removes for Inno Setup to make again, are
-  removed too when the installation stops before its files: a cancelled or failed
-  installation does not put back the empty folders that were there.
+  `ControlPanel` that was there, which setup removes and makes again, is removed too
+  when the installation stops before its files: a cancelled or failed installation does
+  not put back the empty `Bin` or `ControlPanel` that was there. An empty folder on the
+  program folder's own level that was there, which the last look removes, is made again
+  by setup at once, and a cancel or a failure leaves it in place.
 - **A program folder that is there** is hardened, as `/ProtectFolders` hardens it,
   before the files, whatever it holds; only the earlier installation's is left, when
   its `Data`, `Logs`, `Temp`, `Database` or `Events` still inherit from it - an
