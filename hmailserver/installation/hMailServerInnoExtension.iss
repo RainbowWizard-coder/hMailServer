@@ -9302,48 +9302,121 @@ begin
    Result := 'Setup found the folders it prepares changed (work item 78): the hMailServer service is set not to start, and no earlier version is to be put back over them.';
 end;
 
+// How the installed hMailServer service starts, as the Service Control Manager keeps it
+// in HKLM\SYSTEM\CurrentControlSet\Services\hMailServer: its Start value - 2 Automatic,
+// 3 Manual, 4 Disabled - or $102 for Automatic with DelayedAutostart 1, Automatic
+// (Delayed Start); 0 when it cannot be read. The mark KeepServiceFromStarting leaves is
+// this, so that RestoreServiceStart sets back what the service had: a standby's Manual
+// or Disabled (ActiveActive.md, HighAvailabilityRunbook.md) is never made Automatic.
+function ServiceStartMark(): Cardinal;
+var
+   start, delayed: Cardinal;
+begin
+   Result := 0;
+   if not RegQueryDWordValue(HKLM, 'SYSTEM\CurrentControlSet\Services\hMailServer', 'Start', start) then
+      Exit;
+   Result := start;
+   if (start = 2) and RegQueryDWordValue(HKLM, 'SYSTEM\CurrentControlSet\Services\hMailServer', 'DelayedAutostart', delayed) and (delayed = 1) then
+      Result := $102;
+end;
+
+// sc config's word for a start type ServiceStartMark gives: auto, delayed-auto or
+// demand; empty for any other, which setup does not set.
+function ServiceStartWord(Mark: Cardinal): String;
+begin
+   Result := '';
+   if Mark = 2 then
+      Result := 'auto'
+   else if Mark = $102 then
+      Result := 'delayed-auto'
+   else if Mark = 3 then
+      Result := 'demand';
+end;
+
 // When the folders setup prepared are not as it left them after the files
 // (FoldersStillAsPrepared), or were changed while it prepared them (PrepareToInstall):
 // an installed service set not to start, since its program is reached through them,
 // until an administrator has looked and run setup again - which, its folders as it left
-// them after the files, sets it to start again (RestoreServiceStart), as the mark it
-// leaves in HKLM\SOFTWARE\hMailServer (SetupKeptServiceFromStarting) says it may.
+// them after the files, sets it to start again as it did (RestoreServiceStart), as the
+// mark it leaves in HKLM\SOFTWARE\hMailServer (SetupKeptServiceFromStarting) says: the
+// start type the service had, read first. A service that is Disabled already is left as
+// it is, with no mark, or with the one an earlier run left, so that a standby an
+// administrator keeps from starting is never set to start; and one whose start type
+// cannot be read, or is none setup sets, is set not to start with no mark, which an
+// administrator then sets.
 procedure KeepServiceFromStarting();
 var
    ResultCode: Integer;
+   mark: Cardinal;
 begin
    if not IsServiceInstalled('hMailServer') then
       Exit;
+   mark := ServiceStartMark();
+   if mark = 4 then
+   begin
+      Log('The hMailServer service is set not to start already (Disabled), and is left so: setup does not set it to start again.');
+      Exit;
+   end;
    if Exec(ExpandConstant('{sys}\sc.exe'), 'config hMailServer start= disabled', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0) then
    begin
-      RegWriteDWordValue(HKLM, 'SOFTWARE\hMailServer', 'SetupKeptServiceFromStarting', 1);
-      Log('The hMailServer service is set not to start (sc config hMailServer start= disabled) until an administrator has looked at what is said and run setup again.');
+      if ServiceStartWord(mark) <> '' then
+      begin
+         RegWriteDWordValue(HKLM, 'SOFTWARE\hMailServer', 'SetupKeptServiceFromStarting', mark);
+         Log('The hMailServer service is set not to start (sc config hMailServer start= disabled) until an administrator has looked at what is said and run setup again, which sets it to start as it did (start= ' +
+             ServiceStartWord(mark) + ').');
+      end
+      else
+         Log('The hMailServer service is set not to start (sc config hMailServer start= disabled); how it started before could not be read (' + IntToStr(mark) +
+             '), so setup does not set it to start again: an administrator sets how it starts once what is said has been looked at.');
    end
    else
       Log('The hMailServer service could not be set not to start (sc config hMailServer start= disabled returned ' + IntToStr(ResultCode) + '); an administrator does so before it starts.');
 end;
 
 // Work item 78: a service setup set not to start (KeepServiceFromStarting), set to start
-// again (sc config hMailServer start= auto, as /Register makes it) once a later
-// installation has found the folders as it left them after the files, before its steps
-// start the service - /Register does not change how a service starts, and a service
-// left disabled would not start. Nothing when setup left no mark.
+// again as it did before - Automatic, Automatic (Delayed Start) or Manual, the start type
+// the mark recorded - once a later installation has found the folders as it left them
+// after the files, before its steps start the service: /Register does not change how a
+// service starts, and a service left disabled would not start. Nothing when setup left
+// no mark; a service an administrator has set to start otherwise since is theirs, and
+// only the mark goes; a mark of no start type setup sets, or a start type that cannot
+// be read now, leaves the service as it is.
 procedure RestoreServiceStart();
 var
    ResultCode: Integer;
-   mark: cardinal;
+   mark, current: cardinal;
+   szStart: String;
 begin
    if not RegQueryDWordValue(HKLM, 'SOFTWARE\hMailServer', 'SetupKeptServiceFromStarting', mark) then
       Exit;
    if not IsServiceInstalled('hMailServer') then
       Exit;
-   if Exec(ExpandConstant('{sys}\sc.exe'), 'config hMailServer start= auto', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0) then
+   current := ServiceStartMark();
+   if current = 0 then
+   begin
+      Log('The hMailServer service, which an earlier run of setup set not to start, is left as it is: how it starts now could not be read.');
+      Exit;
+   end;
+   if current <> 4 then
    begin
       RegDeleteValue(HKLM, 'SOFTWARE\hMailServer', 'SetupKeptServiceFromStarting');
-      Log('The hMailServer service, which an earlier run of setup set not to start, is set to start again (sc config hMailServer start= auto): the folders are as setup left them.');
+      Log('The hMailServer service, which an earlier run of setup set not to start, has been set to start otherwise since, and is left as it is.');
+      Exit;
+   end;
+   szStart := ServiceStartWord(mark);
+   if szStart = '' then
+   begin
+      Log('The hMailServer service, which an earlier run of setup set not to start, is left so: the start type it recorded (' + IntToStr(mark) +
+          ') is none setup sets, and an administrator sets how it starts.');
+      Exit;
+   end;
+   if Exec(ExpandConstant('{sys}\sc.exe'), 'config hMailServer start= ' + szStart, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0) then
+   begin
+      RegDeleteValue(HKLM, 'SOFTWARE\hMailServer', 'SetupKeptServiceFromStarting');
+      Log('The hMailServer service, which an earlier run of setup set not to start, is set to start as it did before (sc config hMailServer start= ' + szStart + '): the folders are as setup left them.');
    end
    else
-      Log('The hMailServer service, which an earlier run of setup set not to start, could not be set to start again (sc config hMailServer start= auto returned ' + IntToStr(ResultCode) +
+      Log('The hMailServer service, which an earlier run of setup set not to start, could not be set to start again (sc config hMailServer start= ' + szStart + ' returned ' + IntToStr(ResultCode) +
           '); an administrator does so.');
 end;
 

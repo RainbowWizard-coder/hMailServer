@@ -432,7 +432,9 @@ with `--check`).
   each folder opened as itself where the one above it says - which is named and not removed; anything not as setup
   left it ends the installation with exit code 12, runs nothing of it - the Control Panel the last page offers
   included - sets the service not to start, until setup run again with the folders as it leaves them sets it to start
-  again, and keeps setup from running again before Windows has restarted. A refusal after setup stopped the service
+  again as it did - Automatic, Automatic (Delayed Start) or Manual, the start type it read and recorded first; a
+  service that was Disabled already, as a standby kept from starting is, is left so, and one an administrator has set
+  to start otherwise since is left as they set it - and keeps setup from running again before Windows has restarted. A refusal after setup stopped the service
   that found a folder changed sets the service not to start too, and `hMailServer.Updater` puts no earlier version
   back over such folders, on 12 or on that 7. A folder setup cannot harden ends the installation with exit code 7 and
   what to do. In 6.3.7 a server installation into a folder that was there, and every upgrade, had the three hardened
@@ -2742,7 +2744,7 @@ with `--check`).
   folders whole** ([work item 78](https://gitlab.com/hmailserver/hmailserver/-/work_items/78), R1 to R4): every
   constant of setup's `[Code]` to its value, defined once, the TrustedInstaller SID to the live update's; every
   Windows function and record the preparation reads and changes folders with to its declaration; and each routine its
-  entry points reach, 106 of them, but the two the rest of setup shares, which are named with why, to a digest of its
+  entry points reach, 108 of them, but the two the rest of setup shares, which are named with why, to a digest of its
   code, comments and white space aside, so that no change of one passes until it has been reviewed and its digest
   written in both (`python build/check-installer-scripts.py --digests` prints them as the tree is). Thirty-four more
   statements hold the helpers the decisions rely on, and `PrepareToInstallRefusal`, which the rest of setup shares,
@@ -2794,7 +2796,7 @@ with `--check`).
   look after the files, one more in `CurStepChanged`, and `#if 0` around `section_dirs.iss`'s `{app}` entry had passed
   both and compiled. The fixture reads an installer script as ISCC and the checker read it, a lone carriage return
   ending the line, where three one-line changes behind one - code after a `//` comment, `#if 0` around a `[Dirs]`
-  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 679, four of them holding setup's log to saying once, and
+  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 689, four of them holding setup's log to saying once, and
   rightly, which way it made an empty folder of the program folder's own level again. The smoke test's dac-handle case gives the program folder an
   entry of its own for the standard account, as an account could write one through `Everyone`'s right to change the
   permissions, and requires it dropped and named, and none for it after the restart; copy-fails runs the watch's

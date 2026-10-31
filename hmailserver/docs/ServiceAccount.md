@@ -855,7 +855,13 @@ run the Control Panel either - sets an installed service not to start
 (`sc config hMailServer start= disabled`), records that it is not to install there again
 before a restart, and an administrator looks at what is named, restarts Windows and
 runs setup again; when that run finds the folders as it left them, it sets the service
-to start again (`sc config hMailServer start= auto`), which `/Register` does not. The
+to start again as it did before (`sc config hMailServer start=` `auto`, `delayed-auto` or
+`demand`: the start type setup read, and recorded in `SetupKeptServiceFromStarting`
+under `HKLM\SOFTWARE\hMailServer`, before it set the service not to start), which
+`/Register` does not. A service that was Disabled already - a standby kept from starting
+([ActiveActive.md](ActiveActive.md), [HighAvailabilityRunbook.md](HighAvailabilityRunbook.md)) -
+is left so and nothing is recorded, so that no run of setup sets it to start; one an
+administrator has set to start otherwise since is left as they set it. The
 files setup kept in the folders it hardened in place go once the folders have been
 read.
 
