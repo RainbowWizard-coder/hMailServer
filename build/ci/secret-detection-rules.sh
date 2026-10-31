@@ -19,8 +19,15 @@
 # GitLab's custom ruleset, which could name another file, is Ultimate's (the analyzer
 # reads .gitlab/secret-detection-ruleset.toml only when GITLAB_FEATURES has
 # sast_custom_rulesets), which the group's open-source plan carries: the tree carries
-# no such file, and build/check-release-chain.py refuses a tree that does. And
-# gitleaks' [extend] adds a config's allowlists to its base's and takes none away.
+# no such file, and build/check-release-chain.py refuses a tree that does. Nor may a CI
+# file narrow the job by GitLab's variables - SECRET_DETECTION_EXCLUDED_PATHS (paths
+# whose findings the analyzer drops), SECRET_DETECTION_LOG_OPTIONS (the commits it
+# reads), SECRET_DETECTION_RULESET_GIT_REFERENCE (a ruleset of another repository's,
+# which can stand in for the file this writes) or SECURE_ENABLE_LOCAL_CONFIGURATION:
+# build/check-release-chain.py refuses a CI file that defines one, for every job, in a
+# job or in a rule. A CI/CD variable of those names set on the project or the group is
+# outside the tree and outside that check. And gitleaks' [extend] adds a config's
+# allowlists to its base's and takes none away.
 #
 #   sh build/ci/secret-detection-rules.sh <GitLab's gitleaks.toml> <out>
 #

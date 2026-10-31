@@ -310,7 +310,13 @@ refuses it. This checker holds them to each other. It fails when:
     root, and SAST_SEMGREP_EXCLUDED_PATHS set to nothing in its own job; no CI file may
     set SAST_SEMGREP_EXCLUDED_PATHS, SAST_RULESET_GIT_REFERENCE,
     SAST_EXCLUDED_ANALYZERS or HM_TIDY_CHECKS, or SAST_EXCLUDED_PATHS but semgrep-sast's
-    own, or define a variable GitLab gives (CI_*, GITLAB_*, but CI_DEBUG_SERVICES); the
+    own, nor, for every job, in a job or in a rule or a workflow rule, any of
+    SECRET_DETECTION_EXCLUDED_PATHS, SECRET_DETECTION_LOG_OPTIONS,
+    SECRET_DETECTION_RULESET_GIT_REFERENCE and SECURE_ENABLE_LOCAL_CONFIGURATION, which
+    would narrow secret_detection unseen (the paths whose findings GitLab's analyzer
+    drops, the commits it reads, a ruleset of another repository's in place of the rules
+    the job derives, and whether it reads a ruleset at all), or define a variable GitLab
+    gives (CI_*, GITLAB_*, but CI_DEBUG_SERVICES); the
     tree may carry no .semgrepignore, no .gitlab/sast-ruleset.toml, no
     .gitlab/secret-detection-ruleset.toml and no scan's
     report; .gitlab-ci.yml's first workflow rule must leave a merge request without a
@@ -1168,6 +1174,21 @@ SAST_SCRIPT = "  script:\n    - rm -f gl-sast-report.json semgrep.sarif\n    - /
 # the analyzers left out, and clang-tidy's checks for static-analysis.
 SAST_NARROWING_VARIABLES = ("SAST_SEMGREP_EXCLUDED_PATHS", "SAST_RULESET_GIT_REFERENCE", "SAST_EXCLUDED_ANALYZERS",
                             "HM_TIDY_CHECKS")
+# The variables by which a CI file would narrow secret_detection unseen, which none may
+# define, in a job, a rule or the workflow's rules or for every job: the paths whose
+# findings GitLab's analyzer drops, the git log options that choose the commits it reads,
+# a ruleset from another repository, which can stand in for the rules the job derives,
+# and the switch that says whether the analyzer reads a ruleset at all. Each is read on
+# every tier, the ruleset where GITLAB_FEATURES names sast_custom_rulesets, as on the
+# group's open-source plan. SECRET_DETECTION_HISTORIC_SCAN, which widens the scan to the
+# whole history, is secret_detection's schedule rule's own.
+SECRET_NARROWING_VARIABLES = ("SECRET_DETECTION_EXCLUDED_PATHS", "SECRET_DETECTION_LOG_OPTIONS",
+                              "SECRET_DETECTION_RULESET_GIT_REFERENCE", "SECURE_ENABLE_LOCAL_CONFIGURATION")
+# A key of a YAML mapping that names one of them, read as build/ci/security-gate.py's
+# SCOPE_VARIABLE reads the SAST ones: at a line's start after its indentation (and a
+# sequence's dash), or after a flow mapping's brace or comma, not a word in a script.
+SECRET_NARROWING_KEY = re.compile(r"""(?:^[ \t]*(?:-[ \t]+)?|[{,][ \t]*)["']?(%s)["']?[ \t]*:(?=[ \t]|$)"""
+                                  % "|".join(SECRET_NARROWING_VARIABLES), re.MULTILINE)
 # What the tree may not carry: a .semgrepignore (GitLab's analyzer includes the root's,
 # Semgrep reads one in a directory), GitLab's custom ruleset, and a scan's report.
 NOT_IN_THE_TREE = re.compile(r"(?:^|/)\.semgrepignore[^/]*$|^\.gitlab/sast-ruleset\.toml$|^gl-sast-report\.json$|"
@@ -6906,7 +6927,8 @@ def sast_scope_problems(texts, security_jobs, gates_jobs, security_gate):
     """What would let semgrep-sast's report be another's, or its scope narrow unseen:
     semgrep-sast allow_failure, not removing what a checkout leaves of its outputs, not
     keeping Semgrep's SARIF, an exclusion not held to the root, a narrowing variable a
-    CI file defines, a CI file that defines a variable GitLab gives, a file of the tree
+    CI file defines (or one that would narrow secret_detection,
+    SECRET_NARROWING_VARIABLES), a CI file that defines a variable GitLab gives, a file of the tree
     that narrows the scan or stands in for its report, and a workflow whose first rule
     names other branches than the gates run for."""
     problems = []
@@ -6951,6 +6973,11 @@ def sast_scope_problems(texts, security_jobs, gates_jobs, security_gate):
         if path != security_file and defined.get("SAST_EXCLUDED_PATHS"):
             problems.append("%s defines SAST_EXCLUDED_PATHS: semgrep-sast's own job says what it leaves out, in %s alone"
                             % (path, security_file))
+        for name in sorted(set(m.group(1) for m in SECRET_NARROWING_KEY.finditer(security_gate._uncommented(text or "")))):
+            problems.append("%s defines %s: it would narrow what secret_detection reads unseen - the paths whose findings "
+                            "GitLab's analyzer drops, the commits it reads, or a ruleset of another repository's that "
+                            "stands in for the rules the job derives; no CI file may set it, for every job, in a job or "
+                            "in a rule" % (path, name))
     if not any(v == [""] for p, t in every_ci.items() if p == security_file
                for v in [security_gate.scope_variables({p: t}).get("SAST_SEMGREP_EXCLUDED_PATHS")]):
         problems.append("semgrep-sast does not set SAST_SEMGREP_EXCLUDED_PATHS to nothing itself (SAST_SEMGREP_EXCLUDED_PATHS: "
@@ -12292,6 +12319,27 @@ def self_test(chain, feed):
     for name in SAST_NARROWING_VARIABLES:
         broken("%s set for every job" % name, "ci", '  PYTHONUTF8: "1"\n', '  PYTHONUTF8: "1"\n  %s: "x"\n' % name,
                ".gitlab-ci.yml defines %s" % name)
+    # secret_detection's scope, which no CI file narrows: for every job, in the job, in
+    # its rule, in a workflow rule and in a flow mapping.
+    for name in SECRET_NARROWING_VARIABLES:
+        broken("%s set for every job" % name, "ci", '  PYTHONUTF8: "1"\n', '  PYTHONUTF8: "1"\n  %s: "x"\n' % name,
+               ".gitlab-ci.yml defines %s" % name)
+    broken("secret_detection told to leave out paths in its own job", "security",
+           "  allow_failure: false\n  rules:\n    - if: $SECRET_DETECTION_DISABLED",
+           "  allow_failure: false\n  variables:\n    SECRET_DETECTION_EXCLUDED_PATHS: \"build, hmailserver\"\n"
+           "  rules:\n    - if: $SECRET_DETECTION_DISABLED", "defines SECRET_DETECTION_EXCLUDED_PATHS")
+    broken("secret_detection told to read no commit by its schedule rule", "security",
+           '        SECRET_DETECTION_HISTORIC_SCAN: "true"\n',
+           '        SECRET_DETECTION_HISTORIC_SCAN: "true"\n        SECRET_DETECTION_LOG_OPTIONS: "-n 0"\n',
+           "defines SECRET_DETECTION_LOG_OPTIONS")
+    broken("another repository's ruleset given by a workflow rule", "ci", "      variables:\n        HM_RUNNER: saas-linux-small-amd64\n",
+           "      variables:\n        HM_RUNNER: saas-linux-small-amd64\n"
+           "        SECRET_DETECTION_RULESET_GIT_REFERENCE: \"gitlab.com/example/rules\"\n",
+           ".gitlab-ci.yml defines SECRET_DETECTION_RULESET_GIT_REFERENCE")
+    broken("the ruleset switch in a flow mapping", "security",
+           "  allow_failure: false\n  rules:\n    - if: $SECRET_DETECTION_DISABLED",
+           "  allow_failure: false\n  variables: {GIT_DEPTH: \"1\", 'SECURE_ENABLE_LOCAL_CONFIGURATION': \"false\"}\n"
+           "  rules:\n    - if: $SECRET_DETECTION_DISABLED", "defines SECURE_ENABLE_LOCAL_CONFIGURATION")
     broken("another list of what semgrep-sast leaves out", "ci", '  PYTHONUTF8: "1"\n',
            '  PYTHONUTF8: "1"\n  SAST_EXCLUDED_PATHS: "hmailserver"\n', ".gitlab-ci.yml defines SAST_EXCLUDED_PATHS")
     for name in ("CI_MERGE_REQUEST_DIFF_BASE_SHA", "CI_PIPELINE_SOURCE", "GITLAB_FEATURES"):

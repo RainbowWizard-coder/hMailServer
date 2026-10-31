@@ -1831,6 +1831,18 @@ with `--check`).
 
 ### Build and tests
 
+- **`build/check-release-chain.py` refuses a CI file that narrows `secret_detection` by GitLab's variables.** It held
+  the variables that narrow `semgrep-sast` in every CI file and refused a `.gitlab/secret-detection-ruleset.toml` in
+  the tree, but read no `SECRET_DETECTION_*` variable but `SECRET_DETECTION_HISTORIC_SCAN`, so that one line in
+  `.gitlab-ci.yml`'s variables could have left paths out of the scan (`SECRET_DETECTION_EXCLUDED_PATHS`), cut the
+  commits it reads (`SECRET_DETECTION_LOG_OPTIONS`), or put another repository's ruleset in place of the rules the
+  job derives (`SECRET_DETECTION_RULESET_GIT_REFERENCE`, read where `GITLAB_FEATURES` names `sast_custom_rulesets`,
+  as on the group's open-source plan), while `build/ci/secret-detection-rules.sh` said no list of paths is read from
+  the tree. Those three and `SECURE_ENABLE_LOCAL_CONFIGURATION` are now refused in every CI file, for every job, in a
+  job, in a rule or in a workflow rule, with a `--self-test` case for each that fails without the rule, and the
+  script's header and the checker's docstring name them. A CI/CD variable of those names set on the project or the
+  group is outside the tree and outside the check.
+
 - **`build/check-cli.py`'s client that trusts the untrusted-certificate listener asks for TLS 1.2 or later.** The
   PowerShell half's check that the module refuses a certificate this machine does not trust first connects with a
   client that trusts it, so that what the module is refused is the certificate's trust and nothing else. That client
