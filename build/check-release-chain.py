@@ -317,8 +317,10 @@ refuses it. This checker holds them to each other. It fails when:
     drops, the commits it reads, a ruleset of another repository's in place of the rules
     the job derives, and whether it reads a ruleset at all), and
     SECRET_DETECTION_DISABLED, which would take it out of every pipeline - each read in
-    a CI file's text as YAML reads its quoted values and comments, an escaped quote or a
-    value over several lines among them -, or write a key in a form those refusals do not
+    a CI file's text read token by token as libyaml reads it, its quoted values and
+    comments as YAML reads them, an escaped quote, a value over several lines and a quote
+    inside a plain value (a:"b) among them, a file whose brackets or quotes its end leaves
+    open refused -, or write a key in a form those refusals do not
     read (an explicit key, a tag, an anchor, an alias or an escape in a double-quoted
     key), or write a job's, a rule's or a workflow rule's variables: but as a block or a
     one-line mapping of bare names and plain values, or in a job or a rule written in
@@ -1233,28 +1235,89 @@ VARIABLES_KEY_IN_FLOW = re.compile(r"""[{,\[][ \t]*(["']?)variables\1[ \t]*:""")
 VARIABLES_BLOCK_FIRST = re.compile(r"""^[ \t]*(?:["'A-Za-z_]|$)""")
 
 
-def yaml_uncommented(text):
-    """The text of a CI file with YAML's comments taken out as YAML reads them: a # at a
-    line's start or after a blank, outside a quoted scalar. A quoted scalar starts where
-    YAML starts a value or a key - at the line's first character that is not white
-    space, after a colon, a sequence's dash, an explicit key's ?, a flow collection's
-    brace, bracket or comma, or a tag or an anchor - not inside a plain scalar (it's); a
-    double-quoted one ends at a quote no backslash escapes, a single-quoted one at a
-    quote not doubled, and either goes on over the line's end until it does, as YAML
-    reads one. build/ci/security-gate.py's _uncommented, which the rules refusing a
-    narrowing variable by its name read until 31 October 2026, ended a double-quoted
-    scalar at an escaped quote and every quoted scalar at its line's end, so that
-    variables: {HM_NOTE: "a\\" #", SECRET_DETECTION_EXCLUDED_PATHS: build} lost the name
-    after the false comment, which GitLab's YAML reader gives the job. Where this cannot
-    tell, it keeps the text: a quote taken for a scalar's that is not keeps the rest of
-    its line and the lines after it to the next quote, and no comment is taken out of
-    them - more read than YAML reads, never less."""
-    lines = []
+# The characters of an anchor's or an alias's name, and of a tag (but its verbatim form,
+# !<...>), as libyaml's scanner reads them: what follows is another token.
+YAML_ANCHOR_CHARACTER = re.compile(r"[0-9A-Za-z_-]")
+YAML_TAG_CHARACTER = re.compile(r"[0-9A-Za-z_\-;/?:@&=+$.%!~*'()]")
+
+
+def yaml_reading(text):
+    """(the text of a CI file with YAML's comments taken out, [(line, what) the reading
+    could not place]): the file read token by token as libyaml's scanner reads it, which
+    GitLab's YAML reader wraps, so that a quote starts a scalar only where a token starts
+    and never inside a plain scalar. A token starts after white space or an indicator: a
+    flow collection's bracket, brace or comma, a value's colon (followed by a blank, or
+    any in a flow collection, "a":b among them), a sequence's dash followed by a blank, an
+    explicit key's ? (followed by a blank, or any in a flow collection), a tag, an anchor
+    or an alias (each of the characters libyaml takes in one). A plain scalar runs to a
+    colon followed by a blank, a # after a blank and, in a flow collection, a bracket, a
+    brace, a comma or a colon followed by one of them - a:"b and if: $X == 'a:"b' are
+    plain - and goes on over its line's end onto a line indented more than the block it
+    is in (any line, in a flow collection) that does not start with # or a document's
+    marker. A double-quoted scalar ends at a quote no backslash escapes, a single-quoted
+    one at a quote not doubled, and either goes on over its line's end. A comment is a #
+    where a token would start, or after a blank in a plain scalar or a directive. A block
+    scalar (| or >) keeps each of its lines whole, to the first that is not blank and is
+    indented less than its lines are (the first's indentation, or the one its header
+    gives). The block's indentation is libyaml's: the column of the innermost mapping or
+    sequence, opened by a key's colon at the key's column (the first token of the key on
+    its line, an anchor or a tag among them) or a dash at its own, and closed by a token
+    to its left, a directive or a document's marker. A bracket or a brace closing no flow
+    collection, and a flow collection or a quoted scalar the file's end leaves open, are
+    what it cannot place; YAML refuses each. Over generated texts that libyaml's scanner
+    reads to their end, it takes out the comments libyaml skips, no more and no less.
+
+    build/ci/security-gate.py's _uncommented, which the rules refusing a narrowing
+    variable by its name read until 31 October 2026, ended a double-quoted scalar at an
+    escaped quote and every quoted scalar at its line's end; the reading that replaced it
+    that day took a quote after any colon, a:"b's among them, for a scalar's start, so
+    that its quotes were YAML's the other way about and a " #" inside YAML's next quoted
+    scalar was cut as a comment with the rest of its line, and a flow-style rule's
+    variables: {SECRET_DETECTION_EXCLUDED_PATHS: ...} after exists: [a:"b, "x #"] passed
+    the rules that refuse the name and the form, which GitLab's YAML reader gives the
+    job."""
+    out = []
+    unread = []
+    indents = [-1]
+    flow = 0
+    flow_line = 0
     quote = None
-    for line in text.replace("\r\n", "\n").split("\n"):
-        cut = len(line)
+    quote_line = 0
+    plain = False
+    # An open block scalar: [the indentation of its lines (None until its first line that
+    # is not blank sets it), the block's own, the most spaces of a blank line before that].
+    block = None
+    for number, line in enumerate(text.replace("\r\n", "\n").split("\n"), 1):
+        size = len(line)
+        if block is not None:
+            spaces = size - len(line.lstrip(" "))
+            if spaces == size:
+                block[2] = max(block[2], spaces)
+                out.append(line)
+                continue
+            if block[0] is None:
+                block[0] = max(spaces, block[2], block[1] + 1, 1)
+            if spaces >= block[0]:
+                out.append(line)
+                continue
+            block = None
+
+        def blank(at):
+            return at >= size or line[at] in " \t"
+
         i = 0
-        while i < len(line):
+        cut = size
+        key = None
+        if quote is None and plain:
+            first = size - len(line.lstrip(" \t"))
+            if first == size:
+                out.append(line)
+                continue
+            if line[first] == "#" or (line[:3] in ("---", "...") and blank(3)) or (not flow and first <= indents[-1]):
+                plain = False
+            else:
+                i = first
+        while i < size:
             ch = line[i]
             if quote == '"':
                 if ch == "\\":
@@ -1262,22 +1325,136 @@ def yaml_uncommented(text):
                     continue
                 if ch == '"':
                     quote = None
-            elif quote == "'":
+                i += 1
+                continue
+            if quote == "'":
                 if ch == "'":
                     if line[i + 1:i + 2] == "'":
                         i += 2
                         continue
                     quote = None
-            elif ch in "\"'":
-                before = line[:i].rstrip(" \t")
-                if not before or before[-1] in ":-?[{," or re.search(r"(?:^|[ \t])[!&][^ \t]*$", before):
-                    quote = ch
-            elif ch == "#" and (i == 0 or line[i - 1] in " \t"):
+                i += 1
+                continue
+            if plain:
+                if ch == "#" and line[i - 1] in " \t":
+                    plain = False
+                    cut = i
+                    break
+                if ch == ":" and (blank(i + 1) or (flow and line[i + 1] in ",[]{}")):
+                    plain = False
+                    continue
+                if flow and ch in ",[]{}":
+                    plain = False
+                    continue
+                i += 1
+                continue
+            if ch in " \t":
+                i += 1
+                continue
+            if ch == "#":
                 cut = i
                 break
+            if not flow:
+                while indents[-1] > i:
+                    indents.pop()
+            if i == 0 and (ch == "%" or (line[:3] in ("---", "...") and blank(3))):
+                # A directive or a document's marker, at a line's start in a flow
+                # collection too, closes every block; a directive's line ends at a comment.
+                if not flow:
+                    indents = [-1]
+                key = None
+                if ch == "%":
+                    comment = re.search(r"[ \t]#", line)
+                    cut = comment.start() + 1 if comment else size
+                    break
+                i = 3
+                continue
+            if ch in "\"'":
+                if not flow and key is None:
+                    key = i
+                quote = ch
+                quote_line = number
+                i += 1
+                continue
+            if ch in "[{":
+                if not flow:
+                    if key is None:
+                        key = i
+                    flow_line = number
+                flow += 1
+                i += 1
+                continue
+            if ch in "]}":
+                if flow:
+                    flow -= 1
+                else:
+                    unread.append((number, "a %s that closes no flow collection" % ch))
+                i += 1
+                continue
+            if ch == ",":
+                if not flow:
+                    key = None
+                i += 1
+                continue
+            if (ch == "-" and blank(i + 1)) or (ch == "?" and (flow or blank(i + 1))):
+                if not flow:
+                    if indents[-1] < i:
+                        indents.append(i)
+                    key = None
+                i += 1
+                continue
+            if ch == ":" and (flow or blank(i + 1)):
+                if not flow:
+                    column = i if key is None else key
+                    if indents[-1] < column:
+                        indents.append(column)
+                    key = None
+                i += 1
+                continue
+            if ch in "*&!":
+                if not flow and key is None:
+                    key = i
+                i += 1
+                if ch == "!" and line[i:i + 1] == "<":
+                    close = line.find(">", i)
+                    i = size if close < 0 else close + 1
+                    continue
+                name = YAML_TAG_CHARACTER if ch == "!" else YAML_ANCHOR_CHARACTER
+                while i < size and name.match(line[i]):
+                    i += 1
+                continue
+            if ch in "|>" and not flow:
+                at = i + 1
+                given = 0
+                while at < size and line[at] in "+-0123456789":
+                    if line[at].isdigit():
+                        given = int(line[at])
+                    at += 1
+                while at < size and line[at] in " \t":
+                    at += 1
+                if at < size and line[at] == "#":
+                    cut = at
+                if given:
+                    block = [indents[-1] + given if indents[-1] >= 0 else given, indents[-1], 0]
+                else:
+                    block = [None, indents[-1], 0]
+                break
+            if not flow and key is None:
+                key = i
+            plain = True
             i += 1
-        lines.append(line[:cut])
-    return "\n".join(lines)
+        out.append(line[:cut])
+    if quote is not None:
+        unread.append((quote_line, "a %s-quoted value the file's end leaves open" % ("double" if quote == '"' else "single")))
+    if flow:
+        unread.append((flow_line, "a flow collection the file's end leaves open"))
+    return "\n".join(out), unread
+
+
+def yaml_uncommented(text):
+    """The text of a CI file with YAML's comments taken out as YAML reads them
+    (yaml_reading)."""
+    return yaml_reading(text)[0]
 
 
 def flow_variables_problems(path, uncommented):
@@ -7100,9 +7277,12 @@ def sast_scope_problems(texts, security_jobs, gates_jobs, security_gate):
         if path != security_file and defined.get("SAST_EXCLUDED_PATHS"):
             problems.append("%s defines SAST_EXCLUDED_PATHS: semgrep-sast's own job says what it leaves out, in %s alone"
                             % (path, security_file))
-        # Read as YAML reads its quoted scalars and comments (yaml_uncommented), and every
+        # Read as YAML reads its quoted scalars and comments (yaml_reading), and every
         # variables: held to the forms the name rules read (flow_variables_problems).
-        uncommented = yaml_uncommented(text or "")
+        uncommented, unread = yaml_reading(text or "")
+        for number, what in unread:
+            problems.append("%s has %s (line %d): YAML refuses the file, and the rules that refuse a variable that would "
+                            "narrow semgrep-sast or secret_detection by its name cannot read past it" % (path, what, number))
         problems.extend(flow_variables_problems(path, uncommented))
         for name in sorted(set(m.group(2) or m.group(3) for m in SECRET_NARROWING_KEY.finditer(uncommented))):
             problems.append("%s defines %s: it would narrow what secret_detection reads unseen - the paths whose findings "
@@ -12565,6 +12745,33 @@ def self_test(chain, feed):
              ("defines SECURE_ENABLE_LOCAL_CONFIGURATION", "inside a job or a rule in flow style"))):
         for needle in needles:
             broken("%s (%s)" % (what, needle), key, old, new, needle)
+    # A quote inside a plain scalar - a:"b, or an if: expression's 'never:"x' - which the
+    # reading took for a scalar's start, so that its quotes were YAML's the other way
+    # about and the " #" inside YAML's next quoted scalar was cut as a comment with the
+    # rest of its line: a rule of secret_detection's in flow style after it, whose
+    # variables GitLab's YAML reader gives the job, passed both the name's rule and the
+    # form's (31 October 2026). Each is refused by its name and by its form.
+    first_rule = "    - if: $SECRET_DETECTION_DISABLED == 'true' || $SECRET_DETECTION_DISABLED == '1'\n      when: never\n"
+    flow_rule = '    - {if: $CI_COMMIT_BRANCH, exists: ["x #", "*"], variables: {SECRET_DETECTION_EXCLUDED_PATHS: build}}\n'
+    for what, old, new in (
+            ("a flow-style rule of secret_detection's after a:\" in its exists: list", first_rule,
+             first_rule + '    - {if: $CI_COMMIT_BRANCH, exists: [a:"b, "x #", "*"], variables: {SECRET_DETECTION_EXCLUDED_PATHS: "build, hmailserver"}}\n'),
+            ("a flow-style rule of secret_detection's after a:' in its exists: list", first_rule,
+             first_rule + "    - {if: $CI_COMMIT_BRANCH, exists: [a:'b, 'x #', '*'], variables: {SECRET_DETECTION_EXCLUDED_PATHS: 'build, hmailserver'}}\n"),
+            ("a flow-style rule of secret_detection's two rules after an if: holding 'never:\"x'", first_rule,
+             "    - if: $CI_COMMIT_BRANCH == 'never:\"x'\n      when: never\n" + first_rule + flow_rule),
+            ("a flow-style rule of secret_detection's after a:\" in the schedule rule's block variables", rule_vars,
+             rule_vars + '        HM_NOTE: a:"b\n' + flow_rule),
+            ("a flow-style rule of secret_detection's after a:\" and a quoted scalar continued on a line starting with #", first_rule,
+             first_rule + '    - {if: $CI_COMMIT_BRANCH, exists: [a:"b, "x\n      # y", "*"], variables: {SECRET_DETECTION_EXCLUDED_PATHS: build}}\n'),
+            ("the job's flow variables after a:\" in its tags", job_rules,
+             '  allow_failure: false\n  tags: [a:"b]\n  variables: {HM_NOTE: "x #", SECRET_DETECTION_EXCLUDED_PATHS: build}\n'
+             "  rules:\n    - if: $SECRET_DETECTION_DISABLED")):
+        needles = ("defines SECRET_DETECTION_EXCLUDED_PATHS",
+                   "a form the rules that refuse a variable by its name do not read" if "variables: {HM_NOTE" in new
+                   else "inside a job or a rule in flow style")
+        for needle in needles:
+            broken("%s (%s)" % (what, needle), "security", old, new, needle)
     # secret_detection, or the template's hidden job it extends, defined again in a file
     # other than its own - one no landing asks a person's word for, and .gitlab-ci.yml -
     # each of which GitLab merges over gitlab-security.yml's, included first.

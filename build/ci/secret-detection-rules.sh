@@ -26,8 +26,10 @@
 # which can stand in for the file this writes) or SECURE_ENABLE_LOCAL_CONFIGURATION -
 # nor take it out of every pipeline by SECRET_DETECTION_DISABLED, which the job's first
 # rule reads: build/check-release-chain.py refuses a CI file that defines one, for every
-# job, in a job or in a rule, reading its quoted values and comments as YAML does (a
-# quote escaped in a double-quoted value, a value over several lines); a CI file that
+# job, in a job or in a rule, reading the file token by token as libyaml, which GitLab's
+# YAML reader wraps, reads it (a quote escaped in a double-quoted value, a value over
+# several lines, a quote inside a plain value such as a:"b, which starts no quoted
+# one), and refusing one whose brackets or quotes the file's end leaves open; a CI file that
 # writes a key in a form that refusal does not read (an explicit key, a tag, an anchor,
 # an alias, or an escape in a double-quoted key), whatever its name; a variables: of a
 # job, a rule or a workflow rule written but as a block or as a one-line mapping of bare
