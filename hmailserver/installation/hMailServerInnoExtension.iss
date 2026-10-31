@@ -543,6 +543,12 @@ const
 	HM_FILE_DISPOSITION_INFO_EX = 21;
 	HM_DISPOSITION_DELETE_POSIX = 3;
 	HM_OPEN_FOLLOWING_FLAGS     = $02000000;
+	// The entries of its own written on a folder made again in the last look
+	// (WriteOwnEntriesOn): a handle opened on it as itself with READ_CONTROL | WRITE_DAC |
+	// FILE_READ_ATTRIBUTES, and its list written with UNPROTECTED_DACL_SECURITY_INFORMATION
+	// | DACL_SECURITY_INFORMATION, so that what the folder above hands down stays.
+	HM_WRITE_DAC_ACCESS         = $00060080;
+	HM_UNPROTECTED_DACL_INFORMATION = $20000004;
 
   // Every dialog in this script is a SuppressibleMsgBox, and the reason is the
 // 6.2.19 release: the database setup failed on a clean machine, the failure
@@ -743,6 +749,11 @@ function CloseKey(hKey: cardinal): Integer;
 external 'RegCloseKey@advapi32.dll stdcall';
 function SetHeldInformation(hFile: Integer; FileInformationClass: cardinal; var lpFileInformation: cardinal; dwBufferSize: cardinal): Boolean;
 external 'SetFileInformationByHandle@kernel32.dll stdcall';
+// SetSecurityInfo, for the entries of its own written on a folder made again, through a
+// handle opened on it as itself (WriteOwnEntriesOn). Named apart from the API for the
+// reason SetProcessEnvironmentVariable is.
+function WriteHeldSecurity(Handle: Integer; ObjectType: cardinal; SecurityInfo: cardinal; psidOwner: cardinal; psidGroup: cardinal; pDacl: cardinal; pSacl: cardinal): cardinal;
+external 'SetSecurityInfo@advapi32.dll stdcall';
 // GetVolumePathNamesForVolumeNameW, for whether a volume a data folder's link leads to
 // the root of has a drive letter, whose root /GrantServiceAccess refuses
 // (DataLinkLeadsWhereAllowed).
@@ -4182,17 +4193,223 @@ end;
 // or runs from, is left as it is, and said in the setup log (check 5 of R1 to R4). The
 // five folders are walked only as the folders of their names in the program folder
 // (CheckWhatIsInside, Expected).
+// Work item 78's R1 and R2 (check 9 of R1 to R4, 31 October 2026): the entries of its own an
+// empty folder had - those of pOldDacl not marked inherited, the service's grant among them -
+// written on the folder made again in its place (Made, which setup holds, made in the program
+// folder held by AppHandle, by its name, Name), before what it inherits now from the program
+// folder; nothing when it had none. Written through a handle opened by its path (Item) on it
+// as itself, with WRITE_DAC, found no link, the folder of its name in the program folder and
+// the very folder Made holds, with SetSecurityInfo and the list not protected, so that what
+// the program folder hands down stays; then read again through Made, every entry of its own
+// being there. An entry the folder had marked inherited is not carried over: one it kept from
+// where it was made - a folder moved in from another on the same volume keeps the entries it
+// inherited there, still marked inherited - which the program folder does not hand down, and
+// which NtCreateFile, given the list as it was, gave the new folder and every file Inno Setup
+// then copied into it until /ProtectFolders hardened the program folder after the files. True
+// when written, or when there was nothing to write; false, with Why, otherwise.
+function WriteOwnEntriesOn(AppHandle: Integer; Made: Integer; Item: String; Name: String; pOldDacl: cardinal; var Why: String): Boolean;
+var
+   info: ACL_SIZE_INFO;
+   nowInfo: ACL_SIZE_INFO;
+   head: ACE_START;
+   heldInformation: HM_FILE_INFORMATION;
+   openedInformation: HM_FILE_INFORMATION;
+   pAce: cardinal;
+   pNew: cardinal;
+   pNowOwner: cardinal;
+   pNowDacl: cardinal;
+   pNowDescriptor: cardinal;
+   readResult: cardinal;
+   written: cardinal;
+   aclSize: cardinal;
+   index: cardinal;
+   own: cardinal;
+   found: cardinal;
+   size: cardinal;
+   pass: Integer;
+   handle: Integer;
+   ok: Boolean;
+   bKnown: Boolean;
+   bOwn: Boolean;
+   bDeny: Boolean;
+   szWhere: String;
+begin
+   Result := false;
+   Why := '';
+   own := 0;
+   info.AceCount := 0;
+   info.AclBytesInUse := 8;
+   if pOldDacl <> 0 then
+   begin
+      if not ReadAclSize(pOldDacl, info, 12, HM_ACL_SIZE_INFORMATION) then
+      begin
+         Why := 'the permissions it had could not be read';
+         Exit;
+      end;
+      index := 0;
+      while index < info.AceCount do
+      begin
+         pAce := 0;
+         if not (ReadAclEntry(pOldDacl, index, pAce) and (pAce <> 0)) then
+         begin
+            Why := 'the permissions it had could not be read';
+            Exit;
+         end;
+         CopyAceStart(head, pAce, 8);
+         if (((head.TypeFlagsSize shr 8) and $FF) and HM_INHERITED_ACE) = 0 then
+            own := own + 1;
+         index := index + 1;
+      end;
+   end;
+   if own = 0 then
+   begin
+      Result := true;
+      Exit;
+   end;
+
+   // What it inherits now, read through the handle setup holds.
+   pNowOwner := 0;
+   pNowDacl := 0;
+   pNowDescriptor := 0;
+   readResult := ReadHeldSecurity(Made, HM_FILE_OBJECT, HM_DACL_INFORMATION, pNowOwner, 0, pNowDacl, 0, pNowDescriptor);
+   if readResult <> 0 then
+   begin
+      Why := 'what it inherits now could not be read (Windows error ' + IntToStr(readResult) + ')';
+      Exit;
+   end;
+   nowInfo.AceCount := 0;
+   nowInfo.AclBytesInUse := 8;
+   if pNowDacl <> 0 then
+      if not ReadAclSize(pNowDacl, nowInfo, 12, HM_ACL_SIZE_INFORMATION) then
+      begin
+         FreeWindowsMemory(pNowDescriptor);
+         Why := 'what it inherits now could not be read';
+         Exit;
+      end;
+
+   // The entries of its own, deny entries first, then what it inherits now.
+   aclSize := ((info.AclBytesInUse + nowInfo.AclBytesInUse + 8 + 3) div 4) * 4;
+   pNew := AllocateWindowsMemory(HM_LPTR, aclSize);
+   if (pNew = 0) or (not StartAcl(pNew, aclSize, HM_ACL_REVISION)) then
+   begin
+      if pNew <> 0 then
+         FreeWindowsMemory(pNew);
+      FreeWindowsMemory(pNowDescriptor);
+      Why := 'its permissions could not be made (Windows error ' + IntToStr(DLLGetLastError()) + ')';
+      Exit;
+   end;
+   ok := true;
+   for pass := 0 to 2 do
+   begin
+      index := 0;
+      while ok and (((pass < 2) and (index < info.AceCount)) or ((pass = 2) and (index < nowInfo.AceCount))) do
+      begin
+         pAce := 0;
+         if pass < 2 then
+            ok := ReadAclEntry(pOldDacl, index, pAce) and (pAce <> 0)
+         else
+            ok := ReadAclEntry(pNowDacl, index, pAce) and (pAce <> 0);
+         if ok then
+         begin
+            CopyAceStart(head, pAce, 8);
+            size := (head.TypeFlagsSize shr 16) and $FFFF;
+            bOwn := (((head.TypeFlagsSize shr 8) and $FF) and HM_INHERITED_ACE) = 0;
+            bDeny := (head.TypeFlagsSize and $FF) = HM_ACCESS_DENIED;
+            if ((pass = 0) and bOwn and bDeny) or ((pass = 1) and bOwn and (not bDeny)) or ((pass = 2) and (not bOwn)) then
+               ok := AppendAce(pNew, HM_ACL_REVISION, HM_MAXDWORD, pAce, size);
+         end;
+         index := index + 1;
+      end;
+   end;
+   FreeWindowsMemory(pNowDescriptor);
+   if not ok then
+   begin
+      FreeWindowsMemory(pNew);
+      Why := 'its permissions could not be made';
+      Exit;
+   end;
+
+   // Written through a handle on the folder setup made, as itself.
+   handle := HoldFolder(Item, HM_WRITE_DAC_ACCESS, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0);
+   if handle = -1 then
+   begin
+      FreeWindowsMemory(pNew);
+      Why := 'it could not be opened to write the entries of its own (Windows error ' + IntToStr(DLLGetLastError()) + ')';
+      Exit;
+   end;
+   if HeldIsLink(handle, bKnown) then
+      Why := 'it is not the folder setup made: it is a junction, a symbolic link or a mount point now, or what it is could not be read'
+   else if not MadeWhereNamed(AppHandle, handle, Name, szWhere) then
+      Why := 'it is not where setup made it: ' + szWhere
+   else if not (ReadHeldInformation(handle, openedInformation) and ReadHeldInformation(Made, heldInformation)) then
+      Why := 'whether it is the folder setup made could not be read (Windows error ' + IntToStr(DLLGetLastError()) + ')'
+   else if (openedInformation.dwVolumeSerialNumber <> heldInformation.dwVolumeSerialNumber) or (openedInformation.nFileIndexHigh <> heldInformation.nFileIndexHigh) or
+           (openedInformation.nFileIndexLow <> heldInformation.nFileIndexLow) then
+      Why := 'its name leads to another folder than the one setup made'
+   else
+   begin
+      written := WriteHeldSecurity(handle, HM_FILE_OBJECT, HM_UNPROTECTED_DACL_INFORMATION, 0, 0, pNew, 0);
+      if written <> 0 then
+         Why := 'the entries of its own could not be written on it (Windows error ' + IntToStr(written) + ')';
+   end;
+   ReleaseFolder(handle);
+   FreeWindowsMemory(pNew);
+   if Why <> '' then
+      Exit;
+
+   // Read again through the handle setup holds: every entry of its own there.
+   pNowOwner := 0;
+   pNowDacl := 0;
+   pNowDescriptor := 0;
+   readResult := ReadHeldSecurity(Made, HM_FILE_OBJECT, HM_DACL_INFORMATION, pNowOwner, 0, pNowDacl, 0, pNowDescriptor);
+   if readResult <> 0 then
+   begin
+      Why := 'its permissions could not be read again (Windows error ' + IntToStr(readResult) + ')';
+      Exit;
+   end;
+   found := 0;
+   nowInfo.AceCount := 0;
+   if pNowDacl <> 0 then
+      if ReadAclSize(pNowDacl, nowInfo, 12, HM_ACL_SIZE_INFORMATION) then
+      begin
+         index := 0;
+         while index < nowInfo.AceCount do
+         begin
+            pAce := 0;
+            if ReadAclEntry(pNowDacl, index, pAce) and (pAce <> 0) then
+            begin
+               CopyAceStart(head, pAce, 8);
+               if (((head.TypeFlagsSize shr 8) and $FF) and HM_INHERITED_ACE) = 0 then
+                  found := found + 1;
+            end;
+            index := index + 1;
+         end;
+      end;
+   FreeWindowsMemory(pNowDescriptor);
+   if found <> own then
+   begin
+      Why := 'read again, it has ' + IntToStr(found) + ' entries of its own, where ' + IntToStr(own) + ' were written';
+      Exit;
+   end;
+   Log('Setup wrote on ' + Item + ', made again, the ' + IntToStr(own) + ' entries of its own it had, before what it inherits from the program folder now, and an entry it had ' +
+       'marked inherited is not carried over.');
+   Result := true;
+end;
+
 // Work item 78's R1 and R2 (check 8 of R1 to R4, 28 October 2026): an empty folder on the
 // program folder's own level, there before this installation - a data folder, Events or
 // another of those setup installs into - removed in the last look (RemoveHeldFolder) and
 // made again at once by setup, in the program folder held by AppHandle, by its one name
-// relative to that handle (MakeFolderIn), with the list of entries it had, read through
-// a handle on it as itself before it was removed - inheriting nothing when it inherited
-// nothing - and held until setup ends: a new folder no handle opened before reaches, as
-// private as it was, which a cancel or a failure leaves in place. Inno Setup made it
-// again with what the program folder hands down, the service's grant and the privacy
-// /ProtectFolders gives Logs and Temp gone until they ran after the files. True when
-// it is there again; false, with Why, otherwise.
+// relative to that handle (MakeFolderIn), and held until setup ends: a new folder no
+// handle opened before reaches, which a cancel or a failure leaves in place. One whose
+// list inherited nothing (SE_DACL_PROTECTED), read through a handle on it as itself before
+// it was removed, is made with that list, as private as it was; one whose list inherited
+// is made with what the program folder hands down now, and the entries of its own it had
+// are written on it (WriteOwnEntriesOn), an entry it had marked inherited - one it kept
+// from where it was made - not carried over (check 9 of R1 to R4, 31 October 2026). Inno
+// Setup made it again with what the program folder hands down, the service's grant and
+// the privacy /ProtectFolders gives Logs and Temp gone until they ran after the files.
+// True when it is there again; false, with Why, otherwise.
 function RemoveAndMakeAgain(Item: String; AppHandle: Integer; AppFinal: String; var Why: String): Boolean;
 var
    handle: Integer;
@@ -4202,6 +4419,9 @@ var
    pOwner: cardinal;
    pDacl: cardinal;
    pDescriptor: cardinal;
+   control: Word;
+   revision: cardinal;
+   bInherits: Boolean;
 begin
    Result := false;
    Why := '';
@@ -4221,19 +4441,40 @@ begin
       Why := 'its permissions could not be read (Windows error ' + IntToStr(readResult) + ')';
       Exit;
    end;
+   // Whether its list inherited: taken so when that cannot be read.
+   control := 0;
+   revision := 0;
+   bInherits := true;
+   if ControlOfDescriptor(pDescriptor, control, revision) then
+      bInherits := (control and HM_DACL_PROTECTED) = 0;
    if not RemoveHeldFolder(Item, AppFinal, Why) then
    begin
       FreeWindowsMemory(pDescriptor);
       Exit;
    end;
-   made := MakeFolderIn(AppHandle, ExtractFileName(Item), pDescriptor, status);
-   FreeWindowsMemory(pDescriptor);
+   if bInherits then
+      made := MakeFolderIn(AppHandle, ExtractFileName(Item), 0, status)
+   else
+      made := MakeFolderIn(AppHandle, ExtractFileName(Item), pDescriptor, status);
    if made = -1 then
    begin
+      FreeWindowsMemory(pDescriptor);
       g_bFoldersChanged := true;
       Why := 'it was removed, but could not be made again with the permissions it had (NTSTATUS ' + Format('%.8x', [status]) + ')';
       Exit;
    end;
+   if bInherits then
+      if not WriteOwnEntriesOn(AppHandle, made, Item, ExtractFileName(Item), pDacl, Why) then
+      begin
+         FreeWindowsMemory(pDescriptor);
+         g_bFoldersChanged := true;
+         Why := 'it was removed and made again, but ' + Why;
+         Exit;
+      end;
+   FreeWindowsMemory(pDescriptor);
+   if bInherits then
+      Log('Setup made ' + Item + ', whose permissions inherited from the program folder, again with what the program folder hands down now and the entries of its own ' +
+          'it had, and an entry it had marked inherited, which it may have kept from where it was made, is not carried over.');
    Result := true;
 end;
 

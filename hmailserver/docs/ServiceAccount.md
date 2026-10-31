@@ -812,12 +812,18 @@ does before the files:
   the server is installed, is removed, through a handle read as that folder, never by a
   path that may lead elsewhere since, and - one on the program folder's own level -
   made again at once by setup in the program folder it holds, by its one name
-  relative to that handle, with the list of entries it had, read through a handle on
-  it before it was removed, and owned by the account setup runs as: a new folder no
-  handle opened before reaches, as private as it was (an earlier installation's
-  `Logs` and `Temp` keep what `/ProtectFolders` and `/GrantServiceAccess` gave them,
-  where Inno Setup made them again with what the program folder hands down until
-  those ran after the files), which a cancel or a failure leaves in place; another empty folder on the program folder's own
+  relative to that handle, and owned by the account setup runs as: a new folder no
+  handle opened before reaches, which a cancel or a failure leaves in place. One whose
+  list inherited nothing, read through a handle on it before it was removed, is made
+  with that list, as private as it was (an earlier installation's `Logs` and `Temp`
+  keep what `/ProtectFolders` and `/GrantServiceAccess` gave them, where Inno Setup
+  made them again with what the program folder hands down until those ran after the
+  files); one whose list inherited is made with what the program folder hands down
+  now, and the entries of its own it had - the service's grant among them - are
+  written on it through a handle opened on it as itself and found to be the folder
+  setup made, then read again: an entry it had still marked inherited, which a folder
+  moved in from another on the same volume keeps from there, is not carried over onto
+  it and the files Inno Setup copies into it; another empty folder on the program folder's own
   level, which nothing installs into or runs from, is left as it is, and said;
   what this look refuses was not there, or not so, when the first step looked, and is
   taken for a folder changed; and another file whose owner is not SYSTEM, the Administrators or

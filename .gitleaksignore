@@ -178,7 +178,7 @@ c19f5481847677b677d566cb17aea5ee5a6ef3a8:hmailserver/source/Server/Common/Util/H
 c893043d824e2965e3a52848f83104e8147bd288:build/deck-script-test.js:PGP private key:2412
 /builds/hmailserver/hmailserver/build/fixtures/openpgp/alice.sec.asc:PGP private key:1
 /builds/hmailserver/hmailserver/build/fixtures/openpgp/bob.sec.asc:PGP private key:1
-/builds/hmailserver/hmailserver/build/ci/installer-smoke.ps1:PKCS8 private key:1993
+/builds/hmailserver/hmailserver/build/ci/installer-smoke.ps1:PKCS8 private key:2002
 # 23 October 2026: the work item 78 folder cases' description and switches above it in
 # installer-smoke.ps1: 1766 to 1816, read again. 25 October 2026: the state of a case's
 # own files, three lines above it: to 1819, read again. 27 October 2026: the folder
@@ -198,7 +198,8 @@ c893043d824e2965e3a52848f83104e8147bd288:build/deck-script-test.js:PGP private k
 # above it: to 1980, read again. 30 October 2026: the relative-link case of check 8 of R1
 # to R4 in the description above it: to 1991, read again. 31 October 2026: the words of
 # check 9 of R1 to R4 on -HardenedBeforeFiles in the description above it: to 1993, read
-# again.
+# again. 31 October 2026: the stale-empty case of check 9 in the description above it: to
+# 2002, read again.
 # 22 October 2026: the repositories' origin, label and description, ten lines above it in
 # generate-package-repos.py: to 385, read again; 28 October 2026, the guard of its module
 # path, nine lines above it: to 394, read again.

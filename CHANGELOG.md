@@ -420,8 +420,11 @@ with `--check`).
   just before setup's last look at what is in them, an empty folder in `Bin`, `ControlPanel` and the folders that
   hold what is run, and, on the program folder's own level, an empty folder setup installs into or makes again - one
   of those five, or a data folder when the server is installed - is removed before the files through a handle read as
-  that folder, the last made again at once by setup with the list of entries it had, so that an earlier installation's
-  private `Logs` and `Temp` stay private and a cancel leaves them in place, and another empty folder there, which nothing installs into or runs from, is left and said, a folder
+  that folder, the last made again at once by setup - with the list of entries it had when it inherited nothing, so
+  that an earlier installation's private `Logs` and `Temp` stay private and a cancel leaves them in place, and
+  otherwise with what the program folder hands down now and the entries of its own it had, so that an entry it kept,
+  still marked inherited, from a folder it was moved in from is not carried over onto it and the files copied into
+  it - and another empty folder there, which nothing installs into or runs from, is left and said, a folder
   hardened in place keeps a file of setup's until the files are in, so that none can be made a junction, and after
   the files, before setup runs anything of the installation, the three are read again through the handles that hold
   them and looked through for a link or an empty folder setup did not leave - only what was found as setup left it,
@@ -2738,7 +2741,7 @@ with `--check`).
   folders whole** ([work item 78](https://gitlab.com/hmailserver/hmailserver/-/work_items/78), R1 to R4): every
   constant of setup's `[Code]` to its value, defined once, the TrustedInstaller SID to the live update's; every
   Windows function and record the preparation reads and changes folders with to its declaration; and each routine its
-  entry points reach, 105 of them, but the two the rest of setup shares, which are named with why, to a digest of its
+  entry points reach, 106 of them, but the two the rest of setup shares, which are named with why, to a digest of its
   code, comments and white space aside, so that no change of one passes until it has been reviewed and its digest
   written in both (`python build/check-installer-scripts.py --digests` prints them as the tree is). Thirty-four more
   statements hold the helpers the decisions rely on, and `PrepareToInstallRefusal`, which the rest of setup shares,
@@ -2790,7 +2793,7 @@ with `--check`).
   look after the files, one more in `CurStepChanged`, and `#if 0` around `section_dirs.iss`'s `{app}` entry had passed
   both and compiled. The fixture reads an installer script as ISCC and the checker read it, a lone carriage return
   ending the line, where three one-line changes behind one - code after a `//` comment, `#if 0` around a `[Dirs]`
-  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 663. The smoke test's dac-handle case gives the program folder an
+  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 675. The smoke test's dac-handle case gives the program folder an
   entry of its own for the standard account, as an account could write one through `Everyone`'s right to change the
   permissions, and requires it dropped and named, and none for it after the restart; copy-fails runs the watch's
   check of the program folder as it was made, taking setup's line on the folder by the path its handle gives, as on
@@ -2804,7 +2807,9 @@ with `--check`).
   control, each in a program folder with permissions of its own, so that no restart rule decides first, are refused,
   exit code 7, where the installer before check 7 of R1 to R4 installs. The upgrade holds an empty folder on the program
   folder's own level that the installer removed to being made again by setup with the list it had, not by Inno Setup
-  with what the program folder hands down. With `--hardened-before-files`, which holds a build that still says 6.3.7 to
+  with what the program folder hands down, and stale-empty, an earlier installation from before 6.3.6 with an empty
+  `Addons` moved in from a folder that hands `Users` Modify down, to `Addons` letting no group of every user change it
+  when Inno Setup first copies into it, nor any program in it after. With `--hardened-before-files`, which holds a build that still says 6.3.7 to
   setup's work before the files, it holds the installer under test - the upgrade installer of an upgrade run - and
   never the first installer of an upgrade run, which is the release it upgrades from and is held only by its version:
   an upgrade run from the 6.3.7 release had held the release to it and failed on that, whatever the upgrade did, so

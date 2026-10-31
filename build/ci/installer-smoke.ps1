@@ -163,6 +163,15 @@
                        and installs there, exit 0, nothing made at
                        C:\hm-relbase\hm-reltarget (R3); the tip before check 8 took
                        the link to lead there and ended with 12;
+     stale-empty       the earlier installation's program folder, recorded as such,
+                       with permissions of its own and an empty Data that inherits
+                       from it, as before 6.3.6, and an empty Addons made in
+                       C:\hm-elsewhere, which hands Users Modify down, and moved in
+                       keeping that entry: installed, exit 0, setup making Addons
+                       again before Inno Setup copies into it, and Addons letting no
+                       group of every user change it at the moment the first new
+                       entry appears in it, nor any program in it after (R1, R2);
+                       the tip before check 9 made it again with the entry;
      bin-link-user     the program folder made by the administrator and Bin a
                        junction hmsmokeuser owns: refused, exit code 7 (R3);
      held-open         the program folder and an empty Bin, inheriting from the
@@ -346,7 +355,7 @@ param(
    [switch] $WeakParent,
    [ValidateSet('', 'precreated-admin', 'precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open',
                 'settings-user', 'events-link', 'volume-root', 'weak-above', 'weak-above-remedied', 'dac-handle', 'held-full', 'copy-fails',
-                'data-user', 'stale-entry', 'named-entry', 'service-entry', 'emptied-earlier', 'stale-folder', 'mysql-user', 'mysql-link', 'relative-link')]
+                'data-user', 'stale-entry', 'named-entry', 'service-entry', 'emptied-earlier', 'stale-folder', 'mysql-user', 'mysql-link', 'relative-link', 'stale-empty')]
    [string] $FolderCase = '',
    [string] $Components = '',
    [switch] $HardenedBeforeFiles
@@ -2721,8 +2730,8 @@ function Get-FolderMoment([string] $Path) {
 
 # A watch on the program folder while an installer runs, in a runspace of its own:
 # the program folder's list at the first moment it is there, when it was not before,
-# and Bin's and ControlPanel's - and the program folder's again - at the moment the
-# first file that was not there before appears in each (Inno Setup writes each file
+# and Bin's, ControlPanel's and Addons' - and the program folder's again - at the moment
+# the first file that was not there before appears in each (Inno Setup writes each file
 # under a temporary name in its folder first). The moments are read with Get-Acl as
 # soon as the loop sees them, a millisecond or two after they happen; setup's own
 # window, before it made the folder with its permissions, was about 45 ms
@@ -2746,7 +2755,9 @@ $FolderWatchScript = {
       }
       catch { return @{ Protected = $false; Inherited = 0; Broad = @(); Owner = ''; Sddl = ''; Error = $_.Exception.Message } }
    }
-   $folders = @((Join-Path $App 'Bin'), (Join-Path $App 'ControlPanel'))
+   # Addons too, for the stale-empty case (check 9 of R1 to R4, 31 October 2026): its list
+   # at the moment the first entry that was not there appears in it.
+   $folders = @((Join-Path $App 'Bin'), (Join-Path $App 'ControlPanel'), (Join-Path $App 'Addons'))
    $before = @{}
    foreach ($folder in $folders) {
       $names = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
@@ -3461,6 +3472,29 @@ function New-FolderCase {
          Set-ItemProperty -Path 'HKLM:\SOFTWARE\WOW6432Node\hMailServer' -Name 'InstallLocation' -Value $app
          "$app recorded as the earlier installation's (HKLM\SOFTWARE\WOW6432Node\hMailServer InstallLocation), holding only an empty $app\Data that inherits from it, with an entry of its own for Authenticated Users Modify: $(Get-LinkList $app)"
       }
+      'stale-empty' {
+         # The earlier installation's program folder with permissions of its own and an
+         # empty Data that inherits from it, as an installation before 6.3.6 leaves one, so
+         # that setup leaves the program folder unhardened before the files; and an empty
+         # Addons made in a folder that hands Users Modify down and moved in - a move on one
+         # volume keeps the folder's list, the entry still marked inherited - which the
+         # last look removes and setup makes again (check 9 of R1 to R4, 31 October 2026).
+         New-Item -ItemType Directory -Force -Path $app | Out-Null
+         $answer = @(& icacls.exe $app /inheritance:r /grant:r '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' '*S-1-5-32-545:(OI)(CI)RX' 2>&1)
+         if ($LASTEXITCODE -ne 0) { throw "icacls /inheritance:r /grant:r on $app returned ${LASTEXITCODE}: $($answer -join ' ')" }
+         New-Item -ItemType Directory -Force -Path (Join-Path $app 'Data') | Out-Null
+         $elsewhere = (Split-Path -Qualifier $app) + '\hm-elsewhere'
+         New-Item -ItemType Directory -Force -Path (Join-Path $elsewhere 'Addons') | Out-Null
+         $answer = @(& icacls.exe $elsewhere /grant '*S-1-5-32-545:(OI)(CI)M' 2>&1)
+         if ($LASTEXITCODE -ne 0) { throw "icacls /grant on $elsewhere returned ${LASTEXITCODE}: $($answer -join ' ')" }
+         Move-Item -LiteralPath (Join-Path $elsewhere 'Addons') -Destination (Join-Path $app 'Addons')
+         $kept = @(Get-StaleWriters (Join-Path $app 'Addons'))
+         if ($kept.Count -eq 0) { throw "$app\Addons, moved from $elsewhere, kept no inherited entry that lets Users change it" }
+         if ((Get-Acl -LiteralPath (Join-Path $app 'Data')).AreAccessRulesProtected) { throw "$app\Data inherits nothing: setup would harden the program folder before the files, which the case is not" }
+         New-Item -Path 'HKLM:\SOFTWARE\WOW6432Node\hMailServer' -Force | Out-Null
+         Set-ItemProperty -Path 'HKLM:\SOFTWARE\WOW6432Node\hMailServer' -Name 'InstallLocation' -Value $app
+         "$app recorded as the earlier installation's, with permissions of its own: $(Get-LinkList $app); an empty $app\Data that inherits from it; an empty $app\Addons made in $elsewhere and moved in, keeping $($kept -join ', ')"
+      }
       'held-full' {
          New-Item -ItemType Directory -Force -Path (Join-Path $app 'Bin') | Out-Null
          Set-Content -LiteralPath (Join-Path $app 'Bin\notes.txt') -Value 'placed before the installation' -Encoding ASCII
@@ -3574,7 +3608,7 @@ function Invoke-SetupForExitCode([string] $Path, [string[]] $Arguments, [string]
 # anything was installed.
 $FocusedCases = @('precreated-user', 'precreated-user-locked', 'earlier-user-locked', 'data-inherits', 'foreign-dll', 'broad-entry', 'link-user', 'link-admin', 'link-admin-only', 'bin-link-user', 'nested-new', 'held-open',
                   'settings-user', 'events-link', 'volume-root', 'weak-above', 'weak-above-remedied', 'dac-handle', 'held-full', 'copy-fails', 'data-user', 'stale-entry',
-                  'named-entry', 'service-entry', 'emptied-earlier', 'stale-folder', 'mysql-user', 'mysql-link', 'relative-link')
+                  'named-entry', 'service-entry', 'emptied-earlier', 'stale-folder', 'mysql-user', 'mysql-link', 'relative-link', 'stale-empty')
 # The cases whose folders another account could change before the installer - their
 # permissions, or what is in one that holds something - which setup hardens and then
 # refuses until Windows has restarted (work item 78, check 4 of R1 to R4, 27 October
@@ -3892,6 +3926,24 @@ function Invoke-FocusedRun([string] $Version) {
                $left = @(Get-StaleWriters $tool)
                if ($left.Count -gt 0) { throw "$tool still lets Users change it: $($left -join ', ')" }
                "said in the first run; $tool now: $((@(& icacls.exe $tool) | Where-Object { $_.Trim() -and $_ -notmatch '^Successfully processed' }) -join ' | ')"
+            })
+      }
+      'stale-empty' {
+         [void] (Test-Step "case ${FolderCase}: Addons, an empty folder moved in keeping an inherited entry for Users, was made again by setup without it before Inno Setup copied into it, and no program in it lets Users change it (work item 78, R1 and R2; check 9 of R1 to R4)" {
+               $addons = Join-Path $app 'Addons'
+               if (-not (Select-String -LiteralPath $log -Pattern ('Setup removed ' + [regex]::Escape($addons) + ', an empty folder there before this installation, and made it again') -Quiet)) {
+                  throw "Inno's log does not say setup removed $addons and made it again"
+               }
+               $moment = $null
+               if ($watched.ContainsKey("First:$addons")) { $moment = $watched["First:$addons"] }
+               if ($null -eq $moment) { throw "the watch saw no new entry in $addons" }
+               if ($moment.Error) { throw "the permissions of $addons could not be read when $($watched["FirstName:$addons"]) appeared: $($moment.Error)" }
+               if ($moment.Broad.Count -gt 0) { throw "$addons let $($moment.Broad -join ', ') change it when $($watched["FirstName:$addons"]) appeared in it: $($moment.Sddl)" }
+               $programs = @(Get-ChildItem -LiteralPath $addons -Recurse -File -Include '*.exe', '*.dll' -ErrorAction SilentlyContinue)
+               if ($programs.Count -eq 0) { throw "$addons holds no program" }
+               $left = @($programs | ForEach-Object { $one = $_.FullName; @(Get-StaleWriters $one) + @((Get-FolderMoment $one).Broad) | ForEach-Object { "$one $_" } })
+               if ($left.Count -gt 0) { Write-Detail $left 10; throw "$($left.Count) entries let a group of every user change a program in $addons" }
+               "$addons at $(Split-Path -Leaf $watched["FirstName:$addons"]): broad writers none, $($moment.Inherited) inherited ($($moment.Sddl)); $($programs.Count) programs in it, none a group of every user may change"
             })
       }
       'stale-folder' {

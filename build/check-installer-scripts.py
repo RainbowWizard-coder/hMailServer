@@ -816,7 +816,7 @@ PROGRAM_FOLDER_ROUTINES = ('CheckProgramFolders', 'PrepareProgramFolders', 'Hold
                            'OpenServiceManager', 'GetServiceState', 'IsServiceRunning', 'IsServiceStopped',
                            'DataFolderIsAllowed', 'DatabaseFilesWhy', 'HardenDataFolder', 'AddRestartFolder', 'StaleEntryLetsOthers', 'HandsDownWriteTo',
                            'NoteStaleItem', 'StaleItemIn', 'TakenEntriesLetOthers', 'RestartRecordedForWalked', 'WalkedFinal', 'MakeFolderIn',
-                           'HardenDistrustedFolder', 'ProgramFolderWaitsForTheFiles', 'RelativeLinkTarget', 'RemoveAndMakeAgain')
+                           'HardenDistrustedFolder', 'ProgramFolderWaitsForTheFiles', 'RelativeLinkTarget', 'RemoveAndMakeAgain', 'WriteOwnEntriesOn')
 
 # Each decision of R1 to R4 held by its exact statement, so that a one-line change of
 # one is refused (the review of 26 October 2026 changed nineteen such lines, one at a
@@ -1138,12 +1138,27 @@ PROGRAM_FOLDER_STATEMENTS = (
      'or by a path rather than through a handle read as that folder (check 8 of R1 to R4, 28 October 2026)',
      "handle := HoldFolder(Item, HM_READ_CONTROL, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle = -1 then begin Why := ~; Exit; end; "
      "pOwner := 0; pDacl := 0; pDescriptor := 0; readResult := ReadHeldSecurity(handle, HM_FILE_OBJECT, HM_DACL_INFORMATION, pOwner, 0, pDacl, 0, pDescriptor); "
-     "ReleaseFolder(handle); if readResult <> 0 then begin Why := ~; Exit; end; if not RemoveHeldFolder(Item, AppFinal, Why) then begin "
-     "FreeWindowsMemory(pDescriptor); Exit; end;"),
+     "ReleaseFolder(handle); if readResult <> 0 then begin Why := ~; Exit; end; @@control := 0; revision := 0; bInherits := true; "
+     "if ControlOfDescriptor(pDescriptor, control, revision) then bInherits := (control and HM_DACL_PROTECTED) = 0; "
+     "if not RemoveHeldFolder(Item, AppFinal, Why) then begin FreeWindowsMemory(pDescriptor); Exit; end;"),
     ('RemoveAndMakeAgain', 'an empty folder removed in the last look is left for Inno Setup to make again with what the program folder hands down, or made by '
-     'a path, or with other permissions than it had, or one that could not be made again is taken (check 8 of R1 to R4)',
-     "made := MakeFolderIn(AppHandle, ExtractFileName(Item), pDescriptor, status); FreeWindowsMemory(pDescriptor); if made = -1 then begin "
-     "g_bFoldersChanged := true; Why := ~; Exit; end; Result := true; end;$"),
+     'a path, or with other permissions than it had - the list it had when it inherited nothing; what the program folder hands down now and '
+     'the entries of its own when it inherited, an entry it had marked inherited not carried over (check 9 of R1 to R4, 31 October 2026) - '
+     'or one that could not be made again, or given its own entries, is taken (check 8 of R1 to R4)',
+     "if bInherits then made := MakeFolderIn(AppHandle, ExtractFileName(Item), 0, status) else made := MakeFolderIn(AppHandle, ExtractFileName(Item), pDescriptor, status); "
+     "if made = -1 then begin FreeWindowsMemory(pDescriptor); g_bFoldersChanged := true; Why := ~; Exit; end; "
+     "if bInherits then if not WriteOwnEntriesOn(AppHandle, made, Item, ExtractFileName(Item), pDacl, Why) then begin FreeWindowsMemory(pDescriptor); "
+     "g_bFoldersChanged := true; Why := ~; Exit; end; FreeWindowsMemory(pDescriptor); if bInherits then Log(~); Result := true; end;$"),
+    ('WriteOwnEntriesOn', 'a folder made again whose list inherited is given its own entries though it had none to give, or none though it had some (check 9 of R1 to R4, 31 October 2026)',
+     'if (((head.TypeFlagsSize shr 8) and $FF) and HM_INHERITED_ACE) = 0 then own := own + 1; index := index + 1; end; end; if own = 0 then begin Result := true; Exit; end;'),
+    ('WriteOwnEntriesOn', 'an entry the folder had marked inherited - one it kept from where it was made - is carried over onto the folder made again, or an entry of its own is left out, or what it inherits now from the program folder is not kept (check 9 of R1 to R4, 31 October 2026)',
+     'bOwn := (((head.TypeFlagsSize shr 8) and $FF) and HM_INHERITED_ACE) = 0; bDeny := (head.TypeFlagsSize and $FF) = HM_ACCESS_DENIED; if ((pass = 0) and bOwn and bDeny) or ((pass = 1) and bOwn and (not bDeny)) or ((pass = 2) and (not bOwn)) then ok := AppendAce(pNew, HM_ACL_REVISION, HM_MAXDWORD, pAce, size);'),
+    ('WriteOwnEntriesOn', 'the entries of its own are written through a link, or on another folder than the one setup made and holds, or with the list protected, so that what the program folder hands down is gone (check 9 of R1 to R4, 31 October 2026)',
+     "handle := HoldFolder(Item, HM_WRITE_DAC_ACCESS, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle = -1 then begin FreeWindowsMemory(pNew); Why := ~; Exit; end; if HeldIsLink(handle, bKnown) then Why := ~ else if not MadeWhereNamed(AppHandle, handle, Name, szWhere) then Why := ~ else if not (ReadHeldInformation(handle, openedInformation) and ReadHeldInformation(Made, heldInformation)) then Why := ~ else if (openedInformation.dwVolumeSerialNumber <> heldInformation.dwVolumeSerialNumber) or (openedInformation.nFileIndexHigh <> heldInformation.nFileIndexHigh) or (openedInformation.nFileIndexLow <> heldInformation.nFileIndexLow) then Why := ~ else begin written := WriteHeldSecurity(handle, HM_FILE_OBJECT, HM_UNPROTECTED_DACL_INFORMATION, 0, 0, pNew, 0); if written <> 0 then Why := ~; end; ReleaseFolder(handle); FreeWindowsMemory(pNew); if Why <> '' then Exit;"),
+    ('WriteOwnEntriesOn', 'the folder made again is taken without its entries of its own read again through the handle setup holds (check 9 of R1 to R4, 31 October 2026)',
+     'readResult := ReadHeldSecurity(Made, HM_FILE_OBJECT, HM_DACL_INFORMATION, pNowOwner, 0, pNowDacl, 0, pNowDescriptor); if readResult <> 0 then begin Why := ~; Exit; end; found := 0;'),
+    ('WriteOwnEntriesOn', 'a folder made again whose entries of its own are not all there when read again is taken (check 9 of R1 to R4, 31 October 2026)',
+     'FreeWindowsMemory(pNowDescriptor); if found <> own then begin Why := ~; Exit; end; Log(~); Result := true; end;$'),
     ('ItemIsIn', 'what the path reaches is taken for what is in the folder setup holds without being read through the two handles',
      "handle := HoldFolder(Item, HM_READ_CONTROL, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle = -1 then Exit; szItem := FinalPathOfHeld(handle); ReleaseFolder(handle); szFolder := FinalPathOfHeld(FolderHandle); if (szItem <> '') and (szFolder <> '') then Result := CompareText(szItem, AddBackslash(szFolder) + ExtractFileName(Item)) = 0;"),
     ('NothingTurnedIn', 'a link or an empty folder setup did not leave is taken after the files',
@@ -1526,6 +1541,8 @@ PROGRAM_FOLDER_CONSTANTS = (
     ('HM_FILE_DISPOSITION_INFO_EX', '21', 'FileDispositionInfoEx'),
     ('HM_DISPOSITION_DELETE_POSIX', '3', 'FILE_DISPOSITION_FLAG_DELETE | FILE_DISPOSITION_FLAG_POSIX_SEMANTICS'),
     ('HM_OPEN_FOLLOWING_FLAGS', '$02000000', 'FILE_FLAG_BACKUP_SEMANTICS'),
+    ('HM_WRITE_DAC_ACCESS', '$00060080', 'READ_CONTROL | WRITE_DAC | FILE_READ_ATTRIBUTES'),
+    ('HM_UNPROTECTED_DACL_INFORMATION', '$20000004', 'UNPROTECTED_DACL_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION'),
 )
 
 # The Windows functions and records the R1 to R4 [Code] reads and changes folders with,
@@ -1581,6 +1598,7 @@ PROGRAM_FOLDER_DECLARATIONS = (
     "function CloseKey(hKey: cardinal): Integer; external 'RegCloseKey@advapi32.dll stdcall';",
     "function SetHeldInformation(hFile: Integer; FileInformationClass: cardinal; var lpFileInformation: cardinal; dwBufferSize: cardinal): Boolean; external 'SetFileInformationByHandle@kernel32.dll stdcall';",
     "function VolumePathNames(lpszVolumeName: String; lpszVolumePathNames: String; cchBufferLength: cardinal; var lpcchReturnLength: cardinal): Boolean; external 'GetVolumePathNamesForVolumeNameW@kernel32.dll stdcall';",
+    "function WriteHeldSecurity(Handle: Integer; ObjectType: cardinal; SecurityInfo: cardinal; psidOwner: cardinal; psidGroup: cardinal; pDacl: cardinal; pSacl: cardinal): cardinal; external 'SetSecurityInfo@advapi32.dll stdcall';",
     # The Service Control Manager's, which IsServiceInstalled, which PROGRAM_FOLDER_SHARED
     # names, asks through, and GetServiceState, held by statements (check 9 of R1 to R4, 31
     # October 2026): its functions, the record QueryServiceStatusEx fills and the constants
@@ -1707,7 +1725,7 @@ PROGRAM_FOLDER_CODE = (
     ('ReleaseHeldFolders', 'f8c80f82d876588b'),
     ('ReleasePlaceholders', '676d729ff0128f12'),
     ('RemakeEmptyFolder', 'f84455156da5337c'),
-    ('RemoveAndMakeAgain', '12c493d812248984'),
+    ('RemoveAndMakeAgain', '34b0b79037557863'),
     ('RemoveFoldersMadeHere', '5d8963b8738f5484'),
     ('RemoveHeldFolder', '149850770478f53c'),
     ('RemoveMadeFolder', 'b58144954352dd5e'),
@@ -1730,6 +1748,7 @@ PROGRAM_FOLDER_CODE = (
     ('VolumeKeepsPermissions', '7816988ef8c6a23f'),
     ('WalkedFinal', '471561a0e7f5164a'),
     ('WalksAgree', 'b3961e81811d817c'),
+    ('WriteOwnEntriesOn', '1b7260df1968d584'),
 )
 
 
@@ -3545,6 +3564,25 @@ def negative_controls(texts):
         ('MakeFolders making a name that ends in a dot or a space, the guard gone',
          altered(texts, EXTENSION, "      if (szName <> '') and ((Copy(szName, Length(szName), 1) = '.') or (Copy(szName, Length(szName), 1) = ' ')) then\n      begin\n         Why := ",
                  "      if false then\n      begin\n         Why := ")),
+        # Check 9 of R1 to R4 (31 October 2026): an empty folder made again whose list inherited.
+        ('an empty folder made again whose list inherited given that list as read, an entry it kept from where it was made carried over',
+         altered(texts, EXTENSION, '      made := MakeFolderIn(AppHandle, ExtractFileName(Item), 0, status)\n', '      made := MakeFolderIn(AppHandle, ExtractFileName(Item), pDescriptor, status)\n')),
+        ('every empty folder made again taken for one whose list inherited nothing',
+         altered(texts, EXTENSION, '      bInherits := (control and HM_DACL_PROTECTED) = 0;\n', '      bInherits := false;\n')),
+        ('an empty folder made again whose list inherited not given its entries of its own',
+         altered(texts, EXTENSION, '      if not WriteOwnEntriesOn(AppHandle, made, Item, ExtractFileName(Item), pDacl, Why) then\n', '      if false then\n')),
+        ('the entries an empty folder had marked inherited written on the folder made again as well as its own',
+         altered(texts, EXTENSION, '((pass = 1) and bOwn and (not bDeny))', '((pass = 1) and (not bDeny))')),
+        ('the entries of its own written on the folder made again through a link',
+         altered(texts, EXTENSION, "   if HeldIsLink(handle, bKnown) then\n      Why := 'it is not the folder setup made: it is a junction",
+                 "   if false then\n      Why := 'it is not the folder setup made: it is a junction")),
+        ('the entries of its own written on whatever folder the path names, not the one setup made',
+         altered(texts, EXTENSION, '(openedInformation.nFileIndexLow <> heldInformation.nFileIndexLow) then', '(openedInformation.nFileIndexLow = heldInformation.nFileIndexLow) and false then')),
+        ('the entries of its own written with the list protected, what the program folder hands down gone',
+         altered(texts, EXTENSION, 'written := WriteHeldSecurity(handle, HM_FILE_OBJECT, HM_UNPROTECTED_DACL_INFORMATION, 0, 0, pNew, 0);',
+                 'written := WriteHeldSecurity(handle, HM_FILE_OBJECT, HM_PROTECTED_DACL_INFORMATION, 0, 0, pNew, 0);')),
+        ('a folder made again whose entries of its own are not all there when read again taken',
+         altered(texts, EXTENSION, '   if found <> own then\n', '   if false then\n')),
         ('OpenServiceManager answering 0 without asking the service manager, so that IsServiceInstalled is always false',
          altered(texts, EXTENSION, '   Result := OpenSCManagerW(0, 0, SC_MANAGER_CONNECT);\n', '   Result := 0;\n')),
         ('IsServiceRunning always false, so that the Ready page neither stops a running service nor says it stopped it',
