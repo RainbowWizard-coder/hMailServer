@@ -718,7 +718,7 @@ namespace HM
             // UTF-8, as every other line a command prints is.
             AnsiString text;
             Unicode::WideToMultiByte(message, text);
-            std::fprintf(stderr, "HM%d: %s\n", code, text.c_str());
+            (void) std::fprintf(stderr, "HM%d: %s\n", code, text.c_str());
             return;
          }
 #else

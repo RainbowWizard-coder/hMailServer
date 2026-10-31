@@ -1127,8 +1127,39 @@ namespace HM
       if (GetACP() != CP_UTF8)
       {
          const char twoBytes[] = { (char) 0xC3, (char) 0xA9 };
+         // The characters the code page writes as those bytes, found by writing
+         // each character below the surrogates as FileNameBytes writes a name: one
+         // for both in a code page with double-byte characters, or one for each.
+         const auto codePageBytes = [](wchar_t character) -> std::string
+         {
+            BOOL unmapped = FALSE;
+            char written[8] = { 0 };
+            const int size = WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, &character, 1, written, (int) sizeof(written), nullptr, &unmapped);
+            return size > 0 && !unmapped ? std::string(written, (size_t) size) : std::string();
+         };
+         const std::string both(twoBytes, 2);
          wchar_t wide[4] = { 0 };
-         const int count = MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, twoBytes, 2, wide, 3);
+         int count = 0;
+         wchar_t first = 0, second = 0;
+         for (wchar_t character = 0x80; character < 0xD800 && count == 0; character++)
+         {
+            const std::string written = codePageBytes(character);
+            if (written == both)
+            {
+               wide[0] = character;
+               count = 1;
+            }
+            else if (first == 0 && written == both.substr(0, 1))
+               first = character;
+            else if (second == 0 && written == both.substr(1, 1))
+               second = character;
+         }
+         if (count == 0 && first != 0 && second != 0)
+         {
+            wide[0] = first;
+            wide[1] = second;
+            count = 2;
+         }
          if (count > 0)
          {
             const String ambiguous = String(_T("C:\\certs\\")) + String(wide) + _T("\\root.pem");

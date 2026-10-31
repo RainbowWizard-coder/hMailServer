@@ -34,6 +34,7 @@
 #include <cstring>
 #include <fstream>
 #include <string>
+#include <system_error>
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
@@ -749,7 +750,7 @@ namespace HM
          if (chmod(FileUtilities::NarrowPath(helper).c_str(), 0755) != 0)
          {
             const int failure = errno;
-            error = Formatter::Format(_T("{0} could not be made executable: {1}."), helper, String(strerror(failure)));
+            error = Formatter::Format(_T("{0} could not be made executable: {1}."), helper, String(std::generic_category().message(failure).c_str()));
             ErrorManager::Instance()->ReportError(ErrorManager::Medium, 6891, "UpdateInstaller::LaunchPosix_", error);
             return false;
          }

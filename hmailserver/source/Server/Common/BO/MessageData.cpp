@@ -1861,7 +1861,7 @@ namespace HM
          L"\x043f\x043e\x0447\x0442\x0430",
          L"e\U0001F600",
          L"a\x0301",
-         L"donn\x00e9" L"es",
+         L"donn\x00e9\x0065s",
       };
 
       const AnsiString message("From: a@example.test\r\nTo: b@example.test\r\nSubject: one name\r\n\r\nThe body.\r\n");

@@ -799,8 +799,7 @@ namespace HM
       static const wchar_t *const refused[] =
       {
          L"\x03a9",
-         L"abc\x0100"
-         L"def",
+         L"abc\x0100\x0064\x0065\x0066",
          L"x\x20acyz",
          L"q\x0130rt",
          L"p\x00e0ss\x65e5",

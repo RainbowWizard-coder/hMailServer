@@ -332,7 +332,7 @@ namespace HM
          const AnsiString bytes = Unicode::ToANSI(String(ansiCase.text));
          if (bytes != AnsiString(ansiCase.bytes))
             throw std::logic_error(std::string("FormatterTester: Unicode::ToANSI gave ") + std::to_string(bytes.GetLength()) +
-               " byte(s) where " + std::to_string(strlen(ansiCase.bytes)) + " were expected");
+               " byte(s) where " + std::to_string(AnsiString(ansiCase.bytes).GetLength()) + " were expected");
       }
 
       // A character U+FFFF cannot hold, where wchar_t can hold it (four bytes on

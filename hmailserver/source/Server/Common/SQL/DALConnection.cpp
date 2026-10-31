@@ -194,10 +194,14 @@ namespace HM
       // a code page that is not UTF-8 such bytes always read as another name, so
       // such a name is refused, as one the code page cannot carry is. Any other
       // name outside ASCII is not UTF-8, and OpenSSL opens it in the code page.
-      bool ascii = true;
+      // Unicode::IsWidenedUtf8 over the bytes, one to a character, is that test:
+      // true when one is outside ASCII and they are well-formed UTF-8 (RFC 3629),
+      // which is what OpenSSL's MB_ERR_INVALID_CHARS conversion accepts.
+      std::wstring widened;
+      widened.reserve(narrow.size());
       for (const char c : narrow)
-         ascii = ascii && (unsigned char) c < 0x80;
-      if (!ascii && MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, narrow.data(), (int) narrow.size(), nullptr, 0) > 0)
+         widened += (wchar_t) (unsigned char) c;
+      if (Unicode::IsWidenedUtf8(String(widened.c_str())))
          return false;
 
       bytes = narrow.c_str();

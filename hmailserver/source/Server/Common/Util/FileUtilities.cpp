@@ -99,8 +99,9 @@ namespace HM
          {
             boost::filesystem::path::imbue(utf8);
          }
-         catch (const std::exception &)
+         catch (const std::exception &refusal)
          {
+            static_cast<void>(refusal);
          }
       });
    }

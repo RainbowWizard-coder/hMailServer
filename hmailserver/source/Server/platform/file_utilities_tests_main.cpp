@@ -610,6 +610,57 @@ namespace
       return boost::filesystem::path(wide).native() == std::string("c\xC3\xA0-\xE2\x82\xAC") ? 0 : 3;
    }
 
+   // The environment this process has, with each variable named in taken and each
+   // one the NAME=value assignments in given name taken out, and given put in.
+   std::vector<std::string> EnvironmentWith(const std::vector<std::string> &taken, const std::vector<std::string> &given)
+   {
+      std::vector<std::string> names(taken);
+      for (const std::string &assignment : given)
+         names.push_back(assignment.substr(0, assignment.find('=')));
+
+      std::vector<std::string> environment;
+      for (char **entry = environ; entry != nullptr && *entry != nullptr; entry++)
+      {
+         const std::string variable(*entry);
+         bool replaced = false;
+         for (const std::string &name : names)
+            replaced = replaced || variable.compare(0, name.size() + 1, name + "=") == 0;
+         if (!replaced)
+            environment.push_back(variable);
+      }
+      environment.insert(environment.end(), given.begin(), given.end());
+      return environment;
+   }
+
+   // This program run again with one argument and the environment given - by
+   // /proc/self/exe, or by the path main's argv[0] gave where /proc is not
+   // mounted - and its wait status. The child is handed its environment by
+   // execve; this process's own is not changed.
+   int RunAgain(const char *argument, const std::vector<std::string> &environment)
+   {
+      std::vector<char *> variables;
+      for (const std::string &variable : environment)
+         variables.push_back(const_cast<char *>(variable.c_str()));
+      variables.push_back(nullptr);
+      char *const arguments[] = { const_cast<char *>(ProgramName), const_cast<char *>(argument), nullptr };
+
+      // Flushed before the fork, or the child would print the lines above again.
+      if (std::fflush(stdout) != 0)
+         throw std::runtime_error(std::string("the output could not be flushed before this program was run again with ") + argument);
+
+      const pid_t child = fork();
+      if (child == 0)
+      {
+         execve("/proc/self/exe", arguments, variables.data());
+         execve(ProgramName, arguments, variables.data());
+         _exit(127);
+      }
+
+      int status = 0;
+      Check(child > 0 && waitpid(child, &status, 0) == child, std::string("this program could not be run again with ") + argument);
+      return status;
+   }
+
    // LANG, LC_ALL or LC_CTYPE naming a locale the machine does not have - an SSH
    // session from a Mac sets LC_CTYPE=UTF-8, a container is given a LANG it has no
    // locale for - changes nothing: this program run again with LC_ALL naming one
@@ -619,22 +670,7 @@ namespace
    // this one, the server and every hmailserver command - ended before main.
    void MissingLocaleCase()
    {
-      if (std::fflush(stdout) != 0)
-         throw std::runtime_error("the output could not be flushed before the run under a missing locale");
-
-      const pid_t child = fork();
-      if (child == 0)
-      {
-         setenv("LC_ALL", "xx_YY.UTF-8", 1);
-         setenv("LANG", "xx_YY.UTF-8", 1);
-         setenv("LC_CTYPE", "UTF-8", 1);
-         execl("/proc/self/exe", ProgramName, MissingLocaleArgument, static_cast<char *>(nullptr));
-         execlp(ProgramName, ProgramName, MissingLocaleArgument, static_cast<char *>(nullptr));
-         _exit(127);
-      }
-
-      int status = 0;
-      Check(child > 0 && waitpid(child, &status, 0) == child, "this program could not be run again under a missing locale");
+      const int status = RunAgain(MissingLocaleArgument, EnvironmentWith({}, { "LC_ALL=xx_YY.UTF-8", "LANG=xx_YY.UTF-8", "LC_CTYPE=UTF-8" }));
       if (WIFSIGNALED(status))
          throw std::runtime_error("run again with LC_ALL=xx_YY.UTF-8, a locale no machine has, it ended by signal " +
             std::to_string(WTERMSIG(status)) + " before it reached main (an exception from a static initialiser)");
@@ -643,35 +679,12 @@ namespace
    }
 
 #if HM_LIVE_UPDATE
-   // An environment variable set for one case and put back as it was after it.
-   class EnvironmentValue
-   {
-   public:
-      EnvironmentValue(const char *name, const char *value) : name_(name)
-      {
-         const char *old = getenv(name);
-         had_ = old != nullptr;
-         if (had_)
-            old_ = old;
-         if (value != nullptr)
-            setenv(name, value, 1);
-         else
-            unsetenv(name);
-      }
-
-      ~EnvironmentValue()
-      {
-         if (had_)
-            setenv(name_, old_.c_str(), 1);
-         else
-            unsetenv(name_);
-      }
-
-   private:
-      const char *name_;
-      bool had_ = false;
-      std::string old_;
-   };
+   // The arguments this program is run again with by AppImageHelperCase, and the
+   // two mount points: one named in UTF-8, one in bytes that are not.
+   const char AppDirUtf8Argument[] = "--appdir-in-utf8";
+   const char AppDirNotUtf8Argument[] = "--appdir-not-utf8";
+   const char AppDirInUtf8[] = "/tmp/caf\xC3\xA9-\xE6\x97\xA5/.mount_hMailS";
+   const char AppDirNotInUtf8[] = "/tmp/caf\xE9/.mount_hMailS";
 
    // The AppImage's update helper, which the apply copies out of APPDIR - the
    // image's mount point, under TMPDIR, whatever that is named: read as UTF-8, as
@@ -680,31 +693,53 @@ namespace
    // 6.3.7 its bytes were widened one to a character, and the helper's name was
    // the mount point's UTF-8 encoded a second time: the copy found nothing
    // (HM6891), and the image could not update itself.
+   //
+   // Each check runs in this program run again (RunAgain), handed an environment
+   // that names the image (APPIMAGE) and its mount point (APPDIR) and holds
+   // neither HM_INSTALL_KIND nor SNAP, which would name another kind of
+   // installation; this process's own environment is not changed. The run's exit
+   // status is the check's: 0 when it holds, 1 with the reason printed when not.
+   int AppDirChild(bool utf8)
+   {
+      try
+      {
+         String why;
+         const String helper = HM::UpdateInstaller::HelperSourcePath(why);
+         if (utf8)
+         {
+            const wchar_t wide[] = { L'/', L't', L'm', L'p', L'/', L'c', L'a', L'f', 0x00E9, L'-', 0x65E5, 0 };
+            const String expected = String(wide) + _T("/.mount_hMailS/usr/lib/hmailserver/hmailserver-update");
+            Check(why.IsEmpty() && helper == expected, "an APPDIR in UTF-8 named the helper in " + std::to_string(helper.GetLength()) +
+               " characters, not the " + std::to_string(expected.GetLength()) + " of " + std::string(HM::Unicode::ToUtf8(expected).c_str()) +
+               (why.IsEmpty() ? std::string() : ": " + std::string(HM::Unicode::ToUtf8(why).c_str())));
+         }
+         else
+         {
+            Check(helper.IsEmpty() && why.Find(_T("APPDIR")) >= 0 && why.Find(_T("not UTF-8")) >= 0,
+               "an APPDIR whose bytes are not UTF-8 was not refused with the reason: [" + std::string(HM::Unicode::ToUtf8(helper).c_str()) + "] [" +
+               std::string(HM::Unicode::ToUtf8(why).c_str()) + "]");
+         }
+         return 0;
+      }
+      catch (const std::exception &e)
+      {
+         std::printf("      %s\n", e.what());
+         return 1;
+      }
+   }
+
    void AppImageHelperCase()
    {
-      const EnvironmentValue kind("HM_INSTALL_KIND", nullptr);
-      const EnvironmentValue snap("SNAP", nullptr);
-      const EnvironmentValue image("APPIMAGE", "/opt/hMailServer-x86_64.AppImage");
+      const std::vector<std::string> taken = { "HM_INSTALL_KIND", "SNAP" };
+      const std::string image = "APPIMAGE=/opt/hMailServer-x86_64.AppImage";
 
-      {
-         const EnvironmentValue mount("APPDIR", "/tmp/caf\xC3\xA9-\xE6\x97\xA5/.mount_hMailS");
-         const wchar_t wide[] = { L'/', L't', L'm', L'p', L'/', L'c', L'a', L'f', 0x00E9, L'-', 0x65E5, 0 };
-         const String expected = String(wide) + _T("/.mount_hMailS/usr/lib/hmailserver/hmailserver-update");
-         String why;
-         const String helper = HM::UpdateInstaller::HelperSourcePath(why);
-         Check(why.IsEmpty() && helper == expected, "an APPDIR in UTF-8 named the helper in " + std::to_string(helper.GetLength()) +
-            " characters, not the " + std::to_string(expected.GetLength()) + " of " + std::string(HM::Unicode::ToUtf8(expected).c_str()) +
-            (why.IsEmpty() ? std::string() : ": " + std::string(HM::Unicode::ToUtf8(why).c_str())));
-      }
+      const int inUtf8 = RunAgain(AppDirUtf8Argument, EnvironmentWith(taken, { image, std::string("APPDIR=") + AppDirInUtf8 }));
+      Check(WIFEXITED(inUtf8) && WEXITSTATUS(inUtf8) == 0, "an APPDIR in UTF-8: its run exited " +
+         std::to_string(WIFEXITED(inUtf8) ? WEXITSTATUS(inUtf8) : -1) + " (the reason is on the line above)");
 
-      {
-         const EnvironmentValue mount("APPDIR", "/tmp/caf\xE9/.mount_hMailS");
-         String why;
-         const String helper = HM::UpdateInstaller::HelperSourcePath(why);
-         Check(helper.IsEmpty() && why.Find(_T("APPDIR")) >= 0 && why.Find(_T("not UTF-8")) >= 0,
-            "an APPDIR whose bytes are not UTF-8 was not refused with the reason: [" + std::string(HM::Unicode::ToUtf8(helper).c_str()) + "] [" +
-            std::string(HM::Unicode::ToUtf8(why).c_str()) + "]");
-      }
+      const int notUtf8 = RunAgain(AppDirNotUtf8Argument, EnvironmentWith(taken, { image, std::string("APPDIR=") + AppDirNotInUtf8 }));
+      Check(WIFEXITED(notUtf8) && WEXITSTATUS(notUtf8) == 0, "an APPDIR whose bytes are not UTF-8: its run exited " +
+         std::to_string(WIFEXITED(notUtf8) ? WEXITSTATUS(notUtf8) : -1) + " (the reason is on the line above)");
    }
 #endif
 
@@ -1027,6 +1062,12 @@ int main(int argc, char *argv[])
 {
    if (argc == 2 && std::strcmp(argv[1], MissingLocaleArgument) == 0)
       return MissingLocaleChild();
+#if HM_LIVE_UPDATE
+   if (argc == 2 && std::strcmp(argv[1], AppDirUtf8Argument) == 0)
+      return AppDirChild(true);
+   if (argc == 2 && std::strcmp(argv[1], AppDirNotUtf8Argument) == 0)
+      return AppDirChild(false);
+#endif
    if (argc > 0 && argv[0] != nullptr && argv[0][0] != 0)
       ProgramName = argv[0];
 

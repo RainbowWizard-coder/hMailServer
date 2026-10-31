@@ -32,7 +32,7 @@ namespace HM
       // character above U+007F.
       for (int i = 0; i < user.GetLength(); i++)
       {
-         const unsigned int value = (unsigned int) user[i];
+         const unsigned int value = static_cast<unsigned int>(static_cast<char32_t>(user[i]));
          if (value < 0x20 || value == 0x7F)
             return false;
       }

@@ -342,7 +342,7 @@ namespace HM
       std::string bytes;
       for (const wchar_t *character = sString.c_str(); *character != 0; character++)
       {
-         const unsigned long value = static_cast<unsigned long>(*character);
+         const unsigned long value = static_cast<unsigned long>(static_cast<char32_t>(*character));
          if (value > 0xFF)
             return AnsiString();
 
