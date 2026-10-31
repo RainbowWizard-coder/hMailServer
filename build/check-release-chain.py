@@ -315,7 +315,10 @@ refuses it. This checker holds them to each other. It fails when:
     SECRET_DETECTION_RULESET_GIT_REFERENCE and SECURE_ENABLE_LOCAL_CONFIGURATION, which
     would narrow secret_detection unseen (the paths whose findings GitLab's analyzer
     drops, the commits it reads, a ruleset of another repository's in place of the rules
-    the job derives, and whether it reads a ruleset at all), or define a variable GitLab
+    the job derives, and whether it reads a ruleset at all), and
+    SECRET_DETECTION_DISABLED, which would take it out of every pipeline, or write a key
+    in a form those refusals do not read (an explicit key, a tag, an anchor, an alias or
+    an escape in a double-quoted key), or define a variable GitLab
     gives (CI_*, GITLAB_*, but CI_DEBUG_SERVICES); the
     tree may carry no .semgrepignore, no .gitlab/sast-ruleset.toml, no
     .gitlab/secret-detection-ruleset.toml and no scan's
@@ -1180,15 +1183,38 @@ SAST_NARROWING_VARIABLES = ("SAST_SEMGREP_EXCLUDED_PATHS", "SAST_RULESET_GIT_REF
 # a ruleset from another repository, which can stand in for the rules the job derives,
 # and the switch that says whether the analyzer reads a ruleset at all. Each is read on
 # every tier, the ruleset where GITLAB_FEATURES names sast_custom_rulesets, as on the
-# group's open-source plan. SECRET_DETECTION_HISTORIC_SCAN, which widens the scan to the
-# whole history, is secret_detection's schedule rule's own.
+# group's open-source plan. And SECRET_DETECTION_DISABLED, which secret_detection's first
+# rule reads to take the job out of the pipeline: set on the project or the group it is
+# the owner's switch, outside the tree; a CI file that set it would take the scan out of
+# every pipeline from the tree. SECRET_DETECTION_HISTORIC_SCAN, which widens the scan to
+# the whole history, is secret_detection's schedule rule's own.
 SECRET_NARROWING_VARIABLES = ("SECRET_DETECTION_EXCLUDED_PATHS", "SECRET_DETECTION_LOG_OPTIONS",
-                              "SECRET_DETECTION_RULESET_GIT_REFERENCE", "SECURE_ENABLE_LOCAL_CONFIGURATION")
+                              "SECRET_DETECTION_RULESET_GIT_REFERENCE", "SECURE_ENABLE_LOCAL_CONFIGURATION",
+                              "SECRET_DETECTION_DISABLED")
 # A key of a YAML mapping that names one of them, read as build/ci/security-gate.py's
 # SCOPE_VARIABLE reads the SAST ones: at a line's start after its indentation (and a
 # sequence's dash), or after a flow mapping's brace or comma, not a word in a script.
-SECRET_NARROWING_KEY = re.compile(r"""(?:^[ \t]*(?:-[ \t]+)?|[{,][ \t]*)["']?(%s)["']?[ \t]*:(?=[ \t]|$)"""
-                                  % "|".join(SECRET_NARROWING_VARIABLES), re.MULTILINE)
+# Bare, it ends at a colon before a blank, the line's end or, in a flow mapping, a flow
+# indicator ({NAME:} is NAME with no value); quoted, at any colon after it, which a flow
+# mapping takes as the key's ({"NAME":x} is NAME). The other forms GitLab's YAML reader
+# takes a name in are refused whatever the name (UNREAD_KEY_FORM).
+SECRET_NARROWING_KEY = re.compile(r"""(?:^[ \t]*(?:-[ \t]+)?|[{,][ \t]*)(?:(["'])(%s)\1[ \t]*:|(%s)[ \t]*:(?=[ \t,\[\]{}]|$))"""
+                                  % ("|".join(SECRET_NARROWING_VARIABLES), "|".join(SECRET_NARROWING_VARIABLES)),
+                                  re.MULTILINE)
+# A key of a CI file written in a form the rules that refuse a variable by its name do
+# not read, whatever the name: an explicit key (? NAME, whose name can follow on its
+# own line or as a block scalar), a key with a tag or an anchor (!!str NAME:,
+# &a NAME:), an alias for a key (*a :, the anchor on a scalar written anywhere), and a
+# double-quoted key holding an escape ("NAME\x53":). GitLab's YAML reader takes each as
+# the name it stands for, so that SECRET_DETECTION_EXCLUDED_PATHS or
+# SAST_RULESET_GIT_REFERENCE written so in a job's or a rule's variables would be given
+# past every rule that names it. The tree writes none of them.
+UNREAD_KEY_FORM = re.compile(
+    r"""(?:^[ \t]*(?:-[ \t]+)*|[{,\[][ \t]*)(?:\?(?=[ \t]|$)"""
+    r"""|[!&][^ \t\n]*[ \t]+(?:"(?:[^"\\\n]|\\.)*"|'(?:[^'\n]|'')*'"""
+    r"""|[^ \t\n\[\]{},#'"!&*?|>%@`-](?:[^\n:#]|:(?![ \t,\[\]{}]|$)|(?<![ \t])#)*?)[ \t]*:(?=[ \t,\[\]{}]|$)"""
+    r"""|\*[^ \t\n,\[\]{}]+[ \t]*:"""
+    r"""|"(?:[^"\\\n]|\\.)*\\.(?:[^"\\\n]|\\.)*"[ \t]*:)""", re.MULTILINE)
 # What the tree may not carry: a .semgrepignore (GitLab's analyzer includes the root's,
 # Semgrep reads one in a directory), GitLab's custom ruleset, and a scan's report.
 NOT_IN_THE_TREE = re.compile(r"(?:^|/)\.semgrepignore[^/]*$|^\.gitlab/sast-ruleset\.toml$|^gl-sast-report\.json$|"
@@ -6928,7 +6954,8 @@ def sast_scope_problems(texts, security_jobs, gates_jobs, security_gate):
     semgrep-sast allow_failure, not removing what a checkout leaves of its outputs, not
     keeping Semgrep's SARIF, an exclusion not held to the root, a narrowing variable a
     CI file defines (or one that would narrow secret_detection,
-    SECRET_NARROWING_VARIABLES), a CI file that defines a variable GitLab gives, a file of the tree
+    SECRET_NARROWING_VARIABLES), a key of a CI file in a form the rules that refuse those
+    by name do not read (UNREAD_KEY_FORM), a CI file that defines a variable GitLab gives, a file of the tree
     that narrows the scan or stands in for its report, and a workflow whose first rule
     names other branches than the gates run for."""
     problems = []
@@ -6973,11 +7000,20 @@ def sast_scope_problems(texts, security_jobs, gates_jobs, security_gate):
         if path != security_file and defined.get("SAST_EXCLUDED_PATHS"):
             problems.append("%s defines SAST_EXCLUDED_PATHS: semgrep-sast's own job says what it leaves out, in %s alone"
                             % (path, security_file))
-        for name in sorted(set(m.group(1) for m in SECRET_NARROWING_KEY.finditer(security_gate._uncommented(text or "")))):
+        uncommented = security_gate._uncommented(text or "")
+        for name in sorted(set(m.group(2) or m.group(3) for m in SECRET_NARROWING_KEY.finditer(uncommented))):
             problems.append("%s defines %s: it would narrow what secret_detection reads unseen - the paths whose findings "
                             "GitLab's analyzer drops, the commits it reads, or a ruleset of another repository's that "
-                            "stands in for the rules the job derives; no CI file may set it, for every job, in a job or "
-                            "in a rule" % (path, name))
+                            "stands in for the rules the job derives - or take the job out of every pipeline; no CI file "
+                            "may set it, for every job, in a job or in a rule" % (path, name))
+        for match in UNREAD_KEY_FORM.finditer(uncommented):
+            line = uncommented[uncommented.rfind("\n", 0, match.end() - 1) + 1:].split("\n", 1)[0]
+            problems.append("%s writes a key in a form this checker does not read as a name (%s, line %d): GitLab's YAML "
+                            "reader takes a name as an explicit key (? NAME), tagged (!!str), anchored, as an alias or "
+                            "double-quoted with an escape too, where the rules that refuse a variable that would narrow "
+                            "semgrep-sast or secret_detection read it bare or simply quoted, so that one could be set past "
+                            "them; write each key bare or simply quoted" % (
+                                path, line.strip()[:60], uncommented.count("\n", 0, match.end() - 1) + 1))
     if not any(v == [""] for p, t in every_ci.items() if p == security_file
                for v in [security_gate.scope_variables({p: t}).get("SAST_SEMGREP_EXCLUDED_PATHS")]):
         problems.append("semgrep-sast does not set SAST_SEMGREP_EXCLUDED_PATHS to nothing itself (SAST_SEMGREP_EXCLUDED_PATHS: "
@@ -12340,6 +12376,32 @@ def self_test(chain, feed):
            "  allow_failure: false\n  rules:\n    - if: $SECRET_DETECTION_DISABLED",
            "  allow_failure: false\n  variables: {GIT_DEPTH: \"1\", 'SECURE_ENABLE_LOCAL_CONFIGURATION': \"false\"}\n"
            "  rules:\n    - if: $SECRET_DETECTION_DISABLED", "defines SECURE_ENABLE_LOCAL_CONFIGURATION")
+    broken("the commits read written as a key in a flow mapping with no space", "security",
+           "  allow_failure: false\n  rules:\n    - if: $SECRET_DETECTION_DISABLED",
+           "  allow_failure: false\n  variables: {\"SECRET_DETECTION_LOG_OPTIONS\":\"-n 0\"}\n"
+           "  rules:\n    - if: $SECRET_DETECTION_DISABLED", "defines SECRET_DETECTION_LOG_OPTIONS")
+    # The forms GitLab's YAML reader takes a name in that the rules refusing it by name do
+    # not read: with an escape, as an explicit key, tagged, anchored and as an alias.
+    broken("the paths left out with an escape in secret_detection's job", "security",
+           "  allow_failure: false\n  rules:\n    - if: $SECRET_DETECTION_DISABLED",
+           "  allow_failure: false\n  variables:\n    \"SECRET_DETECTION_EXCLUDED_PATH\\x53\": \"build\"\n"
+           "  rules:\n    - if: $SECRET_DETECTION_DISABLED", "writes a key in a form this checker does not read")
+    broken("the paths left out as an explicit key in secret_detection's job", "security",
+           "  allow_failure: false\n  rules:\n    - if: $SECRET_DETECTION_DISABLED",
+           "  allow_failure: false\n  variables:\n    ? SECRET_DETECTION_EXCLUDED_PATHS\n    : \"build\"\n"
+           "  rules:\n    - if: $SECRET_DETECTION_DISABLED", "writes a key in a form this checker does not read")
+    broken("the commits read tagged in secret_detection's schedule rule", "security",
+           '        SECRET_DETECTION_HISTORIC_SCAN: "true"\n',
+           '        SECRET_DETECTION_HISTORIC_SCAN: "true"\n        !!str SECRET_DETECTION_LOG_OPTIONS: "-n 0"\n',
+           "writes a key in a form this checker does not read")
+    broken("the commits read by an alias in secret_detection's schedule rule", "security",
+           '        SECRET_DETECTION_HISTORIC_SCAN: "true"\n',
+           '        SECRET_DETECTION_HISTORIC_SCAN: "true"\n        HM_NOTE: &n SECRET_DETECTION_LOG_OPTIONS\n'
+           '        *n : "-n 0"\n', "writes a key in a form this checker does not read")
+    broken("the commits read anchored in secret_detection's schedule rule", "security",
+           '        SECRET_DETECTION_HISTORIC_SCAN: "true"\n',
+           '        SECRET_DETECTION_HISTORIC_SCAN: "true"\n        &n SECRET_DETECTION_LOG_OPTIONS: "-n 0"\n',
+           "writes a key in a form this checker does not read")
     broken("another list of what semgrep-sast leaves out", "ci", '  PYTHONUTF8: "1"\n',
            '  PYTHONUTF8: "1"\n  SAST_EXCLUDED_PATHS: "hmailserver"\n', ".gitlab-ci.yml defines SAST_EXCLUDED_PATHS")
     for name in ("CI_MERGE_REQUEST_DIFF_BASE_SHA", "CI_PIPELINE_SOURCE", "GITLAB_FEATURES"):

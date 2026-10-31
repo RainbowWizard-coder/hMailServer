@@ -1838,10 +1838,13 @@ with `--check`).
   commits it reads (`SECRET_DETECTION_LOG_OPTIONS`), or put another repository's ruleset in place of the rules the
   job derives (`SECRET_DETECTION_RULESET_GIT_REFERENCE`, read where `GITLAB_FEATURES` names `sast_custom_rulesets`,
   as on the group's open-source plan), while `build/ci/secret-detection-rules.sh` said no list of paths is read from
-  the tree. Those three and `SECURE_ENABLE_LOCAL_CONFIGURATION` are now refused in every CI file, for every job, in a
-  job, in a rule or in a workflow rule, with a `--self-test` case for each that fails without the rule, and the
-  script's header and the checker's docstring name them. A CI/CD variable of those names set on the project or the
-  group is outside the tree and outside the check.
+  the tree. Those three, `SECURE_ENABLE_LOCAL_CONFIGURATION` and `SECRET_DETECTION_DISABLED`, which the job's first
+  rule reads to take it out of the pipeline, are now refused in every CI file, for every job, in a job, in a rule or
+  in a workflow rule, with a `--self-test` case for each that fails without the rule, and the script's header and the
+  checker's docstring name them. So is a key of any CI file written in a form that refusal does not read by its name
+  and GitLab's YAML reader takes as one: an explicit key (`? NAME`), a tag (`!!str NAME:`), an anchor, an alias, or an
+  escape in a double-quoted key (`"NAME\x53":`). A CI/CD variable of those names set on the project or the group,
+  `SECRET_DETECTION_DISABLED` the owner's switch among them, is outside the tree and outside the check.
 
 - **`build/check-cli.py`'s client that trusts the untrusted-certificate listener asks for TLS 1.2 or later.** The
   PowerShell half's check that the module refuses a certificate this machine does not trust first connects with a

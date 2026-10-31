@@ -23,10 +23,14 @@
 # file narrow the job by GitLab's variables - SECRET_DETECTION_EXCLUDED_PATHS (paths
 # whose findings the analyzer drops), SECRET_DETECTION_LOG_OPTIONS (the commits it
 # reads), SECRET_DETECTION_RULESET_GIT_REFERENCE (a ruleset of another repository's,
-# which can stand in for the file this writes) or SECURE_ENABLE_LOCAL_CONFIGURATION:
-# build/check-release-chain.py refuses a CI file that defines one, for every job, in a
-# job or in a rule. A CI/CD variable of those names set on the project or the group is
-# outside the tree and outside that check. And gitleaks' [extend] adds a config's
+# which can stand in for the file this writes) or SECURE_ENABLE_LOCAL_CONFIGURATION -
+# nor take it out of every pipeline by SECRET_DETECTION_DISABLED, which the job's first
+# rule reads: build/check-release-chain.py refuses a CI file that defines one, for every
+# job, in a job or in a rule, and a CI file that writes a key in a form that refusal
+# does not read (an explicit key, a tag, an anchor, an alias, or an escape in a
+# double-quoted key), whatever its name. A CI/CD variable of those names set on the
+# project or the group - SECRET_DETECTION_DISABLED the owner's switch - is outside the
+# tree and outside that check. And gitleaks' [extend] adds a config's
 # allowlists to its base's and takes none away.
 #
 #   sh build/ci/secret-detection-rules.sh <GitLab's gitleaks.toml> <out>
