@@ -733,8 +733,10 @@ with `--check`).
   the document kept it whole; it is now refused, as the listener already refuses a raw NUL in a text body. A
   member whose absence is the wider setting, written as another type than the route reads, was read by the parse as
   absent, and is now refused:
-  - as anything but a string or null: `domains` and `allowed_from` in `POST /api/v1/apikeys` (no restriction),
-    `domains` in `PUT /api/v1/role-assignments/{address}` (every domain), a port's `address` (every interface),
+  - as anything but a string or null: `domains` and `allowed_from` in `POST /api/v1/apikeys` (no restriction), and
+    its `role` (with `scope` `full`, a key with the server administrator's authority in place of the role's) and
+    `expires` (a key that lives the default's 90 days in place of the shorter life asked for, an expiry written as a
+    Unix time among them), `domains` in `PUT /api/v1/role-assignments/{address}` (every domain), a port's `address` (every interface),
     `connection_security` (no TLS) and `client_certificate_policy` (no client certificate) in `POST /api/v1/ports` and
     `PUT /api/v1/ports/{id}`, with its other words, `protocol`, `client_certificate_ca_file` and
     `smtp_authentication`; a file link's `password` in `POST /api/v1/me/files` (a link anyone can open, where

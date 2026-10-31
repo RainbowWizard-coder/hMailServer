@@ -685,6 +685,43 @@ namespace RegressionTests.API
       }
 
       [Test]
+      [Description("An API key's role or expires written as anything but a string is refused, and no key is made: a role as an array beside scope full is not read as no role, which would make the key the server administrator's, and an expiry as a number is not read as none, which would give the key the default's ninety days.")]
+      public void AnApiKeysRoleOrExpiryAsAnotherTypeIsRefused()
+      {
+         var wrong = new StringBuilder();
+         var made = new List<string>();
+         string[][] cases =
+         {
+            new[] { "rbr-role", "{\"label\":\"rbr-role\",\"scope\":\"full\",\"role\":[\"helpdesk\"]}", "role must be the name of a role, as a string" },
+            new[] { "rbr-expires", "{\"label\":\"rbr-expires\",\"scope\":\"readonly\",\"expires\":1735689600}", "expires must be a date in the form YYYY-MM-DD HH:MM:SS, as a string" },
+         };
+
+         foreach (string[] item in cases)
+         {
+            (int status, string body) answer = Admin("POST", "/api/v1/apikeys", item[1]);
+            if (answer.status != 400 || !answer.body.Contains(item[2]))
+               wrong.Append("\r\n  " + item[1] + ": " + answer.status + " " + Shorten(Regex.Replace(answer.body, "\"key\":\"[^\"]*\"", "\"key\":\"...\"")));
+
+            Match id = Regex.Match(answer.body, "\"id\":\"([0-9a-f]+)\"");
+            if (answer.status == 201 && id.Success)
+               made.Add(id.Groups[1].Value);
+         }
+
+         string listed = Admin("GET", "/api/v1/apikeys", null).body;
+         foreach (string[] item in cases)
+         {
+            if (listed.Contains("\"label\":\"" + item[0] + "\""))
+               wrong.Append("\r\n  a key " + item[0] + " was made");
+         }
+
+         // A key made all the same is revoked, so that a failing run leaves no key behind.
+         foreach (string id in made)
+            Admin("DELETE", "/api/v1/apikeys/" + id, null);
+
+         ClassicAssert.IsTrue(wrong.Length == 0, "An API key's role or expires written as another type than a string was read as absent:" + wrong);
+      }
+
+      [Test]
       [Description("A role assignment's domains written as an array is refused, not read as every domain.")]
       public void ARoleAssignmentsDomainsAsAnArrayIsRefused()
       {

@@ -11292,13 +11292,23 @@ namespace HM
    HttpResponse
    RestApiServer::HandleCreateApiKey_(const AnsiString &requestBody)
    {
-      // The two members that narrow the key, written as anything but a string
-      // (or null): read as absent they would be no restriction at all, and a key
-      // asked for as ["example.com"] would reach every domain. Refused instead.
+      // The four members that narrow the key - domains, allowed_from, role and
+      // expires - written as anything but a string (or null): read as absent
+      // each would be the wider setting, and so they are refused instead. A key
+      // asked for with domains as ["example.com"] would reach every domain, and
+      // one with allowed_from as an array every address; a role as an array
+      // beside scope full would be no role, and the key the server
+      // administrator's rather than the role's; an expiry as a number (a Unix
+      // time, say) would be none, and the key would live the default's ninety
+      // days rather than the shorter life asked for.
       if (JsonMemberNotString_(requestBody, "domains"))
          return BuildResponse_(400, "{\"error\":\"domains must be a comma-separated list of domain names, as a string\"}");
       if (JsonMemberNotString_(requestBody, "allowed_from"))
          return BuildResponse_(400, "{\"error\":\"allowed_from must be an address, an address range 'lower-upper', or CIDR, as a string\"}");
+      if (JsonMemberNotString_(requestBody, "role"))
+         return BuildResponse_(400, "{\"error\":\"role must be the name of a role, as a string\"}");
+      if (JsonMemberNotString_(requestBody, "expires"))
+         return BuildResponse_(400, "{\"error\":\"expires must be a date in the form YYYY-MM-DD HH:MM:SS, as a string\"}");
 
       AnsiString label = GetJsonStringValue_(requestBody, "label");
       AnsiString expires = GetJsonStringValue_(requestBody, "expires");
