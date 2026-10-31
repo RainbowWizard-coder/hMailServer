@@ -2793,7 +2793,8 @@ with `--check`).
   look after the files, one more in `CurStepChanged`, and `#if 0` around `section_dirs.iss`'s `{app}` entry had passed
   both and compiled. The fixture reads an installer script as ISCC and the checker read it, a lone carriage return
   ending the line, where three one-line changes behind one - code after a `//` comment, `#if 0` around a `[Dirs]`
-  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 675. The smoke test's dac-handle case gives the program folder an
+  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 679, four of them holding setup's log to saying once, and
+  rightly, which way it made an empty folder of the program folder's own level again. The smoke test's dac-handle case gives the program folder an
   entry of its own for the standard account, as an account could write one through `Everyone`'s right to change the
   permissions, and requires it dropped and named, and none for it after the restart; copy-fails runs the watch's
   check of the program folder as it was made, taking setup's line on the folder by the path its handle gives, as on
@@ -2806,8 +2807,9 @@ with `--check`).
   program in `MySQL` another account owns, and mysql-link, a junction at `MySQL` only the administrators
   control, each in a program folder with permissions of its own, so that no restart rule decides first, are refused,
   exit code 7, where the installer before check 7 of R1 to R4 installs. The upgrade holds an empty folder on the program
-  folder's own level that the installer removed to being made again by setup with the list it had, not by Inno Setup
-  with what the program folder hands down, and stale-empty, an earlier installation from before 6.3.6 with an empty
+  folder's own level that the installer removed to being made again by setup - with the list it had when that
+  inherited nothing, and otherwise with what the program folder hands down now and its own entries, setup's log saying
+  which of the two and not the other - not by Inno Setup, and stale-empty, an earlier installation from before 6.3.6 with an empty
   `Addons` moved in from a folder that hands `Users` Modify down, to `Addons` letting no group of every user change it
   when Inno Setup first copies into it, nor any program in it after. With `--hardened-before-files`, which holds a build that still says 6.3.7 to
   setup's work before the files, it holds the installer under test - the upgrade installer of an upgrade run - and

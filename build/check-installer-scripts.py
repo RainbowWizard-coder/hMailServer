@@ -1130,10 +1130,11 @@ PROGRAM_FOLDER_STATEMENTS = (
      "if Final and FolderHoldsNothing(szItem) and (not IsAtOrBelow(szItem, AddBackslash(g_szProgramFolderReal) + 'MySQL')) then begin if RemoveHeldFolder(szItem, szFinal, szRemoved) then Log('Setup removed ' + szItem + ', an empty folder there before this installation"),
     ('CheckWhatIsInside', 'an empty folder that could not be removed is taken',
      "Log('The program folder: refused, ' + szText); Result := false; end; end else begin SetArrayLength(folders, count + 1);"),
-    ('CheckWhatElseIsInside', 'an empty folder of the program folder\'s own level that setup makes again - one of the five, a data folder when the server is installed - is left, once it is hardened, for a handle opened before to make a junction, or removed by its path rather than through a handle read as that folder (check 4 of R1 to R4, 27 October 2026); or an administrator\'s empty folder setup neither installs into nor makes again is removed (check 5); or one removed is not made again at once with the permissions it had (check 8)',
+    ('CheckWhatElseIsInside', 'an empty folder of the program folder\'s own level that setup makes again - one of the five, a data folder when the server is installed - is left, once it is hardened, for a handle opened before to make a junction, or removed by its path rather than through a handle read as that folder (check 4 of R1 to R4, 27 October 2026); or an administrator\'s empty folder setup neither installs into nor makes again is removed (check 5); or one removed is not made again at once (check 8); or the setup log says again, after RemoveAndMakeAgain has said which way it made the folder again, that it was made again with the permissions it had, which one that inherited was not (the fold of R1 to R4, 31 October 2026)',
      "else if Final and bFolder and (not bLink) and (not IsRunFolderName(rec.Name)) and (not (bData and IsComponentSelected('server'))) and FolderHoldsNothing(szItem) then @@"
      "Log('The program folder: ' + szItem + ' is an empty folder there before this installation, which setup neither installs into nor makes again, and is left ' + 'as it is.') "
-     "else if Final and bFolder and (not bLink) and FolderHoldsNothing(szItem) then begin @@if RemoveAndMakeAgain(szItem, AppHandle, szAppFinal, szRemoved) then Log('Setup removed ' + szItem + ', an empty folder there before this installation, and made it again with the permissions it had"),
+     "else if Final and bFolder and (not bLink) and FolderHoldsNothing(szItem) then begin @@if not RemoveAndMakeAgain(szItem, AppHandle, szAppFinal, szRemoved) then begin "
+     "szText := szItem + ' is an empty folder there before this installation, and could not be removed and made again - '"),
     ('RemoveAndMakeAgain', 'an empty folder of the program folder\'s own level is removed without its permissions read first through a handle on it as itself, '
      'or by a path rather than through a handle read as that folder (check 8 of R1 to R4, 28 October 2026)',
      "handle := HoldFolder(Item, HM_READ_CONTROL, HM_SHARE_EVERYTHING, 0, HM_OPEN_EXISTING, HM_HOLD_FOLDER_FLAGS, 0); if handle = -1 then begin Why := ~; Exit; end; "
@@ -1144,11 +1145,15 @@ PROGRAM_FOLDER_STATEMENTS = (
     ('RemoveAndMakeAgain', 'an empty folder removed in the last look is left for Inno Setup to make again with what the program folder hands down, or made by '
      'a path, or with other permissions than it had - the list it had when it inherited nothing; what the program folder hands down now and '
      'the entries of its own when it inherited, an entry it had marked inherited not carried over (check 9 of R1 to R4, 31 October 2026) - '
-     'or one that could not be made again, or given its own entries, is taken (check 8 of R1 to R4)',
+     'or one that could not be made again, or given its own entries, is taken (check 8 of R1 to R4); or the setup log does not say, of each '
+     'folder made again, which way it was (the fold of R1 to R4, 31 October 2026)',
      "if bInherits then made := MakeFolderIn(AppHandle, ExtractFileName(Item), 0, status) else made := MakeFolderIn(AppHandle, ExtractFileName(Item), pDescriptor, status); "
      "if made = -1 then begin FreeWindowsMemory(pDescriptor); g_bFoldersChanged := true; Why := ~; Exit; end; "
      "if bInherits then if not WriteOwnEntriesOn(AppHandle, made, Item, ExtractFileName(Item), pDacl, Why) then begin FreeWindowsMemory(pDescriptor); "
-     "g_bFoldersChanged := true; Why := ~; Exit; end; FreeWindowsMemory(pDescriptor); if bInherits then Log(~); Result := true; end;$"),
+     "g_bFoldersChanged := true; Why := ~; Exit; end; FreeWindowsMemory(pDescriptor); @@if bInherits then "
+     "Log('Setup removed ' + Item + ', an empty folder there before this installation, and made it again with what the program folder hands down now and the entries ' + ~) "
+     "else Log('Setup removed ' + Item + ', an empty folder there before this installation, and made it again with the permissions it had, which inherited nothing: a ' + ~); "
+     "Result := true; end;$"),
     ('WriteOwnEntriesOn', 'a folder made again whose list inherited is given its own entries though it had none to give, or none though it had some (check 9 of R1 to R4, 31 October 2026)',
      'if (((head.TypeFlagsSize shr 8) and $FF) and HM_INHERITED_ACE) = 0 then own := own + 1; index := index + 1; end; end; if own = 0 then begin Result := true; Exit; end;'),
     ('WriteOwnEntriesOn', 'an entry the folder had marked inherited - one it kept from where it was made - is carried over onto the folder made again, or an entry of its own is left out, or what it inherits now from the program folder is not kept (check 9 of R1 to R4, 31 October 2026)',
@@ -1651,7 +1656,7 @@ PROGRAM_FOLDER_CODE = (
     ('BroadGroupSid', '8b255776e8013335'),
     ('CheckFoldersBeforeTheStop', 'a2e38e9db48a13e5'),
     ('CheckProgramFolders', '7e0c3340809c7fec'),
-    ('CheckWhatElseIsInside', 'f6745410cf02c64f'),
+    ('CheckWhatElseIsInside', '3aeeb1fb6a3227c4'),
     ('CheckWhatIsInside', 'd53f9875ea5c5d75'),
     ('ControlPanelIsInstalled', '3ab47178b35c2ef7'),
     ('DatabaseFilesWhy', '385a1b53ff151af2'),
@@ -1725,7 +1730,7 @@ PROGRAM_FOLDER_CODE = (
     ('ReleaseHeldFolders', 'f8c80f82d876588b'),
     ('ReleasePlaceholders', '676d729ff0128f12'),
     ('RemakeEmptyFolder', 'f84455156da5337c'),
-    ('RemoveAndMakeAgain', '34b0b79037557863'),
+    ('RemoveAndMakeAgain', 'b7bb404494fe2f8c'),
     ('RemoveFoldersMadeHere', '5d8963b8738f5484'),
     ('RemoveHeldFolder', '149850770478f53c'),
     ('RemoveMadeFolder', 'b58144954352dd5e'),
@@ -3487,7 +3492,7 @@ def negative_controls(texts):
         ('an empty folder of Bin removed by its path',
          altered(texts, EXTENSION, 'if RemoveHeldFolder(szItem, szFinal, szRemoved) then', 'if RemoveDir(szItem) then')),
         ('an empty folder of the program folder removed by its path',
-         altered(texts, EXTENSION, 'if RemoveAndMakeAgain(szItem, AppHandle, szAppFinal, szRemoved) then', 'if RemoveDir(szItem) then')),
+         altered(texts, EXTENSION, 'if not RemoveAndMakeAgain(szItem, AppHandle, szAppFinal, szRemoved) then', 'if not RemoveDir(szItem) then')),
         ('an empty folder of the program folder removed by its path before it is made again (check 8 of R1 to R4)',
          altered(texts, EXTENSION, '   if not RemoveHeldFolder(Item, AppFinal, Why) then\n', '   if not RemoveDir(Item) then\n')),
         ('a folder walked after the files whatever its handle says it is',
@@ -3583,6 +3588,24 @@ def negative_controls(texts):
                  'written := WriteHeldSecurity(handle, HM_FILE_OBJECT, HM_PROTECTED_DACL_INFORMATION, 0, 0, pNew, 0);')),
         ('a folder made again whose entries of its own are not all there when read again taken',
          altered(texts, EXTENSION, '   if found <> own then\n', '   if false then\n')),
+        # The fold of R1 to R4 (31 October 2026): smoke run 10 found the setup log saying of a folder that inherited first
+        # that it was made again with what the program folder hands down now, then that it was made again with the
+        # permissions it had.
+        ('the caller of RemoveAndMakeAgain saying, after it, that every empty folder it made again was made again with the permissions it had',
+         altered(texts, EXTENSION, '                  if not RemoveAndMakeAgain(szItem, AppHandle, szAppFinal, szRemoved) then\n                  begin\n',
+                 "                  if RemoveAndMakeAgain(szItem, AppHandle, szAppFinal, szRemoved) then\n"
+                 "                     Log('Setup removed ' + szItem + ', an empty folder there before this installation, and made it again with the permissions it had.')\n"
+                 "                  else\n                  begin\n")),
+        ('a folder made again whose list inherited said in the setup log to have been made again with the permissions it had',
+         altered(texts, EXTENSION, "and made it again with what the program folder hands down now and the entries ' +\n",
+                 "and made it again with the permissions it had and the entries ' +\n")),
+        ('a folder made again whose list inherited nothing said in the setup log to have been made again with what the program folder hands down now',
+         altered(texts, EXTENSION, "and made it again with the permissions it had, which inherited nothing: a ' +\n",
+                 "and made it again with what the program folder hands down now: a ' +\n")),
+        ('the setup log not saying which way a folder whose list inherited nothing was made again',
+         altered(texts, EXTENSION, "   else\n      Log('Setup removed ' + Item + ', an empty folder there before this installation, and made it again with the permissions it had, "
+                 "which inherited nothing: a ' +\n          'program that opened it while another account could change it would keep what it opened it for.');\n",
+                 ";\n")),
         ('OpenServiceManager answering 0 without asking the service manager, so that IsServiceInstalled is always false',
          altered(texts, EXTENSION, '   Result := OpenSCManagerW(0, 0, SC_MANAGER_CONNECT);\n', '   Result := 0;\n')),
         ('IsServiceRunning always false, so that the Ready page neither stops a running service nor says it stopped it',
@@ -3834,8 +3857,8 @@ def negative_controls(texts):
     deinit = 'procedure DeinitializeSetup();\nbegin'
     controls.append(('an earlier installation\'s empty data folder removed in the last look and left for Inno Setup to make again with what the program folder '
                      'hands down, as before check 8 of R1 to R4',
-                     altered(texts, EXTENSION, '                  if RemoveAndMakeAgain(szItem, AppHandle, szAppFinal, szRemoved) then\n',
-                             '                  if RemoveHeldFolder(szItem, szAppFinal, szRemoved) then\n')))
+                     altered(texts, EXTENSION, '                  if not RemoveAndMakeAgain(szItem, AppHandle, szAppFinal, szRemoved) then\n',
+                             '                  if not RemoveHeldFolder(szItem, szAppFinal, szRemoved) then\n')))
     controls.append(('an empty folder removed in the last look made again with the program folder\'s permissions, its own not read (check 8 of R1 to R4)',
                      altered(texts, EXTENSION, '   made := MakeFolderIn(AppHandle, ExtractFileName(Item), pDescriptor, status);\n',
                              '   made := MakeFolderIn(AppHandle, ExtractFileName(Item), 0, status);\n')))

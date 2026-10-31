@@ -4472,9 +4472,16 @@ begin
          Exit;
       end;
    FreeWindowsMemory(pDescriptor);
+   // What setup did, said once and here, where which way the folder was made again is
+   // known: its caller said it was made again with the permissions it had after this had
+   // said that one which inherited was not (the fold of R1 to R4, 31 October 2026).
    if bInherits then
-      Log('Setup made ' + Item + ', whose permissions inherited from the program folder, again with what the program folder hands down now and the entries of its own ' +
-          'it had, and an entry it had marked inherited, which it may have kept from where it was made, is not carried over.');
+      Log('Setup removed ' + Item + ', an empty folder there before this installation, and made it again with what the program folder hands down now and the entries ' +
+          'of its own it had, and an entry it had marked inherited, which it may have kept from where it was made, is not carried over: a program that opened it ' +
+          'while another account could change it would keep what it opened it for.')
+   else
+      Log('Setup removed ' + Item + ', an empty folder there before this installation, and made it again with the permissions it had, which inherited nothing: a ' +
+          'program that opened it while another account could change it would keep what it opened it for.');
    Result := true;
 end;
 
@@ -4665,12 +4672,12 @@ begin
                begin
                   // An empty folder, there before this installation, of those setup
                   // installs into, or a data folder when the server is installed: removed,
-                  // as in Bin, and made again at once by setup with the permissions it had
-                  // (RemoveAndMakeAgain; check 8 of R1 to R4, 28 October 2026).
-                  if RemoveAndMakeAgain(szItem, AppHandle, szAppFinal, szRemoved) then
-                     Log('Setup removed ' + szItem + ', an empty folder there before this installation, and made it again with the permissions it had: a program that opened ' +
-                         'it while another account could change it would keep what it opened it for.')
-                  else
+                  // as in Bin, and made again at once by setup (RemoveAndMakeAgain; check 8
+                  // of R1 to R4, 28 October 2026) - with the permissions it had when they
+                  // inherited nothing, and otherwise with what the program folder hands down
+                  // now and the entries of its own it had (check 9) - which RemoveAndMakeAgain
+                  // says in the setup log.
+                  if not RemoveAndMakeAgain(szItem, AppHandle, szAppFinal, szRemoved) then
                   begin
                      szText := szItem + ' is an empty folder there before this installation, and could not be removed and made again - ' + szRemoved +
                                '. An administrator closes the program that holds it, or restarts Windows, and runs setup again.';

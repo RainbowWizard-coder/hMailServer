@@ -3000,8 +3000,10 @@ function Get-EmptyLevelFolders([string] $App) {
 
 # Work item 78's R1 and R2 (check 8 of R1 to R4, 28 October 2026): an empty folder on the
 # program folder's own level that the installer removed in its last look was made again
-# at once by setup with the list it had - Inno's log saying so, Inno Setup not making
-# it, and one that inherited nothing inheriting nothing still - where the installer
+# at once by setup - with the list it had when that inherited nothing, and with what the
+# program folder hands down now and its own entries when it inherited (check 9 of R1 to
+# R4) - Inno's log saying which of the two and not the other, Inno Setup not making it,
+# and one that inherited nothing inheriting nothing still - where the installer
 # before made it Inno Setup's, with what the program folder hands down, so that an
 # earlier installation's private Logs and Temp were readable by every user until
 # /ProtectFolders ran after the files.
@@ -3016,8 +3018,17 @@ function Test-EmptyFoldersMadeAgain([string] $Phase, [string] $Claimed, [string]
          $said = @()
          foreach ($folder in $removed) {
             $escaped = [regex]::Escape($folder.Path)
-            if (-not (Select-String -LiteralPath $LogPath -Pattern ('Setup removed ' + $escaped + ', an empty folder there before this installation, and made it again with the permissions it had') -Quiet)) {
-               throw "Inno's log does not say setup made $($folder.Path) again with the permissions it had"
+            # One line says which way setup made it again, and none the other way (the
+            # fold of R1 to R4, 31 October 2026: smoke run 10's logs said both of a folder
+            # that inherited).
+            $remade = ', an empty folder there before this installation, and made it again with '
+            $with = $(if ($folder.Protected) { 'the permissions it had, which inherited nothing' } else { 'what the program folder hands down now and the entries of its own it had' })
+            $notWith = $(if ($folder.Protected) { 'what the program folder hands down now' } else { 'the permissions it had' })
+            if (-not (Select-String -LiteralPath $LogPath -Pattern ('Setup removed ' + $escaped + [regex]::Escape($remade + $with)) -Quiet)) {
+               throw "Inno's log does not say setup made $($folder.Path) again with $with"
+            }
+            if (Select-String -LiteralPath $LogPath -Pattern ('Setup removed ' + $escaped + [regex]::Escape($remade + $notWith)) -Quiet) {
+               throw "Inno's log says setup made $($folder.Path), whose list $(if ($folder.Protected) { 'inherited nothing' } else { 'inherited' }), again with $notWith"
             }
             if (Select-String -LiteralPath $LogPath -Pattern ('Creating directory: ' + $escaped + '\s*$') -Quiet) { throw "Inno's log says Inno Setup made $($folder.Path) again, with what the program folder hands down" }
             if (-not (Test-Path -LiteralPath $folder.Path)) { throw "$($folder.Path) is gone" }
@@ -3931,8 +3942,8 @@ function Invoke-FocusedRun([string] $Version) {
       'stale-empty' {
          [void] (Test-Step "case ${FolderCase}: Addons, an empty folder moved in keeping an inherited entry for Users, was made again by setup without it before Inno Setup copied into it, and no program in it lets Users change it (work item 78, R1 and R2; check 9 of R1 to R4)" {
                $addons = Join-Path $app 'Addons'
-               if (-not (Select-String -LiteralPath $log -Pattern ('Setup removed ' + [regex]::Escape($addons) + ', an empty folder there before this installation, and made it again') -Quiet)) {
-                  throw "Inno's log does not say setup removed $addons and made it again"
+               if (-not (Select-String -LiteralPath $log -Pattern ('Setup removed ' + [regex]::Escape($addons) + ', an empty folder there before this installation, and made it again with what the program folder hands down now') -Quiet)) {
+                  throw "Inno's log does not say setup removed $addons and made it again with what the program folder hands down now"
                }
                $moment = $null
                if ($watched.ContainsKey("First:$addons")) { $moment = $watched["First:$addons"] }
