@@ -234,11 +234,17 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
   events       Inno Setup runs an event function wherever ISCC finds one, so the
                [Code] is read as ISCC compiles it - every [Code] section of the
                scripts each installer #includes, joined, OriginalHMailServer.iss
-               within it (installer_code) - and each routine's header in every
-               form its compiler takes: indented, in any case, with a comment
-               before its name, after an attribute, and a forward or an external
-               declaration not taken for the routine (ROUTINE_DEFINITION, over
-               masked_code). No script but hMailServerInnoExtension.iss opens a
+               within it (installer_code) - and each routine's header where it
+               starts its line: indented, in any case, with a comment before its
+               name, after an attribute, and a forward or an external declaration
+               not taken for the routine (ROUTINE_DEFINITION, over masked_code).
+               The compiler takes a header after other code on its line too -
+               after another routine's closing end; or a const - so a function or
+               procedure keyword with anything before it on its line but white
+               space and attributes is refused, as is code after a routine's
+               closing end; on its line, which no routine's text the check reads
+               holds (ROUTINE_KEYWORD, CODE_AFTER_END); the tree has neither. No
+               script but hMailServerInnoExtension.iss opens a
                [Code] section; no routine is given an event attribute
                (<event('...')>), which makes it an event function beside the one of
                the event's name; and every event function of Inno Setup 6.7.3
@@ -251,7 +257,11 @@ of the Inno scripts and the server, so that undoing one fails here in a second:
                line's start, and a routine given <event('CurStepChanged')>, an
                indented CurInstallProgressChanged, a NeedRestart with a comment before
                its name and one in a [Code] section of section_icons.iss passed, each
-               of which Inno Setup 6.7.3 ran.
+               of which Inno Setup 6.7.3 ran; and until later that day a
+               CurInstallProgressChanged or a NeedRestart whose header followed
+               another routine's end; on its line passed, one letting setup's holds
+               go after the end; of a routine held to a digest among them, which
+               ISCC 6.7 compiled and Setup ran as its event.
 
 The check proves its own negative controls on every run, on altered copies of the
 texts it reads: an entry without a RunOnceId, two entries sharing one, an
@@ -323,8 +333,11 @@ on a line of its own or on its header's, CurInstallProgressChanged indented, Nee
 with a comment before its name and indented in another case, CurInstallProgressChanged
 in a [Code] section of another script and in OriginalHMailServer.iss, a [Code] section in
 another script with no event in it, InitializeUninstall and BackButtonClick, which the
-check does not hold, and a forward declaration of CurPageChanged before one that lets
-the holds go) - must all be refused.
+check does not hold, a forward declaration of CurPageChanged before one that lets
+the holds go, CurInstallProgressChanged and NeedRestart with their headers after another
+routine's end; on one line, CurInstallProgressChanged after a const on one line and,
+letting the holds go, after another routine's end; and after KeepServiceFromStarting's,
+and a variable declared after a routine's end; on its line) - must all be refused.
 
 Usage: python build/check-installer-scripts.py [--digests | --preprocessor]
 Exits 1 listing what is wrong. --digests prints PROGRAM_FOLDER_CODE as the tree is, and
@@ -450,8 +463,9 @@ def routine_definitions(text):
     """{a routine's name in lower case: (its name, the text of its first definition, from
     its header to the 'end;' at the start of a line that closes it, or None when no such
     line follows)} for every routine of a [Code], its header read as ROUTINE_DEFINITION
-    reads one: indented, after an attribute, in any case, with a comment before its name,
-    and never a forward or an external declaration."""
+    reads one where it starts its line: indented, after an attribute, in any case, with a
+    comment before its name, and never a forward or an external declaration. A header after
+    other code on its line is refused (check_event_functions)."""
     masked = masked_code(text)
     closing = re.compile(r'^end;', re.M)
     found = {}
@@ -1848,6 +1862,16 @@ ROUTINE_HEADER = re.compile(r'^(?:function|procedure)\s+(\w+)\s*[(:;]', re.M | r
 # 1 is the keyword, where the routine's text starts, and group 2 its name.
 ROUTINE_DEFINITION = re.compile(r"^[ \t]*(?:<[^<>\n]*>[ \t]*)*(function|procedure)\s+(\w+)\s*(?:\([^()]*\))?\s*(?::\s*\w+\s*)?;"
                                 r"(?!\s*(?:forward|external)\b)", re.M | re.I)
+# The compiler takes a routine's header wherever a declaration may begin, after other code on
+# its line too - after another routine's closing end; or a const - and ROUTINE_DEFINITION
+# reads one only where it starts its line. So a function or procedure keyword in masked_code's
+# text with anything before it on its line but white space and attributes
+# (ROUTINE_KEYWORD_LEAD) is refused, and so is code after a routine's closing end; on its
+# line (CODE_AFTER_END), which no routine's text read as routine_definitions reads it holds
+# (check_event_functions). The tree has neither.
+ROUTINE_KEYWORD = re.compile(r'\b(?:function|procedure)\b', re.I)
+ROUTINE_KEYWORD_LEAD = re.compile(r'[ \t]*(?:<[^<>\n]*>[ \t]*)*')
+CODE_AFTER_END = re.compile(r'^end[ \t]*;[ \t]*(?=\S)', re.M | re.I)
 # An attribute of a routine: <event('CurStepChanged')> makes Inno Setup run it as that event,
 # beside the routine of the event's name and any other routine given it.
 EVENT_ATTRIBUTE = re.compile(r'<\s*event\s*\(', re.I)
@@ -1915,8 +1939,9 @@ def code_words(body):
 def routine_bodies(ext):
     """Each routine of the extension, or of the [Code] given, its external and forward
     declarations left out, by its name in lower case: (its name, the text pascal_routine
-    gives of its first definition), its header read in any form Inno Setup's compiler
-    takes (ROUTINE_DEFINITION)."""
+    gives of its first definition), its header read where it starts its line, in any form
+    Inno Setup's compiler takes there (ROUTINE_DEFINITION); one after other code on its
+    line is refused (check_event_functions)."""
     externals = set(match.group(1).lower() for match in EXTERNAL_DECLARATION.finditer(ext))
     return dict((key, (name, body)) for key, (name, body) in routine_definitions(ext).items()
                 if key not in externals and body is not None)
@@ -2443,7 +2468,11 @@ def check_event_functions(texts, problems):
     """Work item 78 (R1 to R4): no event function of the [Code] that this check does not hold
     runs. The [Code] is read as ISCC compiles it - every [Code] section of the scripts each
     installer #includes, joined, OriginalHMailServer.iss within it (installer_code) - and
-    each routine's header in any form Inno Setup's compiler takes (ROUTINE_DEFINITION): no
+    each routine's header where it starts its line, in any form Inno Setup's compiler takes
+    there (ROUTINE_DEFINITION), a function or procedure keyword after other code on its
+    line and code after a routine's closing end; on its line refused (ROUTINE_KEYWORD,
+    CODE_AFTER_END), since the compiler takes a header there too and no routine's text the
+    check reads would hold it: no
     script but hMailServerInnoExtension.iss opens a [Code] section, no routine is given an
     event attribute, which would make it an event function beside the one of the event's
     name, and every event function of Inno Setup 6.7.3 (INNO_EVENT_FUNCTIONS) it defines is
@@ -2454,7 +2483,8 @@ def check_event_functions(texts, problems):
     hMailServerInnoExtension.iss alone, by a header at a line's start, so that a routine
     given <event('CurStepChanged')>, an indented CurInstallProgressChanged, a NeedRestart
     with a comment before its name and one in a [Code] section of section_icons.iss each
-    passed, and Inno Setup ran each."""
+    passed, and Inno Setup ran each; and until later that day a header after another
+    routine's end; on its line passed, which ISCC 6.7 compiled and Setup ran as its event."""
     for name, text in sorted(texts.items()):
         if name.lower().endswith('.iss') and '/' not in name and name != EXTENSION and CODE_SECTION.search(text):
             problems.append('%s opens a [Code] section: ISCC joins every [Code] section of the scripts an installer #includes, and the '
@@ -2467,6 +2497,17 @@ def check_event_functions(texts, problems):
         code, unread = installer_code(texts, script)
         problems.extend(unread)
         masked = masked_code(code)
+        for match in ROUTINE_KEYWORD.finditer(masked):
+            start = masked.rfind('\n', 0, match.start()) + 1
+            if not ROUTINE_KEYWORD_LEAD.fullmatch(masked, start, match.start()):
+                problems.append('%s\'s [Code] has %s after other code on its line (line %d of its [Code]): the compiler takes a routine\'s '
+                                'header wherever a declaration may begin, and this check reads one only where it starts its line, after '
+                                'white space and attributes, so that a routine there would run unread; start the header on a line of '
+                                'its own' % (script, match.group(0), masked.count('\n', 0, match.start()) + 1))
+        for match in CODE_AFTER_END.finditer(masked):
+            problems.append('%s\'s [Code] has code after a routine\'s closing end; on its line (line %d of its [Code]): no routine\'s text '
+                            'this check reads holds it, and a routine\'s header there would run unread; put it on a line of its own' % (
+                                script, masked.count('\n', 0, match.start()) + 1))
         for match in EVENT_ATTRIBUTE.finditer(masked):
             problems.append('%s\'s [Code] gives a routine an event attribute (line %d of its [Code]): Inno Setup runs it at that event, beside '
                             'the routine of the event\'s name; each event function is defined by its name alone' % (
@@ -3904,6 +3945,34 @@ def negative_controls(texts):
          altered(altered(texts, EXTENSION, '[code]\n', '[code]\nprocedure CurPageChanged(CurPageID: Integer); forward;\n') or {},
                  EXTENSION, 'procedure CurPageChanged(CurPageID: Integer);\nvar\n   szSentence: String;\nbegin',
                  'procedure CurPageChanged(CurPageID: Integer);\nvar\n   szSentence: String;\nbegin\n   ReleaseHeldFolders();')),
+        # A routine whose header follows other code on its line, which the compiler takes and
+        # the check, reading a header where it starts its line, read past: after another
+        # routine's closing end;, after a const, and after the end; of a routine held to a
+        # digest, which kept its digest (31 October 2026). Each passed; ISCC 6.7 compiled the
+        # first two, and Setup ran each as its event.
+        ('CurInstallProgressChanged with its header after another routine\'s end; on one line',
+         altered(texts, EXTENSION, 'procedure DeinitializeSetup();\nbegin',
+                 'procedure HmNothing();\nbegin\nend; procedure CurInstallProgressChanged(CurProgress, MaxProgress: Integer);\nbegin\n'
+                 '   Log(IntToStr(CurProgress));\nend;\n\nprocedure DeinitializeSetup();\nbegin')),
+        ('NeedRestart with its header after another routine\'s end; on one line',
+         altered(texts, EXTENSION, 'procedure DeinitializeSetup();\nbegin',
+                 'procedure HmNothing();\nbegin\nend; function NeedRestart(): Boolean;\nbegin\n   Result := true;\nend;\n\n'
+                 'procedure DeinitializeSetup();\nbegin')),
+        ('CurInstallProgressChanged with its header after a const on one line',
+         altered(texts, EXTENSION, 'procedure DeinitializeSetup();\nbegin',
+                 'const HmX = 1; procedure CurInstallProgressChanged(CurProgress, MaxProgress: Integer);\nbegin\n'
+                 '   Log(IntToStr(CurProgress));\nend;\n\nprocedure DeinitializeSetup();\nbegin')),
+        ('CurInstallProgressChanged letting the holds go, its header after another routine\'s end; on one line',
+         altered(texts, EXTENSION, 'procedure DeinitializeSetup();\nbegin',
+                 'procedure HmNothing();\nbegin\nend; procedure CurInstallProgressChanged(CurProgress, MaxProgress: Integer);\nbegin\n'
+                 '   ReleaseHeldFolders();\nend;\n\nprocedure DeinitializeSetup();\nbegin')),
+        ('CurInstallProgressChanged letting the holds go, its header after KeepServiceFromStarting\'s end;, a routine held to a digest',
+         altered(texts, EXTENSION, "'); an administrator does so before it starts.');\nend;\n",
+                 "'); an administrator does so before it starts.');\nend; procedure CurInstallProgressChanged(CurProgress, MaxProgress: Integer);\n"
+                 "begin\n   ReleaseHeldFolders();\nend;\n")),
+        ('a variable declared after a routine\'s closing end; on its line',
+         altered(texts, EXTENSION, 'procedure DeinitializeSetup();\nbegin',
+                 'procedure HmNothing();\nbegin\nend; var HmY: Integer;\n\nprocedure DeinitializeSetup();\nbegin')),
         # Repair 7 of R1 to R4 (check 7, 28 October 2026): Inno Setup's other event functions, and a lone carriage return.
         ('7.01 NeedRestart, which Inno Setup calls after the files, running /ProtectFolders before the folders are read again (check 7 of R1 to R4)',
          altered(texts, EXTENSION, 'procedure DeinitializeSetup();\nbegin',

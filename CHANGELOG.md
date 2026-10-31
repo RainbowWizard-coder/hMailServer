@@ -2798,8 +2798,12 @@ with `--check`).
   `RegisterPreviousData` or `RegisterExtraCloseApplicationsResources`, which Inno Setup calls between
   `PrepareToInstall` and `ssPostInstall` (the last when it uses the Restart Manager, before the files) - read in the
   `[Code]` as ISCC compiles it, every `[Code]` section of the scripts each installer includes with
-  `OriginalHMailServer.iss` within it, by a routine's header in every form its compiler takes (indented, in any case,
-  a comment before its name, after an attribute, a forward declaration not taken for the routine), with no `[Code]`
+  `OriginalHMailServer.iss` within it, by a routine's header where it starts its line (indented, in any case,
+  a comment before its name, after an attribute, a forward declaration not taken for the routine), with `function`
+  or `procedure` after other code on its line and code after a routine's closing `end;` on its line refused, since
+  the compiler takes a header there too (after another routine's `end;` or a `const` on one line) and the checks
+  read none there, so that a `CurInstallProgressChanged` letting setup's holds go, its header after the `end;` of a
+  routine held to a digest, had passed both, and Inno Setup ran a header so placed as its event; with no `[Code]`
   section in another script, no routine given an event attribute (`<event('CurStepChanged')>`) and no event function
   of Inno Setup's that the checks do not hold, where they had read `hMailServerInnoExtension.iss` alone by a header
   at a line's start, so that a routine given an event attribute, an indented `CurInstallProgressChanged`, a
@@ -2837,7 +2841,7 @@ with `--check`).
   look after the files, one more in `CurStepChanged`, and `#if 0` around `section_dirs.iss`'s `{app}` entry had passed
   both and compiled. The fixture reads an installer script as ISCC and the checker read it, a lone carriage return
   ending the line, where three one-line changes behind one - code after a `//` comment, `#if 0` around a `[Dirs]`
-  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 700, four of them holding setup's log to saying once, and
+  entry, an entry giving `Bin` Users Modify - had passed it. The negative controls are 706, four of them holding setup's log to saying once, and
   rightly, which way it made an empty folder of the program folder's own level again. The smoke test's dac-handle case gives the program folder an
   entry of its own for the standard account, as an account could write one through `Everyone`'s right to change the
   permissions, and requires it dropped and named, and none for it after the restart; copy-fails runs the watch's

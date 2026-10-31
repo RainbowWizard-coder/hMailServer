@@ -2441,6 +2441,18 @@ namespace RegressionTests.Installation
       private static readonly Regex RoutineDefinition = new Regex(@"^[ \t]*(?:<[^<>\n]*>[ \t]*)*(function|procedure)\s+(\w+)\s*(?:\([^()]*\))?\s*(?::\s*\w+\s*)?;(?!\s*(?:forward|external)\b)",
                                                                 RegexOptions.Multiline | RegexOptions.IgnoreCase);
       private static readonly Regex CodeCommentOrString = new Regex(@"//[^\n]*|\{(?!#)[^}]*\}|\(\*[\s\S]*?\*\)|'(?:[^'\n]|'')*'");
+      // A function or procedure keyword, what alone may stand before one on its line, and code
+      // after a routine's closing end; on its line (ROUTINE_KEYWORD, ROUTINE_KEYWORD_LEAD and
+      // CODE_AFTER_END): the compiler takes a header after other code on its line, which
+      // RoutineDefinition does not read.
+      private static readonly Regex RoutineKeyword = new Regex(@"\b(?:function|procedure)\b", RegexOptions.IgnoreCase);
+      private static readonly Regex RoutineKeywordLead = new Regex(@"^[ \t]*(?:<[^<>\n]*>[ \t]*)*\z");
+      private static readonly Regex CodeAfterEnd = new Regex(@"^end[ \t]*;[ \t]*(?=\S)", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+
+      private static int LineOf(string text, int index)
+      {
+         return text.Take(index).Count(ch => ch == '\n') + 1;
+      }
 
       /// <summary>
       ///    The text with each comment of the [Code] and each string's characters made spaces,
@@ -2495,7 +2507,7 @@ namespace RegressionTests.Installation
       }
 
       [Test]
-      [Description("Work item 78 (R1 to R4, 31 October 2026): Inno Setup runs an event function wherever ISCC finds one, so the [Code] is read as ISCC compiles it - every [Code] section of the scripts each installer #includes, joined, OriginalHMailServer.iss within it - and each routine's header in every form its compiler takes: indented, in any case, with a comment before its name, after an attribute, a forward or an external declaration not taken for the routine. No script but hMailServerInnoExtension.iss opens a [Code] section, no routine is given an event attribute (<event('...')>), which makes it an event function beside the one of the event's name, and every event function of Inno Setup 6.7.3 the [Code] defines is one these tests and build/check-installer-scripts.py hold (check_event_functions). A routine given <event('CurStepChanged')>, an indented CurInstallProgressChanged, a NeedRestart with a comment before its name and one in a [Code] section of section_icons.iss each passed before, and Inno Setup ran each.")]
+      [Description("Work item 78 (R1 to R4, 31 October 2026): Inno Setup runs an event function wherever ISCC finds one, so the [Code] is read as ISCC compiles it - every [Code] section of the scripts each installer #includes, joined, OriginalHMailServer.iss within it - and each routine's header where it starts its line: indented, in any case, with a comment before its name, after an attribute, a forward or an external declaration not taken for the routine. The compiler takes a header after other code on its line too, after another routine's end; or a const, so a function or procedure keyword with anything before it on its line but white space and attributes, and code after a routine's closing end; on its line, are refused. No script but hMailServerInnoExtension.iss opens a [Code] section, no routine is given an event attribute (<event('...')>), which makes it an event function beside the one of the event's name, and every event function of Inno Setup 6.7.3 the [Code] defines is one these tests and build/check-installer-scripts.py hold (check_event_functions). A routine given <event('CurStepChanged')>, an indented CurInstallProgressChanged, a NeedRestart with a comment before its name and one in a [Code] section of section_icons.iss each passed before, and Inno Setup ran each; so did a CurInstallProgressChanged whose header followed another routine's end; on its line.")]
       public void EveryEventFunctionTheCodeDefinesIsOneTheChecksHold()
       {
          var failed = new List<string>();
@@ -2508,6 +2520,19 @@ namespace RegressionTests.Installation
             string masked = MaskedCode(InstallerCode(installer, failed));
             if (Regex.IsMatch(masked, @"<\s*event\s*\(", RegexOptions.IgnoreCase))
                failed.Add(installer + "'s [Code] gives a routine an event attribute");
+            // The compiler takes a header after other code on its line too, which RoutineDefinition
+            // does not read: a function or procedure keyword with anything before it on its line
+            // but white space and attributes, and code after a routine's closing end; on its line,
+            // are refused (ROUTINE_KEYWORD and CODE_AFTER_END).
+            foreach (Match keyword in RoutineKeyword.Matches(masked))
+            {
+               int start = keyword.Index == 0 ? 0 : masked.LastIndexOf('\n', keyword.Index - 1) + 1;
+               if (!RoutineKeywordLead.IsMatch(masked.Substring(start, keyword.Index - start)))
+                  failed.Add(installer + "'s [Code] has " + keyword.Value + " after other code on line " + LineOf(masked, keyword.Index) +
+                             " of its [Code], where no routine's header is read");
+            }
+            foreach (Match after in CodeAfterEnd.Matches(masked))
+               failed.Add(installer + "'s [Code] has code after a routine's closing end; on line " + LineOf(masked, after.Index) + " of its [Code]");
             var defined = new HashSet<string>(RoutineDefinition.Matches(masked).Cast<Match>().Select(match => match.Groups[2].Value.ToLowerInvariant()));
             Assert.IsTrue(defined.Contains("curstepchanged") && defined.Contains("preparetoinstall") && defined.Contains("nextbuttonclick"),
                installer + "'s [Code] was not read: CurStepChanged, PrepareToInstall and NextButtonClick are not among its routines.");
