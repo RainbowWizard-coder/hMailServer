@@ -34,6 +34,8 @@
 
 #include <boost/filesystem.hpp>
 
+#include "tester_scratch.h"
+
 #include "../Common/Application/IniFileSettings.h"
 
 int
@@ -43,10 +45,7 @@ main(int /*argc*/, char * /*argv*/[])
    // it has, so that nothing the settings loader or a report might write lands
    // anywhere else; removed again at the end.
    boost::system::error_code error;
-   const boost::filesystem::path scratch = boost::filesystem::temp_directory_path(error) /
-      ("hm-trust-anchor-tests-" + std::to_string((long long) ::getpid()));
-   if (!error)
-      boost::filesystem::create_directories(scratch, error);
+   const boost::filesystem::path scratch = HMTesterScratch::Make("hm-trust-anchor-tests", error);
 
    if (error)
    {

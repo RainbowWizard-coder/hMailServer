@@ -38,6 +38,8 @@
 
 #include <boost/filesystem.hpp>
 
+#include "tester_scratch.h"
+
 #include "../Common/Application/Application.h"
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/StoppedServersTester.h"
@@ -87,10 +89,7 @@ int
 main(int /*argc*/, char * /*argv*/[])
 {
    boost::system::error_code error;
-   const boost::filesystem::path scratch = boost::filesystem::temp_directory_path(error) /
-      ("hm-stopped-servers-tests-" + std::to_string((long long) ::getpid()));
-   if (!error)
-      boost::filesystem::create_directories(scratch, error);
+   const boost::filesystem::path scratch = HMTesterScratch::Make("hm-stopped-servers-tests", error);
    if (error)
    {
       printf("FAIL  what a task or a session reaches after a stop of the servers: no scratch directory could be made under the system's temp directory\n");

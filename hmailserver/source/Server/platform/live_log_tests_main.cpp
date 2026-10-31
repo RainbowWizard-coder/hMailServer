@@ -40,6 +40,8 @@
 
 #include <boost/filesystem.hpp>
 
+#include "tester_scratch.h"
+
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/Logger.h"
 
@@ -82,10 +84,7 @@ int
 main(int /*argc*/, char * /*argv*/[])
 {
    boost::system::error_code error;
-   const boost::filesystem::path scratch = boost::filesystem::temp_directory_path(error) /
-      ("hm-live-log-tests-" + std::to_string((long long) ::getpid()));
-   if (!error)
-      boost::filesystem::create_directories(scratch, error);
+   const boost::filesystem::path scratch = HMTesterScratch::Make("hm-live-log-tests", error);
    if (error)
    {
       printf("FAIL  the live log: no scratch directory could be made under the system's temp directory\n");

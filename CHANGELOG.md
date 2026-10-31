@@ -2034,6 +2034,19 @@ with `--check`).
 
 ### Build and tests
 
+- **The Linux tester programs make their scratch directory new, under a name nobody could have made for them.**
+  Sixteen of them - `imap-move-event-tests`, `move-learning-tests` and `rspamd-learn-tests`, which this release adds,
+  and `clamd-socket-tests`, `database-claim-tests`, `database-transaction-tests`, `language-tests`, `live-log-tests`,
+  `mailbox-crypto-tests`, `network-deadline-tests`, `notification-server-tests`, `stopped-servers-tests`,
+  `string-format-tests`, `trust-anchor-tests`, `update-feed-tests` and `workqueue-teardown-tests` - made the directory
+  they write their `hMailServer.ini` in, and point the log, data and temp folders at, as
+  `<temp>/hm-<name>-tests-<pid>` with Boost's `create_directories`, a name another account on the machine could
+  foresee and prepare before the tester ran. Each now makes `<temp>/hm-<name>-tests-XXXXXX` with `mkdtemp`
+  (`platform/tester_scratch.h`), which picks a name that is free, makes it 0700 and the tester's own, and never takes
+  one that is there; and the three new testers hold that rule first: a directory, and a link to one, prepared where a
+  scratch directory is to be made are refused, a free name is made 0700 and the tester's own, and two made for one
+  prefix are two.
+
 - **`build/check-release-chain.py` refuses a CI file that narrows `secret_detection` by GitLab's variables.** It held
   the variables that narrow `semgrep-sast` in every CI file and refused a `.gitlab/secret-detection-ruleset.toml` in
   the tree, but read no `SECRET_DETECTION_*` variable but `SECRET_DETECTION_HISTORIC_SCAN`, so that one line in

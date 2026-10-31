@@ -96,6 +96,8 @@
 
 #include <boost/filesystem.hpp>
 
+#include "tester_scratch.h"
+
 #include "../Common/Application/Configuration.h"
 #include "../Common/Application/Constants.h"
 #include "../Common/Application/ErrorManager.h"
@@ -590,10 +592,7 @@ RunNetworkDeadlineTests()
    }
 
    boost::system::error_code error;
-   const boost::filesystem::path scratch = boost::filesystem::temp_directory_path(error) /
-      ("hm-network-deadline-tests-" + std::to_string(static_cast<long long>(::getpid())));
-   if (!error)
-      boost::filesystem::create_directories(scratch, error);
+   const boost::filesystem::path scratch = HMTesterScratch::Make("hm-network-deadline-tests", error);
 
    if (error)
    {

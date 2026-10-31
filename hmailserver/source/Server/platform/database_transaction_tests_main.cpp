@@ -38,6 +38,8 @@
 
 #include <boost/filesystem.hpp>
 
+#include "tester_scratch.h"
+
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/SQL/DatabaseSettings.h"
 #include "../Common/SQL/DatabaseTransaction.h"
@@ -128,10 +130,7 @@ Run(int argc, char *argv[])
    }
 
    boost::system::error_code error;
-   const boost::filesystem::path scratch = boost::filesystem::temp_directory_path(error) /
-      ("hm-database-transaction-tests-" + std::to_string(static_cast<long long>(::getpid())));
-   if (!error)
-      boost::filesystem::create_directories(scratch, error);
+   const boost::filesystem::path scratch = HMTesterScratch::Make("hm-database-transaction-tests", error);
    if (!error)
       boost::filesystem::permissions(scratch, boost::filesystem::owner_all, error);
 

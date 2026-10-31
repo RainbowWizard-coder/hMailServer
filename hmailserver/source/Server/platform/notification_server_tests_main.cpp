@@ -37,6 +37,8 @@
 
 #include <boost/filesystem.hpp>
 
+#include "tester_scratch.h"
+
 #include "../Common/Application/Application.h"
 #include "../Common/Application/IniFileSettings.h"
 
@@ -55,10 +57,7 @@ int
 main(int /*argc*/, char * /*argv*/[])
 {
    boost::system::error_code error;
-   const boost::filesystem::path scratch = boost::filesystem::temp_directory_path(error) /
-      ("hm-notification-server-tests-" + std::to_string((long long) ::getpid()));
-   if (!error)
-      boost::filesystem::create_directories(scratch, error);
+   const boost::filesystem::path scratch = HMTesterScratch::Make("hm-notification-server-tests", error);
    if (error)
    {
       printf("FAIL  the notification server with the servers not running: no scratch directory could be made under the system's temp directory\n");

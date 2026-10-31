@@ -43,6 +43,8 @@
 #include <string>
 
 #include <boost/filesystem.hpp>
+
+#include "tester_scratch.h"
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -129,10 +131,7 @@ namespace
       }
 
       boost::system::error_code error;
-      const boost::filesystem::path scratch = boost::filesystem::temp_directory_path(error) /
-         ("hm-update-feed-tests-" + std::to_string(static_cast<long long>(::getpid())));
-      if (!error)
-         boost::filesystem::create_directories(scratch, error);
+      const boost::filesystem::path scratch = HMTesterScratch::Make("hm-update-feed-tests", error);
       if (error)
          return "no scratch directory could be made under the system's temp directory";
 

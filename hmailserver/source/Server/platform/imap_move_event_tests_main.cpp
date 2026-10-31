@@ -17,7 +17,10 @@
 // every one of them.
 //
 // A scratch configuration directory of its own under the system's temp
-// directory (the Logger and the ini singletons want one), removed at the end.
+// directory (the Logger and the ini singletons want one), made new by mkdtemp,
+// never one that was there, and removed at the end; and the rule that makes it
+// so held (tester_scratch.h: a directory, or a link to one, prepared where it is
+// to be made is refused).
 // No database and no network. One line either way; a non-zero exit on failure.
 // Well under a second.
 
@@ -28,6 +31,8 @@
 #include <unistd.h>
 
 #include <boost/filesystem.hpp>
+
+#include "tester_scratch.h"
 
 #include "../Common/Application/IniFileSettings.h"
 #include "../IMAP/IMAPMoveDispatch.h"
@@ -47,15 +52,18 @@ int
 main(int /*argc*/, char * /*argv*/[])
 {
    boost::system::error_code error;
-   const boost::filesystem::path scratch = boost::filesystem::temp_directory_path(error) /
-      ("hm-imap-move-event-tests-" + std::to_string((long long) ::getpid()));
-   if (!error)
-      boost::filesystem::create_directories(scratch, error);
+   const boost::filesystem::path scratch = HMTesterScratch::Make("hm-imap-move-event-tests", error);
    if (error)
    {
       printf("FAIL  the IMAP move event: no scratch directory could be made under the system's temp directory\n");
       return 1;
    }
+
+   // The scratch directory is new and the tester's own: one prepared where it
+   // is made is refused (tester_scratch.h).
+   const std::string scratchRule = HMTesterScratch::Check();
+   if (!scratchRule.empty())
+      return Fail(scratch, scratchRule.c_str());
 
    const boost::filesystem::path file = scratch / "hMailServer.ini";
    const std::string directory = scratch.string();

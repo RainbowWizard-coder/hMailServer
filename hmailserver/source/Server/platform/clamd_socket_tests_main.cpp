@@ -66,6 +66,8 @@
 
 #include <boost/filesystem.hpp>
 
+#include "tester_scratch.h"
+
 #include "../Common/AntiVirus/AntiVirusConfiguration.h"
 #include "../Common/AntiVirus/ClamAVVirusScanner.h"
 #include "../Common/AntiVirus/VirusScannerTester.h"
@@ -345,16 +347,15 @@ namespace
    // spare: the system's temp directory, or /tmp when that is too deep.
    boost::filesystem::path ScratchDirectory()
    {
-      const std::string leaf = "hm-clamd-socket-tests-" + std::to_string(static_cast<long long>(::getpid()));
+      const std::string prefix = "hm-clamd-socket-tests";
 
       boost::system::error_code error;
       boost::filesystem::path base = boost::filesystem::temp_directory_path(error);
-      if (error || (base / leaf / "never-answers.sock").string().size() > 90)
+      if (error || (base / (prefix + "-XXXXXX") / "never-answers.sock").string().size() > 90)
          base = "/tmp";
 
-      boost::filesystem::path scratch = base / leaf;
-      boost::filesystem::create_directories(scratch, error);
-      return error ? boost::filesystem::path() : scratch;
+      // A directory of its own, never one there already (tester_scratch.h).
+      return HMTesterScratch::MakeIn(base, prefix, error);
    }
 
    // Connects to the socket at path without waiting, until the listener's queue of

@@ -43,6 +43,8 @@
 
 #include <boost/filesystem.hpp>
 
+#include "tester_scratch.h"
+
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Application/Logger.h"
 
@@ -303,10 +305,7 @@ main(int /*argc*/, char * /*argv*/[])
 
    // The Logger, with a configuration of its own.
    boost::system::error_code error;
-   const boost::filesystem::path scratch = boost::filesystem::temp_directory_path(error) /
-      ("hm-string-format-tests-" + std::to_string((long long) ::getpid()));
-   if (!error)
-      boost::filesystem::create_directories(scratch, error);
+   const boost::filesystem::path scratch = HMTesterScratch::Make("hm-string-format-tests", error);
    if (error)
    {
       printf("FAIL  String::Format: no scratch directory could be made under the system's temp directory\n");
