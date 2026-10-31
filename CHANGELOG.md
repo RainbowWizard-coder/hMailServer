@@ -2798,7 +2798,11 @@ with `--check`).
   control, each in a program folder with permissions of its own, so that no restart rule decides first, are refused,
   exit code 7, where the installer before check 7 of R1 to R4 installs. The upgrade holds an empty folder on the program
   folder's own level that the installer removed to being made again by setup with the list it had, not by Inno Setup
-  with what the program folder hands down. relative-link, a directory symbolic link on the program
+  with what the program folder hands down. With `--hardened-before-files`, which holds a build that still says 6.3.7 to
+  setup's work before the files, it holds the installer under test - the upgrade installer of an upgrade run - and
+  never the first installer of an upgrade run, which is the release it upgrades from and is held only by its version:
+  an upgrade run from the 6.3.7 release had held the release to it and failed on that, whatever the upgrade did, so
+  that the upgrade's own checks were held in no run that could pass. relative-link, a directory symbolic link on the program
   folder's way whose relative name starts with a separator, the administrators' alone, is installed through, the program
   folder made where Windows takes the link to lead and nothing where the folder the link is in joined to its name would.
 - **New: `HM_SYSTEMD_UNIT_DIR`, where the Linux install puts the systemd units.** The CMake install put

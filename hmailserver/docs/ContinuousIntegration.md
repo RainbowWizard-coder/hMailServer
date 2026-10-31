@@ -3439,8 +3439,10 @@ been made again by setup with the list it had, Inno's log saying so and not that
 Setup made it, one that inherited nothing inheriting nothing still (R1, R2; check 8 of
 R1 to R4). An
 installer of 6.3.7 or earlier is not held to it, and what the watch saw is an INFO
-line; `--hardened-before-files` holds a build that still says 6.3.7 to it - never an
-earlier installer, such as the first of an upgrade run from 6.3.6 - which is how the
+line; `--hardened-before-files` holds a build that still says 6.3.7 to it - the
+installer under test alone: the upgrade installer of an upgrade run, the first of any
+other, and never the first installer of an upgrade run, which is the release it
+upgrades from, 6.3.7's own among them, nor an earlier installer - which is how the
 base and the fix of work item 78's R1 to R4 are told apart. `--case NAME`,
 with `--install-directory`, makes what the program folder is found as before the first
 installer - as the administrator, a standard account's folder, file or junction made by

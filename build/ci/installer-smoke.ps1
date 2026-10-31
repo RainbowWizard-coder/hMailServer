@@ -94,7 +94,9 @@
 
    And what docs/ServiceAccount.md says setup does before the files (work item 78),
    held to an installer after 6.3.7, or to a build that still says 6.3.7 with
-   -HardenedBeforeFiles, and said as INFO of any other: a program folder the
+   -HardenedBeforeFiles - which holds the installer under test, the upgrade installer
+   of an upgrade run, and never its first installer, the release it upgrades from -
+   and said as INFO of any other: a program folder the
    installer makes had permissions of its own from the first moment it was there -
    read by a watch in a runspace of its own as soon as the folder appears - and
    setup, not Inno Setup, made it (R1); Bin and ControlPanel, there before the
@@ -2680,13 +2682,20 @@ function Test-Uninstalled {
 # (docs/ServiceAccount.md, "Before the files"): the release after 6.3.7, and, when
 # -HardenedBeforeFiles says so, a build that still says 6.3.7 - never an installer
 # that says an earlier version, such as the first of an upgrade run from 6.3.6. For
-# one that is not held to it, what the watch saw is said as INFO.
+# one that is not held to it, what the watch saw is said as INFO. -HardenedBeforeFiles
+# holds the installer under test alone - the upgrade installer of an upgrade run, the
+# first installer of any other - and never the first installer of an upgrade run,
+# which is the release the run upgrades from: the 6.3.7 release says 6.3.7 as a build
+# of the release after it does, and an upgrade run from it with -HardenedBeforeFiles
+# held the release to R1 and failed whatever the upgrade did (check 9 of R1 to R4, 31
+# October 2026). Phase is the check's: 'install' is the first installer's.
 $HardenedBeforeFilesVersion = [version] '6.3.7'
-function Test-HardensBeforeFiles([string] $Version) {
+function Test-HardensBeforeFiles([string] $Version, [string] $Phase) {
    $release = Get-ReleaseVersion $Version
-   if ($null -eq $release) { return [bool] $HardenedBeforeFiles }
+   $held = $HardenedBeforeFiles -and -not (($Phase -eq 'install') -and $UpgradeInstaller)
+   if ($null -eq $release) { return [bool] $held }
    if ($release -gt $HardenedBeforeFilesVersion) { return $true }
-   return $HardenedBeforeFiles -and ($release -eq $HardenedBeforeFilesVersion)
+   return $held -and ($release -eq $HardenedBeforeFilesVersion)
 }
 
 # What a folder's list is at one moment: whether it inherits nothing, how many of its
@@ -2948,7 +2957,7 @@ function Test-ProgramFolderMadeWithItsPermissions([string] $Phase, [string] $Cla
    $first = $null
    if ($Watched.ContainsKey('AppFirst')) { $first = $Watched['AppFirst'] }
    $found = if ($null -eq $first) { 'the watch never saw it made' } elseif ($first.Error) { "it could not be read when it appeared: $($first.Error)" } else { "first seen: inherits nothing $($first.Protected), $($first.Inherited) inherited entries, owner $($first.Owner), $($first.Sddl)" }
-   if (-not (Test-HardensBeforeFiles $Claimed)) { Write-Info $name "$Claimed is not held to it; $found"; return }
+   if (-not (Test-HardensBeforeFiles $Claimed $Phase)) { Write-Info $name "$Claimed is not held to it; $found"; return }
    [void] (Test-Step $name {
          if ($null -eq $first) { throw 'the watch never saw the program folder made' }
          if ($first.Error) { throw "it could not be read when it appeared: $($first.Error)" }
@@ -2991,7 +3000,7 @@ function Test-EmptyFoldersMadeAgain([string] $Phase, [string] $Claimed, [string]
    $name = "${Phase}: the empty folders on the program folder's own level setup removed were made again by setup with the list each had, not by Inno Setup (work item 78, R1 and R2)"
    $removed = @($Before | Where-Object { Select-String -LiteralPath $LogPath -Pattern ('Setup removed ' + [regex]::Escape($_.Path) + ', an empty folder there before this installation') -Quiet })
    if ($removed.Count -eq 0) { Write-Info $name "the installer removed none of $(($Before | ForEach-Object { Split-Path -Leaf $_.Path }) -join ', ')"; return }
-   if (-not (Test-HardensBeforeFiles $Claimed)) { Write-Info $name "$Claimed is not held to it; it removed $(($removed | ForEach-Object { Split-Path -Leaf $_.Path }) -join ', ')"; return }
+   if (-not (Test-HardensBeforeFiles $Claimed $Phase)) { Write-Info $name "$Claimed is not held to it; it removed $(($removed | ForEach-Object { Split-Path -Leaf $_.Path }) -join ', ')"; return }
    [void] (Test-Step $name {
          $said = @()
          foreach ($folder in $removed) {
@@ -3046,7 +3055,7 @@ function Test-FoldersHardenedBeforeTheFiles([string] $Phase, [string] $Claimed, 
       if ($Watched.ContainsKey("First:$folder")) { $moment = $Watched["First:$folder"] }
       $said += $(if ($null -eq $moment) { "$folder no new file seen" } else { "$folder at $(Split-Path -Leaf $Watched["FirstName:$folder"]): inherits nothing $($moment.Protected), broad writers $($moment.Broad.Count), owner $($moment.Owner)" })
    }
-   if (-not (Test-HardensBeforeFiles $Claimed)) { Write-Info $name "$Claimed is not held to it; $($said -join '; ')"; return }
+   if (-not (Test-HardensBeforeFiles $Claimed $Phase)) { Write-Info $name "$Claimed is not held to it; $($said -join '; ')"; return }
    [void] (Test-Step $name {
          $lines = @(Get-Content -LiteralPath $LogPath)
          foreach ($folder in $There) {
@@ -3101,7 +3110,7 @@ function Test-FoldersMadeBeforeTheFiles([string] $Phase, [string] $Claimed, $Wat
       if ($Watched.ContainsKey("First:$folder")) { $moment = $Watched["First:$folder"] }
       $said += $(if ($null -eq $moment) { "$folder no new file seen" } else { "$folder at $(Split-Path -Leaf $Watched["FirstName:$folder"]): inherits nothing $($moment.Protected), $($moment.Inherited) inherited, broad writers $($moment.Broad.Count), owner $($moment.Owner)" })
    }
-   if (-not (Test-HardensBeforeFiles $Claimed)) { Write-Info $name "$Claimed is not held to it; $($said -join '; ')"; return }
+   if (-not (Test-HardensBeforeFiles $Claimed $Phase)) { Write-Info $name "$Claimed is not held to it; $($said -join '; ')"; return }
    [void] (Test-Step $name {
          $lines = @(Get-Content -LiteralPath $LogPath)
          foreach ($folder in $Missing) {
@@ -4298,7 +4307,7 @@ if ($State.Installed) {
       # Users Modify down - hardened and refused until Windows has restarted, a second run
       # refused by the record, and the upgrade run again once the record is taken away, as
       # a restart takes it away.
-      if ($upgradeCode -eq 7 -and (Test-HardensBeforeFiles $secondVersion) -and (Select-String -LiteralPath $upgradeLog -Pattern 'until Windows has restarted: before this installation' -Quiet)) {
+      if ($upgradeCode -eq 7 -and (Test-HardensBeforeFiles $secondVersion 'upgrade') -and (Select-String -LiteralPath $upgradeLog -Pattern 'until Windows has restarted: before this installation' -Quiet)) {
          $upgradeApp = Get-InstallDirectory
          [void] (Test-Step "upgrade: setup hardened what another account could change in $firstVersion's folders and refused until Windows has restarted - exit code 7, the service left running (work item 78, R2)" {
                $line = Select-String -LiteralPath $upgradeLog -Pattern 'Refused: Setup does not install into .* until Windows has restarted: before this installation' | Select-Object -First 1
