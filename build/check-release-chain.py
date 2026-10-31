@@ -316,9 +316,15 @@ refuses it. This checker holds them to each other. It fails when:
     would narrow secret_detection unseen (the paths whose findings GitLab's analyzer
     drops, the commits it reads, a ruleset of another repository's in place of the rules
     the job derives, and whether it reads a ruleset at all), and
-    SECRET_DETECTION_DISABLED, which would take it out of every pipeline, or write a key
-    in a form those refusals do not read (an explicit key, a tag, an anchor, an alias or
-    an escape in a double-quoted key), or define a variable GitLab
+    SECRET_DETECTION_DISABLED, which would take it out of every pipeline - each read in
+    a CI file's text as YAML reads its quoted values and comments, an escaped quote or a
+    value over several lines among them -, or write a key in a form those refusals do not
+    read (an explicit key, a tag, an anchor, an alias or an escape in a double-quoted
+    key), or write a job's, a rule's or a workflow rule's variables: but as a block or a
+    one-line mapping of bare names and plain values, or in a job or a rule written in
+    flow style, or define secret_detection, or the hidden job of GitLab's template it
+    extends, anywhere but .gitlab/ci/gitlab-security.yml, which GitLab would merge over
+    that file's, or define a variable GitLab
     gives (CI_*, GITLAB_*, but CI_DEBUG_SERVICES); the
     tree may carry no .semgrepignore, no .gitlab/sast-ruleset.toml, no
     .gitlab/secret-detection-ruleset.toml and no scan's
@@ -1215,6 +1221,98 @@ UNREAD_KEY_FORM = re.compile(
     r"""|[^ \t\n\[\]{},#'"!&*?|>%@`-](?:[^\n:#]|:(?![ \t,\[\]{}]|$)|(?<![ \t])#)*?)[ \t]*:(?=[ \t,\[\]{}]|$)"""
     r"""|\*[^ \t\n,\[\]{}]+[ \t]*:"""
     r"""|"(?:[^"\\\n]|\\.)*\\.(?:[^"\\\n]|\\.)*"[ \t]*:)""", re.MULTILINE)
+# A variables: key at a key's place on its line - after the indentation and a sequence's
+# dashes - bare or simply quoted, and what follows its colon there; and one after a flow
+# collection's brace, bracket or comma, which is a job or a rule written in flow style.
+VARIABLES_KEY_LINE = re.compile(r"""^[ \t]*(?:-[ \t]+)*(["']?)variables\1[ \t]*:(?=[ \t]|$)(.*)$""", re.MULTILINE)
+VARIABLES_KEY_IN_FLOW = re.compile(r"""[{,\[][ \t]*(["']?)variables\1[ \t]*:""")
+# What may open the line after a variables: key whose value is not on its own line: a key
+# of a block mapping, bare or simply quoted. A flow collection, an anchor, a tag, an alias,
+# a block scalar or an explicit key there is a value in a form the rules that refuse a
+# variable by its name do not read.
+VARIABLES_BLOCK_FIRST = re.compile(r"""^[ \t]*(?:["'A-Za-z_]|$)""")
+
+
+def yaml_uncommented(text):
+    """The text of a CI file with YAML's comments taken out as YAML reads them: a # at a
+    line's start or after a blank, outside a quoted scalar. A quoted scalar starts where
+    YAML starts a value or a key - at the line's first character that is not white
+    space, after a colon, a sequence's dash, an explicit key's ?, a flow collection's
+    brace, bracket or comma, or a tag or an anchor - not inside a plain scalar (it's); a
+    double-quoted one ends at a quote no backslash escapes, a single-quoted one at a
+    quote not doubled, and either goes on over the line's end until it does, as YAML
+    reads one. build/ci/security-gate.py's _uncommented, which the rules refusing a
+    narrowing variable by its name read until 31 October 2026, ended a double-quoted
+    scalar at an escaped quote and every quoted scalar at its line's end, so that
+    variables: {HM_NOTE: "a\\" #", SECRET_DETECTION_EXCLUDED_PATHS: build} lost the name
+    after the false comment, which GitLab's YAML reader gives the job. Where this cannot
+    tell, it keeps the text: a quote taken for a scalar's that is not keeps the rest of
+    its line and the lines after it to the next quote, and no comment is taken out of
+    them - more read than YAML reads, never less."""
+    lines = []
+    quote = None
+    for line in text.replace("\r\n", "\n").split("\n"):
+        cut = len(line)
+        i = 0
+        while i < len(line):
+            ch = line[i]
+            if quote == '"':
+                if ch == "\\":
+                    i += 2
+                    continue
+                if ch == '"':
+                    quote = None
+            elif quote == "'":
+                if ch == "'":
+                    if line[i + 1:i + 2] == "'":
+                        i += 2
+                        continue
+                    quote = None
+            elif ch in "\"'":
+                before = line[:i].rstrip(" \t")
+                if not before or before[-1] in ":-?[{," or re.search(r"(?:^|[ \t])[!&][^ \t]*$", before):
+                    quote = ch
+            elif ch == "#" and (i == 0 or line[i - 1] in " \t"):
+                cut = i
+                break
+            i += 1
+        lines.append(line[:cut])
+    return "\n".join(lines)
+
+
+def flow_variables_problems(path, uncommented):
+    """[problem] for each variables: of a CI file's text (yaml_uncommented's) written in a
+    form other than a block mapping, one KEY: value a line, or the one-line flow mapping of
+    bare names and plain values the package jobs write (FLOW_VARIABLES): a flow mapping
+    of quoted values, one over several lines, an anchor, a tag, an alias, a block scalar,
+    or a variables: inside a job or a rule written in flow style. The rules that refuse a
+    variable by its name read a name at a key's place on its line, which such a form need
+    not put it at; a job's, a rule's and a workflow rule's variables are held to the forms
+    they read, as the top level's and the start jobs' are."""
+    problems = []
+    lines = uncommented.split("\n")
+    for match in VARIABLES_KEY_LINE.finditer(uncommented):
+        number = uncommented.count("\n", 0, match.start()) + 1
+        rest = match.group(2).strip()
+        if rest:
+            if FLOW_VARIABLES.match("variables: " + rest):
+                continue
+            problems.append("%s writes variables: %s (line %d), a form the rules that refuse a variable by its name do not "
+                            "read: write them as a block, one KEY: value a line, or on one line as {KEY: value, ...} of bare "
+                            "names and plain values" % (path, rest[:60], number))
+            continue
+        following = next((line for line in lines[number:] if line.strip()), "")
+        if not VARIABLES_BLOCK_FIRST.match(following):
+            problems.append("%s writes the value of variables: (line %d) as %s, a form the rules that refuse a variable by its "
+                            "name do not read: write them as a block, one KEY: value a line" % (
+                                path, number, following.strip()[:60]))
+    for match in VARIABLES_KEY_IN_FLOW.finditer(uncommented):
+        problems.append("%s writes variables: inside a job or a rule in flow style (line %d), a form the rules that refuse a "
+                        "variable by its name do not read: write the job and its rules as blocks, and their variables as a "
+                        "block, one KEY: value a line" % (path, uncommented.count("\n", 0, match.start()) + 1))
+    return problems
+
+
 # What the tree may not carry: a .semgrepignore (GitLab's analyzer includes the root's,
 # Semgrep reads one in a directory), GitLab's custom ruleset, and a scan's report.
 NOT_IN_THE_TREE = re.compile(r"(?:^|/)\.semgrepignore[^/]*$|^\.gitlab/sast-ruleset\.toml$|^gl-sast-report\.json$|"
@@ -6954,8 +7052,10 @@ def sast_scope_problems(texts, security_jobs, gates_jobs, security_gate):
     semgrep-sast allow_failure, not removing what a checkout leaves of its outputs, not
     keeping Semgrep's SARIF, an exclusion not held to the root, a narrowing variable a
     CI file defines (or one that would narrow secret_detection,
-    SECRET_NARROWING_VARIABLES), a key of a CI file in a form the rules that refuse those
-    by name do not read (UNREAD_KEY_FORM), a CI file that defines a variable GitLab gives, a file of the tree
+    SECRET_NARROWING_VARIABLES), read as YAML reads a CI file's quoted values and comments
+    (yaml_uncommented), a key of a CI file in a form the rules that refuse those by name do
+    not read (UNREAD_KEY_FORM), a variables: in a form they do not read
+    (flow_variables_problems), a CI file that defines a variable GitLab gives, a file of the tree
     that narrows the scan or stands in for its report, and a workflow whose first rule
     names other branches than the gates run for."""
     problems = []
@@ -7000,7 +7100,10 @@ def sast_scope_problems(texts, security_jobs, gates_jobs, security_gate):
         if path != security_file and defined.get("SAST_EXCLUDED_PATHS"):
             problems.append("%s defines SAST_EXCLUDED_PATHS: semgrep-sast's own job says what it leaves out, in %s alone"
                             % (path, security_file))
-        uncommented = security_gate._uncommented(text or "")
+        # Read as YAML reads its quoted scalars and comments (yaml_uncommented), and every
+        # variables: held to the forms the name rules read (flow_variables_problems).
+        uncommented = yaml_uncommented(text or "")
+        problems.extend(flow_variables_problems(path, uncommented))
         for name in sorted(set(m.group(2) or m.group(3) for m in SECRET_NARROWING_KEY.finditer(uncommented))):
             problems.append("%s defines %s: it would narrow what secret_detection reads unseen - the paths whose findings "
                             "GitLab's analyzer drops, the commits it reads, or a ruleset of another repository's that "
@@ -7265,6 +7368,15 @@ TOP_LEVEL_KEY = re.compile(r"^(?:\"([^\"\n]+)\"|'([^'\n]+)'|([A-Za-z0-9_.\-]+))[
 # second definition elsewhere could give a script, a before_script, rules or an
 # allow_failure that made a half pass having run no test.
 HELD_JOBS = sorted(set(job for required in LANDING_REQUIRED.values() for job in required))
+# The secret scan's job and the hidden job of GitLab's template it extends, which no CI file
+# but its own (FILES["security"], a gate file) defines: GitLab merges every definition of a
+# name, a later include's keys over an earlier one's and .gitlab-ci.yml's over all, and
+# gitlab-security.yml is included first, so a second definition in any other file -
+# helm-chart.yml, a packages file, .gitlab-ci.yml, none of which a landing asks a person's
+# word for but the last - would give it rules, a script, variables or allow_failure of
+# its own: take it out of every pipeline, blind it, or narrow it. It is not landing-
+# required, and so not among HELD_JOBS, whose rule asks only that each be defined once.
+SECRET_DETECTION_DEFINITIONS = ("secret_detection", ".secret-analyzer")
 # The top-level keys every job takes from the file that sets them: .gitlab-ci.yml's alone,
 # a file of build/land-via-mr.py's GATE_FILES.
 EVERY_JOB_KEYS = ("variables", "default", "workflow")
@@ -7347,7 +7459,11 @@ def ci_override_problems(texts):
     top level, which GitLab moves into default: and gives every job that sets none of its
     own - so that what the rules read of default: (.gitlab-ci.yml's default: block) is all
     of it -, and a top-level line that is not a key written bare (TOP_LEVEL_LINE), through
-    which one could be written past this."""
+    which one could be written past this. And secret_detection, or the hidden job of
+    GitLab's template it extends, defined in any file but its own, gitlab-security.yml
+    (SECRET_DETECTION_DEFINITIONS): it is not landing-required, but a second definition
+    in a file a landing asks no person's word for would take the secret scan out of every
+    pipeline, blind it or narrow it."""
     every_ci = ci_files(texts)
     problems = []
     if "include" in top_level_keys(texts["ci"]):
@@ -7365,6 +7481,15 @@ def ci_override_problems(texts):
             problems.append("%s is defined in %s: GitLab merges the definitions, a later include's keys over an earlier "
                             "one's, so a file other than its own would say whether and how a job that holds a change "
                             "runs - define it once" % (name, " and ".join(paths)))
+    security_file = FILES["security"].replace(os.sep, "/")
+    for name, paths in sorted(reached_definitions(every_ci, SECRET_DETECTION_DEFINITIONS).items()):
+        others = [path for path in paths if path != security_file]
+        if (name in SECRET_DETECTION_DEFINITIONS and others) or len(paths) > 1:
+            problems.append("%s is defined in %s: GitLab merges the definitions, a later include's keys over an earlier "
+                            "one's and .gitlab-ci.yml's over all, so a file other than %s would give the secret scan "
+                            "rules, a script, variables or allow_failure of its own - take it out of every pipeline, "
+                            "blind it or narrow it; define it in %s alone" % (
+                                name, " and ".join(paths), security_file, security_file))
     for path, text in sorted(every_ci.items()):
         if path == ".gitlab-ci.yml":
             continue
@@ -12402,6 +12527,64 @@ def self_test(chain, feed):
            '        SECRET_DETECTION_HISTORIC_SCAN: "true"\n',
            '        SECRET_DETECTION_HISTORIC_SCAN: "true"\n        &n SECRET_DETECTION_LOG_OPTIONS: "-n 0"\n',
            "writes a key in a form this checker does not read")
+    # A name after a quoted scalar that holds an escaped quote and then " #", or that goes
+    # on over its line's end, which a reading of each line on its own took for a comment,
+    # in a flow mapping on one line or over two: GitLab's YAML reader gives the variable to
+    # the job. Each is refused by its name and by its form.
+    rule_vars = '      variables:\n        SECRET_DETECTION_HISTORIC_SCAN: "true"\n'
+    job_rules = "  allow_failure: false\n  rules:\n    - if: $SECRET_DETECTION_DISABLED"
+    for what, key, old, new, needles in (
+            ("the paths left out after an escaped quote in secret_detection's job", "security", job_rules,
+             '  allow_failure: false\n  variables: {HM_NOTE: "a\\" #", SECRET_DETECTION_EXCLUDED_PATHS: "build, hmailserver"}\n'
+             "  rules:\n    - if: $SECRET_DETECTION_DISABLED",
+             ("defines SECRET_DETECTION_EXCLUDED_PATHS", "a form the rules that refuse a variable by its name do not read")),
+            ("the scan taken out after an escaped quote in secret_detection's job", "security", job_rules,
+             '  allow_failure: false\n  variables: {HM_NOTE: "a\\" #", SECRET_DETECTION_DISABLED: "true"}\n'
+             "  rules:\n    - if: $SECRET_DETECTION_DISABLED",
+             ("defines SECRET_DETECTION_DISABLED", "a form the rules that refuse a variable by its name do not read")),
+            ("the commits read after an escaped quote in secret_detection's schedule rule", "security", rule_vars,
+             '      variables: {SECRET_DETECTION_HISTORIC_SCAN: "true", HM_NOTE: "a\\" #", SECRET_DETECTION_LOG_OPTIONS: "-n 0"}\n',
+             ("defines SECRET_DETECTION_LOG_OPTIONS", "a form the rules that refuse a variable by its name do not read")),
+            ("the paths left out after a double-quoted scalar continued in secret_detection's job", "security", job_rules,
+             '  allow_failure: false\n  variables: {HM_NOTE: "a\n    # b", SECRET_DETECTION_EXCLUDED_PATHS: "build"}\n'
+             "  rules:\n    - if: $SECRET_DETECTION_DISABLED",
+             ("defines SECRET_DETECTION_EXCLUDED_PATHS", "a form the rules that refuse a variable by its name do not read")),
+            ("the scan taken out after a single-quoted scalar continued in secret_detection's schedule rule", "security", rule_vars,
+             "      variables: {SECRET_DETECTION_HISTORIC_SCAN: \"true\", HM_NOTE: 'a\n        # b', SECRET_DETECTION_DISABLED: \"true\"}\n",
+             ("defines SECRET_DETECTION_DISABLED", "a form the rules that refuse a variable by its name do not read")),
+            ("the ruleset after an escaped quote in a flow mapping on the line after variables:", "security", job_rules,
+             '  allow_failure: false\n  variables:\n    {HM_NOTE: "a\\" #", SECRET_DETECTION_RULESET_GIT_REFERENCE: "gitlab.com/example/rules"}\n'
+             "  rules:\n    - if: $SECRET_DETECTION_DISABLED",
+             ("defines SECRET_DETECTION_RULESET_GIT_REFERENCE", "a form the rules that refuse a variable by its name do not read")),
+            ("the paths left out by a workflow rule's flow mapping after an escaped quote", "ci",
+             "      variables:\n        HM_RUNNER: saas-linux-small-amd64\n",
+             '      variables: {HM_RUNNER: saas-linux-small-amd64, HM_NOTE: "a\\" #", SECRET_DETECTION_EXCLUDED_PATHS: "build"}\n',
+             ("defines SECRET_DETECTION_EXCLUDED_PATHS",)),
+            ("a job in flow style whose variables follow an escaped quote", "helm", "\n", "\n"
+             'hm-flow-job: {stage: test, script: [true], variables: {HM_NOTE: "a\\" #", SECURE_ENABLE_LOCAL_CONFIGURATION: "false"}}\n\n',
+             ("defines SECURE_ENABLE_LOCAL_CONFIGURATION", "inside a job or a rule in flow style"))):
+        for needle in needles:
+            broken("%s (%s)" % (what, needle), key, old, new, needle)
+    # secret_detection, or the template's hidden job it extends, defined again in a file
+    # other than its own - one no landing asks a person's word for, and .gitlab-ci.yml -
+    # each of which GitLab merges over gitlab-security.yml's, included first.
+    for what, key, addition, needle in (
+            ("secret_detection taken out of every pipeline from helm-chart.yml", "helm",
+             "\nsecret_detection:\n  rules:\n    - when: never\n", "secret_detection is defined in"),
+            ("secret_detection given another script from helm-chart.yml", "helm",
+             "\nsecret_detection:\n  script:\n    - echo \"nothing scanned\"\n", "secret_detection is defined in"),
+            ("secret_detection narrowed by variables from helm-chart.yml", "helm",
+             "\nsecret_detection:\n  variables:\n    HM_NOTE: \"a\"\n", "secret_detection is defined in"),
+            ("secret_detection allowed to fail from .gitlab-ci.yml", "ci",
+             "\nsecret_detection:\n  allow_failure: true\n", "secret_detection is defined in"),
+            ("secret_detection's rules taken from .gitlab-ci.yml", "ci",
+             "\nsecret_detection:\n  rules:\n    - when: never\n", "secret_detection is defined in")):
+        copy = dict(texts, **{key: texts[key] + addition})
+        found, _ = check(copy, chain, feed)
+        if not any(needle in problem for problem in found):
+            failures.append("%s is caught: %s" % (what, found))
+    broken_include("the template's hidden job secret_detection extends defined in operator.yml", ".gitlab/ci/operator.yml",
+                   "\n.secret-analyzer:\n  rules:\n    - when: never\n", ".secret-analyzer is defined in")
     broken("another list of what semgrep-sast leaves out", "ci", '  PYTHONUTF8: "1"\n',
            '  PYTHONUTF8: "1"\n  SAST_EXCLUDED_PATHS: "hmailserver"\n', ".gitlab-ci.yml defines SAST_EXCLUDED_PATHS")
     for name in ("CI_MERGE_REQUEST_DIFF_BASE_SHA", "CI_PIPELINE_SOURCE", "GITLAB_FEATURES"):

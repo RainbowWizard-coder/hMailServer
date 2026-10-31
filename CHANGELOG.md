@@ -2059,8 +2059,23 @@ with `--check`).
   in a workflow rule, with a `--self-test` case for each that fails without the rule, and the script's header and the
   checker's docstring name them. So is a key of any CI file written in a form that refusal does not read by its name
   and GitLab's YAML reader takes as one: an explicit key (`? NAME`), a tag (`!!str NAME:`), an anchor, an alias, or an
-  escape in a double-quoted key (`"NAME\x53":`). A CI/CD variable of those names set on the project or the group,
-  `SECRET_DETECTION_DISABLED` the owner's switch among them, is outside the tree and outside the check.
+  escape in a double-quoted key (`"NAME\x53":`). The names are read in a CI file as YAML reads its quoted values and
+  comments: a reading of each line on its own had ended a double-quoted value at an escaped quote and every quoted
+  value at its line's end, so that `variables: {HM_NOTE: "a\" #", SECRET_DETECTION_EXCLUDED_PATHS: build}`, or a
+  quoted value going on to a next line that starts with `#`, hid the name after it in the job's or its schedule
+  rule's flow mapping from both rules while GitLab's YAML reader gave the job the variable. A job's, a rule's and a
+  workflow rule's `variables:` are held to a block, one `KEY: value` a line, or a one-line mapping of bare names and
+  plain values, as the package jobs write theirs; a flow mapping of quoted values, one over several lines, an anchor,
+  a tag, an alias, and a `variables:` in a job or a rule written in flow style are refused. And `secret_detection`,
+  or the hidden job of GitLab's template it extends, may be defined in `.gitlab/ci/gitlab-security.yml` alone: GitLab
+  merges every definition of a name, a later include's keys over an earlier one's, and that file is included first,
+  so that a second definition in `helm-chart.yml` or any other file a landing asks no person's word for, or in
+  `.gitlab-ci.yml`, could give the scan rules (`when: never`), a script, variables or `allow_failure` of its own, and
+  the rule that refuses a second definition held only the landing-required jobs. Each form has a `--self-test` case,
+  the escaped quote and the value over two lines in the job and in its schedule rule, in a workflow rule and in a job
+  written in flow style, and a definition in `helm-chart.yml` (rules, script, variables), `.gitlab-ci.yml` and
+  `operator.yml`, each passing the checker without its rule. A CI/CD variable of those names set on the project or the
+  group, `SECRET_DETECTION_DISABLED` the owner's switch among them, is outside the tree and outside the check.
 
 - **`build/check-cli.py`'s client that trusts the untrusted-certificate listener asks for TLS 1.2 or later.** The
   PowerShell half's check that the module refuses a certificate this machine does not trust first connects with a

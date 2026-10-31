@@ -26,9 +26,15 @@
 # which can stand in for the file this writes) or SECURE_ENABLE_LOCAL_CONFIGURATION -
 # nor take it out of every pipeline by SECRET_DETECTION_DISABLED, which the job's first
 # rule reads: build/check-release-chain.py refuses a CI file that defines one, for every
-# job, in a job or in a rule, and a CI file that writes a key in a form that refusal
-# does not read (an explicit key, a tag, an anchor, an alias, or an escape in a
-# double-quoted key), whatever its name. A CI/CD variable of those names set on the
+# job, in a job or in a rule, reading its quoted values and comments as YAML does (a
+# quote escaped in a double-quoted value, a value over several lines); a CI file that
+# writes a key in a form that refusal does not read (an explicit key, a tag, an anchor,
+# an alias, or an escape in a double-quoted key), whatever its name; a variables: of a
+# job, a rule or a workflow rule written but as a block or as a one-line mapping of bare
+# names and plain values, and one in a job or a rule written in flow style; and a
+# definition of secret_detection, or of the template's job it extends, in any CI file
+# but .gitlab/ci/gitlab-security.yml, which GitLab would merge over this one, the later
+# include's keys winning. A CI/CD variable of those names set on the
 # project or the group - SECRET_DETECTION_DISABLED the owner's switch - is outside the
 # tree and outside that check. And gitleaks' [extend] adds a config's
 # allowlists to its base's and takes none away.
