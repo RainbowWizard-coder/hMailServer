@@ -55,6 +55,7 @@
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/SQL/DatabaseClaimTester.h"
 #include "../Common/SQL/DatabaseSettings.h"
+#include "../Common/Util/FileUtilities.h"
 
 namespace
 {
@@ -158,7 +159,9 @@ main(int argc, char *argv[])
    try
    {
       HM::IniFileSettings *settings = HM::IniFileSettings::Instance();
-      settings->SetInitializationFile(HM::String(file.string().c_str()));
+      HM::String iniName;
+      (void) HM::FileUtilities::WidePath(file.string().c_str(), iniName);
+      settings->SetInitializationFile(iniName);
       settings->LoadSettings();
 
       const HM::DatabaseSettings::SQLDBType type = settings->GetDatabaseType();

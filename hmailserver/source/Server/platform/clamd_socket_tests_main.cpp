@@ -73,6 +73,7 @@
 #include "../Common/AntiVirus/VirusScannerTester.h"
 #include "../Common/AntiVirus/VirusScanningResult.h"
 #include "../Common/Application/IniFileSettings.h"
+#include "../Common/Util/FileUtilities.h"
 
 namespace
 {
@@ -695,7 +696,9 @@ main(int argc, char *argv[])
              << "ClamMinTimeout=2\n"
              << "ClamMaxTimeout=2\n";
       }
-      HM::IniFileSettings::Instance()->SetInitializationFile(HM::String(file.string().c_str()));
+      HM::String iniName;
+      (void) HM::FileUtilities::WidePath(file.string().c_str(), iniName);
+      HM::IniFileSettings::Instance()->SetInitializationFile(iniName);
       HM::IniFileSettings::Instance()->LoadSettings();
 
       TheFakeCases(directory);

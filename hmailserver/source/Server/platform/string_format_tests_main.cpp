@@ -332,7 +332,9 @@ main(int /*argc*/, char * /*argv*/[])
       }
    }
 
-   HM::IniFileSettings::Instance()->SetInitializationFile(HM::String(file.string().c_str()));
+   HM::String iniName;
+   (void) HM::FileUtilities::WidePath(file.string().c_str(), iniName);
+   HM::IniFileSettings::Instance()->SetInitializationFile(iniName);
    HM::IniFileSettings::Instance()->LoadSettings();
 
    HM::Logger *logger = HM::Logger::Instance();

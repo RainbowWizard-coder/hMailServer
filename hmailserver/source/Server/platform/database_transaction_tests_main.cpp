@@ -43,6 +43,7 @@
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/SQL/DatabaseSettings.h"
 #include "../Common/SQL/DatabaseTransaction.h"
+#include "../Common/Util/FileUtilities.h"
 
 namespace
 {
@@ -170,7 +171,9 @@ Run(int argc, char *argv[])
    int result = 0;
 
    HM::IniFileSettings *settingsFile = HM::IniFileSettings::Instance();
-   settingsFile->SetInitializationFile(HM::String(file.string().c_str()));
+   HM::String iniName;
+   (void) HM::FileUtilities::WidePath(file.string().c_str(), iniName);
+   settingsFile->SetInitializationFile(iniName);
    settingsFile->LoadSettings();
 
    const HM::DatabaseSettings::SQLDBType type = settingsFile->GetDatabaseType();

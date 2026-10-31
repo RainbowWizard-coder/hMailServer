@@ -107,6 +107,7 @@
 #include "../Common/Util/AcmeClient.h"
 #include "../Common/Util/OpenPgpRing.h"
 #include "../Common/Util/OutboundOAuth2TokenClient.h"
+#include "../Common/Util/FileUtilities.h"
 #include "../SMTP/TlsPolicy.h"
 
 namespace HM
@@ -645,7 +646,9 @@ RunNetworkDeadlineTests()
 
    try
    {
-      HM::IniFileSettings::Instance()->SetInitializationFile(HM::String(file.string().c_str()));
+      HM::String iniName;
+      (void) HM::FileUtilities::WidePath(file.string().c_str(), iniName);
+      HM::IniFileSettings::Instance()->SetInitializationFile(iniName);
       HM::IniFileSettings::Instance()->LoadSettings();
       HM::NetworkDeadlineTests::UseTlsSettingsWithoutDatabase();
    }

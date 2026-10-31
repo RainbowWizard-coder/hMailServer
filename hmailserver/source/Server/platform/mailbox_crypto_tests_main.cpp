@@ -90,6 +90,7 @@
 #include "../Common/Util/Crypt.h"
 #include "../Common/Util/MailboxCrypto.h"
 #include "../Common/Util/StoredSecrets.h"
+#include "../Common/Util/FileUtilities.h"
 
 namespace
 {
@@ -420,7 +421,9 @@ namespace
 
          if (failed.empty())
          {
-            HM::IniFileSettings::Instance()->SetInitializationFile(HM::String(file.string().c_str()));
+            HM::String iniName;
+            (void) HM::FileUtilities::WidePath(file.string().c_str(), iniName);
+            HM::IniFileSettings::Instance()->SetInitializationFile(iniName);
             HM::IniFileSettings::Instance()->LoadSettings();
 
             // The line as StoredSecrets writes it, through the machine's store,

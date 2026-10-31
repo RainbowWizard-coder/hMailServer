@@ -49,6 +49,7 @@
 
 #include "../Common/Application/IniFileSettings.h"
 #include "../Common/Threading/WorkQueueManager.h"
+#include "../Common/Util/FileUtilities.h"
 
 namespace
 {
@@ -87,7 +88,9 @@ main(int /*argc*/, char * /*argv*/[])
          return Fail(scratch, "the scratch hMailServer.ini could not be written");
    }
 
-   HM::IniFileSettings::Instance()->SetInitializationFile(HM::String(file.string().c_str()));
+   HM::String iniName;
+   (void) HM::FileUtilities::WidePath(file.string().c_str(), iniName);
+   HM::IniFileSettings::Instance()->SetInitializationFile(iniName);
    HM::IniFileSettings::Instance()->LoadSettings();
 
    printf("      removing two queues while their 20 s tasks run (each stop waits 10 s, then gives up)...\n");

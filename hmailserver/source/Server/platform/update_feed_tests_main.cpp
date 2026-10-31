@@ -49,6 +49,7 @@
 #include <unistd.h>
 
 #include "../Common/Application/IniFileSettings.h"
+#include "../Common/Util/FileUtilities.h"
 #include "../Common/Util/JsonDocument.h"
 #include "../Common/Util/UpdateChecker.h"
 #include "../Common/Util/UpdateInstaller.h"
@@ -56,6 +57,17 @@
 namespace
 {
 #if HM_LIVE_UPDATE
+   // A name under the scratch directory as the server holds it: the path's bytes
+   // read as UTF-8 (FileUtilities::WidePath), which NarrowPath writes back as
+   // they were, where String(const char *) widened each byte to a character and
+   // NarrowPath then named another file under a TMPDIR outside ASCII.
+   HM::String ScratchName(const boost::filesystem::path &path)
+   {
+      HM::String name;
+      (void) HM::FileUtilities::WidePath(path.string().c_str(), name);
+      return name;
+   }
+
    // The checks of SystemdRunCommand; the first that fails is returned.
    std::string CheckSystemdRunCommand()
    {
@@ -169,11 +181,11 @@ namespace
 
       try
       {
-         HM::IniFileSettings::Instance()->SetInitializationFile(String((scratch / "hMailServer.ini").string().c_str()));
+         HM::IniFileSettings::Instance()->SetInitializationFile(ScratchName(scratch / "hMailServer.ini"));
          HM::IniFileSettings::Instance()->LoadSettings();
 
-         const String systemctl = String((scratch / "systemctl").string().c_str());
-         const String answer = String((scratch / "answer.txt").string().c_str());
+         const String systemctl = ScratchName(scratch / "systemctl");
+         const String answer = ScratchName(scratch / "answer.txt");
          int exitStatus = -1;
 
          if (UpdateInstaller::AskHelperUnitState(systemctl, _T("refused.service"), answer, exitStatus) != UpdateInstaller::HelperUnitEnded || exitStatus != 4)
@@ -182,7 +194,7 @@ namespace
             failed = "a helper at work, asked of systemctl, was not read as at work";
          else if (UpdateInstaller::AskHelperUnitState(systemctl, _T("missing.service"), answer, exitStatus) != UpdateInstaller::HelperUnitUnknown)
             failed = "systemctl's refusal was read as a state";
-         else if (UpdateInstaller::AskHelperUnitState(String((scratch / "no-such-systemctl").string().c_str()), _T("refused.service"), answer, exitStatus) != UpdateInstaller::HelperUnitUnknown)
+         else if (UpdateInstaller::AskHelperUnitState(ScratchName(scratch / "no-such-systemctl"), _T("refused.service"), answer, exitStatus) != UpdateInstaller::HelperUnitUnknown)
             failed = "a systemctl that is not there was read as an answer";
          else if (UpdateInstaller::AskHelperUnitState(systemctl, _T("x.service; touch pwned"), answer, exitStatus) != UpdateInstaller::HelperUnitUnknown)
             failed = "a unit name that is not one was asked about";
