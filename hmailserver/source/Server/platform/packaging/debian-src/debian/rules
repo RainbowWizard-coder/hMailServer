@@ -73,11 +73,13 @@ override_dh_auto_configure:
 # notifications and abuse feedback reports, an IMAP session's subscription to
 # the notification server given back with the servers not running (a scratch
 # directory under $TMPDIR), what a task or a session a stop could not end
-# reaches after it (a scratch directory too), and which IMAP moves raise the
-# event script's OnIMAPMessageMoved, with a JavaScript handler called as the
-# event calls it (a scratch directory too), and which IMAP moves teach the spam
-# filter from the Junk folder, for SpamAssassin and for Rspamd, and the request a
-# lesson to Rspamd is (a scratch directory too).
+# reaches after it (a scratch directory too), String::Format's text for every
+# character outside ASCII, held to glibc's vswprintf and read back from the
+# logs (a scratch directory too), which IMAP moves raise the event script's
+# OnIMAPMessageMoved, with a JavaScript handler called as the event calls it (a
+# scratch directory too), and which IMAP moves teach the spam filter from the
+# Junk folder, for SpamAssassin and for Rspamd, and the request a lesson to
+# Rspamd is (a scratch directory too).
 # None needs a socket, reads the system's configuration, needs a database or
 # needs root, so they run here, with the network refused, in under a minute:
 # file-utilities-tests' download, whose server is a loopback one of its own,
