@@ -401,6 +401,11 @@ over IMAP ([Migration.md](hmailserver/docs/Migration.md), "From the original hMa
   character-set converters: install `glibc-gconv-extra` (Fedora, EL) or `glibc-gconv-modules-extra` (openSUSE) by
   hand; the server says when they are missing.
 
+**Verification.** `hMailServer.exe` 6.3.8.47, built from this release's source by `build\build.ps1 -Configuration
+Release` with the toolchain RELEASE.md step 8 names, has the SHA-256
+`5fd0e303cdf3487225f207463978954ba34cfa74db1f99e93ddfa2eee1d30196`, the same from clean and from a second checkout at
+another path ([ReproducibleBuilds.md](hmailserver/docs/ReproducibleBuilds.md)).
+
 ### Security
 
 - **Fixed: `TlsMode=verify-full` on MySQL and MariaDB checks the database server's certificate against the file
