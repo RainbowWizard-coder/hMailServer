@@ -412,7 +412,7 @@ its limit of 125,000 characters, are cut there and attached whole as a file.
 
 That row is done: **since 6.3.5 every release is built, signed and published by
 its tag's GitLab pipeline**, every file with a Sigstore bundle the pipeline signs,
-6.3.7 on 17 October 2026 the latest; 6.3.4 alone was built and signed by hand,
+6.3.8 on 1 November 2026 the latest; 6.3.4 alone was built and signed by hand,
 with Authenticode and no Sigstore bundle ([ContinuousIntegration.md](ContinuousIntegration.md),
 *The release*). The package-manager manifests are rendered by hand, and the
 container image is in the project's container registry, as

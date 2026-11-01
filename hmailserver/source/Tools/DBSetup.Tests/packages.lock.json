@@ -130,14 +130,14 @@
       "dbsetup": {
         "type": "Project",
         "dependencies": {
-          "Shared": "[6.3.7, )",
+          "Shared": "[6.3.8, )",
           "System.ServiceProcess.ServiceController": "[10.0.13, )"
         }
       },
       "dbsetupquick": {
         "type": "Project",
         "dependencies": {
-          "Shared": "[6.3.7, )"
+          "Shared": "[6.3.8, )"
         }
       },
       "shared": {

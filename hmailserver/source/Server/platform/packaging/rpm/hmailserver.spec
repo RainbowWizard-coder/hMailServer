@@ -37,7 +37,7 @@
 %global _lto_cflags %{nil}
 
 Name:           hmailserver
-Version:        6.3.7
+Version:        6.3.8
 Release:        1%{?dist}
 Summary:        Progressive Robot's fork of hMailServer: mail server for SMTP, IMAP and POP3
 # The server is the project's (AGPL-3.0-or-later); compiled into it are QuickJS
@@ -328,6 +328,6 @@ fi
 %{_bindir}/hmctl
 
 %changelog
-* Sat Oct 17 2026 Christopher Holloway <chris.holloway@progressiverobot.com> - 6.3.7-1
+* Sun Nov 01 2026 Christopher Holloway <chris.holloway@progressiverobot.com> - 6.3.8-1
 - The project's own spec, built from the release's source tarball with the live
   update off and the distribution's shared Boost (hmailserver/docs/SourcePackages.md).

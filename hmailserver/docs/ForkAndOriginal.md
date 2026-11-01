@@ -12,7 +12,7 @@ The two projects
 
 **This project is Progressive Robot's fork of hMailServer.** Progressive Robot Ltd
 forked the original in 2026 and released 6.0.0 on 12 June 2026; the latest release is
-6.3.7, of 17 October 2026. It is maintained by Christopher Holloway and Progressive
+6.3.8, of 1 November 2026. It is maintained by Christopher Holloway and Progressive
 Robot Ltd, and its versions are numbered 6.x.
 
 * Home: <https://gitlab.com/hmailserver/hmailserver>, where it is worked on, with the
@@ -55,7 +55,7 @@ The differences at a glance
 
 | | This fork | The original |
 |---|---|---|
-| Versions | 6.0.0 to 6.3.7. The 6.3 line has security fixes until 30 September 2027 ([SECURITY.md](../../SECURITY.md#supported-versions)) | 5.7.1 its latest release, 5.7.2 a pre-release |
+| Versions | 6.0.0 to 6.3.8. The 6.3 line has security fixes until 30 September 2027 ([SECURITY.md](../../SECURITY.md#supported-versions)) | 5.7.1 its latest release, 5.7.2 a pre-release |
 | Windows | 64-bit, from Windows 10 1607 and Windows Server 2016; an ARM64 installer as a preview that has never run on ARM64 hardware ([WindowsOnArm.md](WindowsOnArm.md)) | 64-bit from 5.7.0; its installer runs from Windows Vista SP2 |
 | Linux | Since 6.3.0. The latest release has a `.deb` and an `.rpm` for Debian 12 and 13, Ubuntu 24.04, Fedora 44 and 43, EL 10 and 9, openSUSE Leap 16.0 and Tumbleweed, and an AppImage, each for x86-64 and AArch64 ([PackagesDeb.md](PackagesDeb.md), [PackagesRpm.md](PackagesRpm.md), [PackagesAppImage.md](PackagesAppImage.md)) | Its releases are Windows installers |
 | Containers and Kubernetes | A signed image, `registry.gitlab.com/hmailserver/hmailserver`, for linux/amd64 and linux/arm64, and a Helm chart ([ContainerImage.md](ContainerImage.md)) | Its releases are Windows installers |

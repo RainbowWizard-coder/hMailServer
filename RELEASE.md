@@ -433,8 +433,11 @@ way had been finished and folded into one batch, and of 15 October 2026 to add
 to it the work already done for a later release, and more fixes (SECURITY.md,
 "What gets a release"). 6.3.7 also carries the work that was under way on 13
 October 2026 and, by the decision of 15 October 2026, the work already done for
-a later release. The steps below, and their window of about a day, stay the
-rule for every release after it.
+a later release. 6.3.8 did not keep it for one of its fixes: work item 100's was
+public on GitLab from 19 October 2026 and on `master` from 20 October 2026, a
+week before it was judged a vulnerability, until 6.3.8 was released
+(SECURITY.md, "What gets a release"). The steps below, and their window of about
+a day, stay the rule for every release after 6.3.8.
 
 **Before starting**, check what the release depends on is still valid: the
 table in SECURITY.md, "What must stay valid for a security release". In

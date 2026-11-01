@@ -9,8 +9,8 @@ to 6.3.5 link the project's first path, `gitlab.com/Progressiverobot/hmailserver
 This project is a maintained fork of hMailServer 5.7 by Martin Knafve. Its own releases begin at 6.0.0; the
 `hMailServer-5.7.0-bNNNN` tags in the repository are upstream builds, not releases of this project.
 
-**The latest release is 6.3.7, published on 17 October 2026.** Anything that arrived after it is in the tree
-after 6.3.7 and not yet released. It is listed under [Unreleased](#unreleased---in-the-tree-after-637-not-yet-released)
+**The latest release is 6.3.8, published on 1 November 2026.** Anything that arrived after it is in the tree
+after 6.3.8 and not yet released. It is listed under [Unreleased](#unreleased---in-the-tree-after-638-not-yet-released)
 and will carry a version number when a release is cut.
 
 ## Where the releases are
@@ -86,7 +86,320 @@ with `--check`).
 
 ---
 
-## Unreleased - in the tree after 6.3.7, not yet released
+## Unreleased - in the tree after 6.3.8, not yet released
+
+---
+
+## [6.3.8](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.8) - 2026-11-01
+
+Everything that landed on `master` after the `v6.3.7` tag, from 17 October 2026 ([compare `v6.3.7` with
+`v6.3.8`](https://gitlab.com/hmailserver/hmailserver/-/compare/v6.3.7...v6.3.8)). This is Progressive Robot's fork of
+hMailServer. 6.3.8 is a security release: it fixes vulnerabilities the project found in its own code, each a work item
+with a CVE request through GitLab's CNA, and the four narrower cases of work item 78 that 6.3.7's notes left open.
+Between them they reach back to 6.0.0's first beta: **upgrade every server running 6.3.7 or earlier.** It was first
+decided, while releases pause, because the published Helm charts of 6.3.6 and 6.3.7 did not start a server,
+which only a release puts right, and that reason stands beside the fixes; it also puts right the container image, which
+could not reach a MariaDB database, and the Windows installer, which ran over an installation of the original
+hMailServer's 5.7, and it carries the finished work `master` holds (*Why there is a 6.3.8*, below). The schema stays at
+**6108**, as 6.3.6 and 6.3.7 have it: 6.3.8 adds no upgrade step. What changes on upgrade without a switch follows the
+Security section.
+
+**What it fixes, and for whom.** Each is in its section below, with what changed and how it is tested. The
+vulnerabilities first; their work items are made public, and their advisories published, once 6.3.8 is on the update
+feed:
+
+- **The database layer's test for the marker that lets a statement's error be ignored, and the log's and the trace's
+  redaction of a statement's literals, read a literal as each engine does**
+  ([work item 100](https://gitlab.com/hmailserver/hmailserver/-/work_items/100); *Security*).
+- **The auto-ban saves the IP range it adds under a name of its own, so that it bans the address**
+  ([work item 102](https://gitlab.com/hmailserver/hmailserver/-/work_items/102); *Security*).
+- **A sign-in's name is matched to its account as the per-name lockout and the compromised-account hold count it**
+  ([work item 104](https://gitlab.com/hmailserver/hmailserver/-/work_items/104); *Security*).
+- **The web services listener (CardDAV, CalDAV, Autodiscover) refuses an address an auto-ban or an IP range bans**
+  ([work item 105](https://gitlab.com/hmailserver/hmailserver/-/work_items/105); *Security*).
+- **A failed sign-in at the web services listener through a proxy is no longer charged to the proxy's address**
+  ([work item 106](https://gitlab.com/hmailserver/hmailserver/-/work_items/106); *Security*).
+- **A failed account sign-in at the REST listener through a reverse proxy on the same machine is no longer charged to
+  127.0.0.1** ([work item 107](https://gitlab.com/hmailserver/hmailserver/-/work_items/107); *Security*).
+- **The REST API, and the reader of a report mailed to a domain's report address, read a JSON body in time and memory
+  that follow its bytes** ([work item 110](https://gitlab.com/hmailserver/hmailserver/-/work_items/110);
+  [work item 111](https://gitlab.com/hmailserver/hmailserver/-/work_items/111); *Security*).
+- **`TlsMode=verify-full` on MySQL and MariaDB checks the database server's certificate against the CA file `TlsCaFile`
+  names** ([work item 112](https://gitlab.com/hmailserver/hmailserver/-/work_items/112); *Security*). Its entry corrects
+  what 6.3.7's notes said of a named `TlsCaFile` as the mitigation for CVE-2026-107819, MariaDB Connector/C's own flaw.
+  On Linux the client is the distribution's, which should be MariaDB Connector/C 3.4.11 or later; where it is older and
+  not patched, name the CA in `TlsCaFile` ([DatabaseTls.md](hmailserver/docs/DatabaseTls.md)).
+- **The database client's `TlsMode=verify-full` check of a database server on this machine, on MySQL and MariaDB**
+  ([work item 113](https://gitlab.com/hmailserver/hmailserver/-/work_items/113); *Security*).
+- **On Windows the database clients check the database server's certificate against the root certificate file named, or
+  refuse its name** ([work item 114](https://gitlab.com/hmailserver/hmailserver/-/work_items/114); *Security*).
+- **On Windows the files the server hands to OpenSSL by name are read from the file configured, or refused**
+  ([work item 115](https://gitlab.com/hmailserver/hmailserver/-/work_items/115); *Security*).
+- **On Windows the bundled MySQL and MariaDB client, MariaDB Connector/C, loads its authentication plugins from the
+  installation's own plugin folder, or from none**
+  ([work item 116](https://gitlab.com/hmailserver/hmailserver/-/work_items/116); *Security*).
+- **On Windows, setup makes or hardens the program folder, `Bin` and `ControlPanel` before it copies a file or runs a
+  program of the installation, and refuses a folder or a link on the way to them, or a program, library or script in
+  them, that another account controls** - the four narrower cases of work item 78 that 6.3.7's notes listed as still
+  open ([work item 78](https://gitlab.com/hmailserver/hmailserver/-/work_items/78); *Security*).
+- **Published with it: the advisory for a flaw in the auto-ban on MySQL and MariaDB that 6.3.4 fixed**
+  ([work item 103](https://gitlab.com/hmailserver/hmailserver/-/work_items/103)).
+
+Each was found by the hMailServer project (Progressive Robot Ltd). The other fixes and changes an administrator meets:
+
+- **The Helm chart starts a server** (*Downloads and the release*, *Correctness*). Installed into a cluster, the charts
+  of 6.3.6 and 6.3.7 never started a pod: the image names its user, which Kubernetes cannot hold to the chart's
+  `runAsNonRoot`, and once given the user by number the server stopped at a configuration volume that hid the image's
+  settings file. 6.3.8's chart runs the pod as the image's user by number, 999:999, fills new volumes in an init
+  container, and secures a new installation at its first start, as the packaged systemd unit does; so does the Compose
+  file. The pod sets `net.ipv4.ip_unprivileged_port_start` to 0 in its own security context, so that the server binds
+  the mail ports under containerd 1.7 and CRI-O too. A release of the 6.3.6 or 6.3.7 chart is moved with `helm upgrade
+  --reset-then-reuse-values` and then `kubectl delete pod` (*Before you upgrade*, below).
+- **The container image reaches a MariaDB database** (*Downloads and the release*). The images of 6.3.7 and earlier
+  carried PostgreSQL's client alone, so a container told `HM_DB_TYPE=MySQL` stopped at its first start; 6.3.8's
+  carries MariaDB Connector/C (`libmariadb3`), and the release's pipeline starts each platform's pushed image beside
+  PostgreSQL and beside MariaDB and asks each for SMTP, the REST API and the schema it laid out. The chart passes a
+  database port only when one is set, so a chart told `MySQL` no longer dials MariaDB on PostgreSQL's port. Found by
+  the project's own audit of its listings. The image's entrypoint also secures a new installation by itself, whatever
+  the container's command, and takes the database and administrator passwords out of the environment before it runs
+  any program (*Security*).
+- **The Windows installer refuses an installation of the original hMailServer's 5.7** (*Correctness*). Both projects'
+  installers register as `hMailServer_is1`, so the installers of 6.3.7 and earlier took an installation of the
+  original's 5.7 builds of August and September 2026 (schema 5709 to 5711, which this fork's upgrade chain has no step
+  from) for their own and replaced its programs. 6.3.8's setup asks first, before a page is shown or anything is
+  installed or stopped, refuses such an installation with a message that says nothing has been changed, and, silent,
+  ends with exit code 1 and writes the reason to its log (`/LOG`) and to `hMailServer-setup-refused.txt` in `%TEMP%`.
+  An installation of this fork, or of the original up to 5.6, is upgraded as before. The installers of 6.3.7 and
+  earlier do not look: never run one over the original's 5.7.
+- **A host added to `AcmeDomains` no longer waits for the renewal, and a check can be asked for**
+  ([work item 98](https://gitlab.com/hmailserver/hmailserver/-/work_items/98), `ThiagoES84`; *Correctness*,
+  *Administration*, *Control Panel*). The hourly check never looked at a certificate's names, so an added host waited
+  for the renewal, some sixty days. A certificate that does not name every host the list holds is now due at once, a
+  save of `AcmeDomains` in the running server starts the check (a value `hmailserver --set-setting` stores is read at
+  the next reinitialise or start), the certificate is issued once the CA has validated every host on the list, and
+  `GET /api/v1/acme` and `POST /api/v1/acme/run` (COM `Utilities.GetAcmeStatus` and `Utilities.RunAcmeCheck`, the
+  Control Deck's *Certificates* page) give the certificate's state and ask for a check, one at a time, with the CA's
+  rate limits and a pause after a failed attempt kept whatever starts it. The certificate a CA sends is installed only
+  when it is for the request's key, names every host asked for and has not expired.
+- **An event after an IMAP move, for scripts**
+  ([work item 109](https://gitlab.com/hmailserver/hmailserver/-/work_items/109), `ThiagoES84`; *Administration*).
+  `OnIMAPMessageMoved` is called once for each message an IMAP `MOVE` or `UID MOVE` moved between two folders of the
+  account signed in, after the command has done all of its work and off the IMAP thread. Off as shipped:
+  `IMAPMessageMovedEvents` switches it on.
+- **Rspamd learns from the Junk folder, beside SpamAssassin**
+  ([work item 108](https://gitlab.com/hmailserver/hmailserver/-/work_items/108), `ThiagoES84`; *Administration*). A
+  message a user moves into Junk is taught as spam and one moved out as ham to the filter `MoveLearningBackend` names:
+  SpamAssassin, the default, taught as before, or Rspamd through its controller, for the classifier
+  `RspamdClassifier` names. Nothing is sent to Rspamd until it is chosen and its controller and classifier are set
+  ([JunkFolderLearning.md](hmailserver/docs/JunkFolderLearning.md)).
+- **A REST request body meant to be JSON must be one JSON object** (*Correctness*). The server answers 400, saying
+  why, before it reads one that is not, names a member twice or passes the bounds the entry gives, and every member
+  reader reads the one parse, so that a key spelt inside a value is no longer read as the member it is not.
+- **The database client's lines say what it checks** (*Correctness*): `--check-database` and PostgreSQL's connection
+  line name the root certificate libpq is handed and what it checks.
+- **On Linux a file's name outside ASCII is one name, UTF-8, whatever `LANG` says** (*Correctness*). It was two files,
+  or a file and an exception, by the call that opened it, and a `LANG` naming a locale the machine does not have
+  stopped the server at its start. spamd's `User:` header now carries a name outside ASCII, and the legacy Blowfish
+  scheme refuses a secret it cannot carry, saying whose it was, where it wrote an empty one. A server that ran under a
+  `LANG` that is not UTF-8 renames its folders first (*Before you upgrade*, below).
+- **On Alpine, log lines and other text holding a character outside ASCII are written** (*Correctness*), where each
+  came out empty.
+- **A stop of the servers is no longer reported as errors of their own** (*Correctness*). Work that outlasted a stop -
+  a reinitialise among them - met the stop's interruption and wrote it to the error log as a failure (HM5136 and the
+  other codes the entry names), which also ran an installed OnError script; each now writes a line to the debug log
+  and ends as the stop asked, and a database connection such a call held goes back to the pool. A session or a task
+  that went on after a stop no longer reaches for what the stop let go of, which on Linux ended the process.
+- **The Linux server reaches clamd over its Unix socket** (*Administration*): `ClamAVHost` takes the socket's
+  absolute path ([ClamAV.md](hmailserver/docs/ClamAV.md)).
+- **The command-line clients** (*Correctness*): the PowerShell module says why a call got no answer under Windows
+  PowerShell 5.1, and `Set-HmOpenPgpKey -Path` sends the key there; `hmctl` reads a file that begins with a byte
+  order mark - a configuration document, `--from-json`, `--password-file` and `--passphrase-file` - and refuses a
+  body holding `NaN` or `Infinity` before it is sent.
+- **The Control Panel** (*Control Panel*): the Logging page names the destination a new installation has as *Files on
+  disk*; the Anti-spam page opens and saves on a server whose refuse threshold is at or below its mark threshold,
+  saying what that pair does, and the *Anti-spam overview* reads the quarantine switch; the ACME page and the Setup
+  checklist read `AcmeDomains` as the server does.
+- **Who made what.** The packages, the image, the chart, the snap and the command-line clients say that they are
+  Progressive Robot's fork of hMailServer and credit the original's author, Martin Knafve; his copyright notices are
+  back on the original's files; the tree is REUSE-compliant, with a CI job that holds it; the third parties whose
+  work the tree carries are credited under their licences - Feather's icons (Cole Bemis), the Contributor Covenant,
+  commonmark.js (John MacFarlane), GitLab's secret detection rules and Microsoft's Fluent icons in the README's
+  screenshots; and two pieces of third-party code that stated no licence - the installer's service routines and the
+  tools' tab-order helper - are written anew (*Correctness*, *Downloads and the release*, *Build and tests*).
+- **New ways to install** (*Downloads and the release*): an Ansible collection, `progressiverobot.hmailserver`
+  ([Ansible.md](hmailserver/docs/Ansible.md)); a Kubernetes operator for Operator Lifecycle Manager; and a container on
+  Proxmox VE with one command on the host ([Proxmox.md](hmailserver/docs/Proxmox.md)), whose scripts have not yet run
+  on a Proxmox VE host (*Known issues*, below).
+- **The release's files** (*Downloads and the release*): the release carries `hmailserver-6.3.8.intoto.jsonl`, its
+  SLSA build provenance as one line of JSON beside `hmailserver-6.3.8.intoto.sigstore.json`; the provenance is held to
+  the pipeline that publishes it and to what GitLab certified of the run; and the documents say its SLSA level, Build
+  L1 and no higher.
+
+Reported from outside and answered besides: on-demand ACME issuance (work item 98), Rspamd learning from the Junk
+folder (work item 108) and an event after an IMAP move (work item 109), each asked for by `ThiagoES84`. Thank you.
+
+**Why there is a 6.3.8.** While releases pause, a release is made for a confirmed vulnerability, and other defects
+ship with the next one ([SECURITY.md](SECURITY.md), "What gets a release"). 6.3.8 was first decided on 24 October 2026
+under the owner's delegation for another reason: the published charts of 6.3.6 and 6.3.7 start no server, and neither
+the chart nor the image of a release can be put right but by a release. The project's own work since found the
+vulnerabilities above, each with a CVE request, and 6.3.8 is made as a security release ([SECURITY.md](SECURITY.md),
+"How a security release is made"), the chart's reason standing beside them. One of its fixes, work item 100's, was
+public on GitLab from 19 October 2026 and on `master` from 20 October 2026, a week before it was judged a
+vulnerability, as SECURITY.md says; the others were pushed with the release. Work item 108 and work item 109, asked
+for on 29 October 2026, were put into it on 30 October 2026, each off until it is switched on. Like every release
+during the pause it is cut from `master` with the finished work `master` holds then, and so it carries everything that
+landed after 6.3.7: the work above, the channels' packages and texts, and the documents.
+
+**Signing, and who installs this release by the live update.** Every file is signed with Sigstore as this release's
+own pipeline at the group's path, `https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/v6.3.8`,
+issuer `https://gitlab.com`, with the project's id, 86730559, in the certificate, as 6.3.6 and 6.3.7 were. Every
+server from 6.3.4 on has that signer compiled in and requires the id for it. The update is applied by the version
+already installed, so:
+
+- **From 6.3.7 or 6.3.6** the live update installs 6.3.8, with the running version's own file as its rollback image.
+  A Windows service running as LocalSystem installs it itself; one running as `NT SERVICE\hMailServer` downloads and
+  verifies it, and an administrator installs it with *Install update* on the Server status page of the Control Panel
+  on the server: one Windows prompt, and the installer is checked again, elevated, before it runs. On Linux the
+  installed version's update helper applies it, for the generic `.deb` and `.rpm` of either architecture and for both
+  AppImages; an ARM64 Windows server finds the ARM64 installer by name. A server installed from one of 6.3.6's or
+  6.3.7's per-distribution packages is offered the generic package, which apt refuses on Debian 12 and dnf on
+  Enterprise Linux 9: upgrade it with its package manager and its own release's package of 6.3.8. No live update is
+  known to have installed a release signed at the group's path when these notes were written.
+- **From 6.3.4 or 6.3.5** what 6.3.7's notes said of those two versions still holds: a Windows service running as
+  LocalSystem installs 6.3.8 by its live update, from 6.3.5 with 6.3.5's file as its rollback image, which is no way
+  back once the upgrade's schema steps have run, and from 6.3.4 without one; one running as `NT SERVICE\hMailServer`
+  leaves the install to an administrator, whose *Install update* on those versions cannot do it, so install 6.3.8 by
+  hand, once; on Linux install it with apt, dnf or zypper rather than by the live update, whose apply step on 6.3.4 and
+  6.3.5 is the one 6.3.6 fixed, or turn the apply off first with `systemctl disable --now hmailserver-update.path`.
+- **A server whose `UpdateSigningIdentity`, `UpdateSigningIssuer` and `UpdateSourceRepository` still name the path the
+  project began at** refuses every release signed after the project moved, 6.3.8 included: clear the three first, as
+  [UpdateFeed.md](hmailserver/docs/UpdateFeed.md) says.
+- **From 6.2.28 to 6.3.3, and from 6.3.3's AArch64 packages or AppImages:** by hand, once, after the backup
+  [Upgrading.md](hmailserver/docs/Upgrading.md) describes ([UpdateFeed.md](hmailserver/docs/UpdateFeed.md), "A server
+  from 6.2.28 to 6.3.3"). **Older than 6.2.28:** run the installer, as always; the upgrade chain runs from every
+  earlier version of this fork, and from the original hMailServer up to 5.6 and its 5.7 development builds up to
+  schema 5708, and not from the original's 5.7 releases, which 6.3.8's installer refuses
+  ([Migration.md](hmailserver/docs/Migration.md), "From the original hMailServer", says how such a server's mail moves).
+- **The container image**, `registry.gitlab.com/hmailserver/hmailserver:6.3.8`, also tagged `6.3` and `latest`, is
+  pushed from this release's own pipeline once the release is published, by a job started by hand, as 6.3.6's and
+  6.3.7's were: in the container the update check names the image to pull and installs nothing
+  ([ContainerImage.md](hmailserver/docs/ContainerImage.md)).
+
+By hand on Windows: download `hMailServer-6.3.8-x64.exe` from this release, check that `Get-AuthenticodeSignature`
+reports it `Valid` and signed by `CN=Progressive Robot Ltd`, and run it as an administrator, keeping the service
+account on the installer's *Service account* page. On a machine that has not seen the file before, Windows
+SmartScreen may say that it "prevented an unrecognized app from starting": *More info* names the publisher,
+Progressive Robot Ltd, and with the signature checked, *Run anyway* installs it.
+
+**Back up first; no schema step.** Take the backup [Upgrading.md](hmailserver/docs/Upgrading.md) describes - the
+database and the data directory, each with its own tools - before installing. 6.3.8 requires schema 6108, as 6.3.7
+and 6.3.6 do, and adds no upgrade step, so an upgrade from either changes no table, and the live update's rollback,
+should 6.3.8 not start, meets no newer schema. From 6.3.5 or older the upgrade runs 6.3.6's three steps to 6108,
+which are one-way (6.3.6's notes; from 6.3.3 or older 6.3.4's steps come first), and the backup is the only way back.
+
+**The .NET 10 Desktop Runtime.** The installers carry 10.0.13, as 6.3.7's did, and install it only on a machine that
+has no .NET 10 Desktop Runtime at all: an upgraded server keeps the runtime it had. Bring it up to date through
+Microsoft Update, or with Microsoft's installer (<https://dotnet.microsoft.com/download/dotnet/10.0>);
+`dotnet --list-runtimes` lists what a machine has ([Upgrading.md](hmailserver/docs/Upgrading.md), "The .NET 10
+runtime").
+
+**Before you upgrade.** What an upgraded server does differently with no setting turned is in *What changes on upgrade
+without a switch*, below. A server upgraded from 6.3.6 or earlier meets as well what 6.3.7's section says under its
+*Before you upgrade* and in its list, and one from 6.3.5 or earlier what 6.3.6's list says. The changes most likely to
+need something done:
+
+- **A release of the Helm chart of 6.3.6 or 6.3.7** (its pod never started): `helm repo update`, `helm upgrade
+  <release> hmailserver/hmailserver --reset-then-reuse-values` (Helm 3.14 or later), then `kubectl delete pod
+  <release>-hmailserver-0`, since the StatefulSet replaces no pod while one is not Running and Ready. With
+  `--reuse-values` instead the release keeps the old chart's `fsGroup` 1000 and `database.port` 5432; the pod still
+  runs as 999. In a cluster whose policy refuses every sysctl, set `unprivilegedPortsSysctl: false`.
+- **A Compose deployment made from an earlier Compose file:** keep its `HM_REST_CERTIFICATE_FILE`,
+  `HM_REST_PRIVATE_KEY_FILE` and `./certs` mount in the new file, the key readable by 999, or its REST API, and with
+  it the Control Deck, the webmail and `hmctl`, does not start ([ContainerImage.md](hmailserver/docs/ContainerImage.md),
+  "Updates").
+- **`AcmeDomains` listing a host the certificate lacks:** the first check orders a certificate for every host on the
+  list. A host the CA cannot validate - it does not resolve to the server, or its port 80 is not reached - fails the
+  whole order, at most three times an hour, and holds the renewal for the other hosts with it: take such a host off
+  the list before upgrading.
+- **`TlsMode=verify-full` on MySQL or MariaDB through MariaDB Connector/C without `TlsCaFile`, to a server on this
+  machine** (`127.0.0.1`, `::1`, `localhost`, an empty `Server=`, `.` for a named pipe on Windows, or a `Server=` list
+  that holds one; Connector/C is the client the Windows installer bundles and the one the Linux server loads,
+  `libmariadb.so.3`): 6.3.8 refuses the connection with HM7535. Name in `TlsCaFile` a CA that issues nothing but the
+  database's certificates, the one that issued its certificate ([DatabaseTls.md](hmailserver/docs/DatabaseTls.md)), or
+  set `TlsMode=require`, before upgrading.
+- **On Windows, a `TlsCaFile` (with `TlsMode=verify-full`) or a `PostgreSQLSslRootCert` whose path holds characters
+  outside ASCII:** 6.3.8 may refuse the name with HM7534, and then does not attempt the connection to the database.
+  Give the file, and the folders above it, an ASCII name before upgrading
+  ([DatabaseTls.md](hmailserver/docs/DatabaseTls.md)).
+- **On Windows, a TLS certificate or private key file, `dh2048.pem`, a client-certificate CA file,
+  `MessageStoreObjectCaFile`, `OAuth2PublicKeyFile` or `AcmeCertificateDirectory`, whose path holds characters outside
+  ASCII:** 6.3.8 may refuse the name with HM7536, and then what the file is for does not work - a port whose
+  certificate or key it names does not start. Give each such file, and the folders above it, an ASCII name before
+  upgrading.
+- **A Linux server that ran under a `LANG` that is not UTF-8**, with a data directory, a domain or account folder,
+  `LogFolder`, `TlsCaFile` or a TLS certificate or key file named outside ASCII: 6.3.8 names files in UTF-8 whatever
+  `LANG` says, so rename each to its UTF-8 name before upgrading, for example with
+  `convmv -f iso-8859-1 -t utf-8 -r --notest <folder>`. Under a UTF-8 `LANG`, the packages', nothing changes.
+- **IP ranges of your own that allow some addresses none of SMTP, POP3 and IMAP**, with the web services listener on:
+  such a range now closes that listener to those addresses as well - ACME's http-01 validation when this listener
+  answers it, MTA-STS, CalDAV, CardDAV, Autodiscover, autoconfiguration and the Web Key Directory - so check that the
+  certificate authority, the sending MTAs and these services' clients do not come from one.
+- **A REST client of your own** that sends a body that is not one JSON object, names a member twice, holds an escaped
+  U+0000 or passes the bounds (100,000 values, 32 levels deep), or that writes a member whose absence is the wider
+  setting as another type than its route reads - a quoted flag, an array for a text: the server answers it with 400
+  (*REST request bodies*, in the list below).
+- **A mail client that signs in with another spelling of the account's address** than the stored one, in more than
+  the case of the letters A to Z, or with white space at either end: it may no longer sign in. Correct the name in the
+  client (*Sign-in names*, in the list below).
+- **Installing with Chocolatey:** its install now passes the installer `/LOG`, and the log records setup's command
+  line, so give the administrator password in `HM_ADMIN_PASSWORD`, set in the elevated prompt, rather than with
+  `/adminpassword` in `--install-arguments` ([PackageManagers.md](hmailserver/docs/PackageManagers.md)).
+- **On Windows, a program folder, `Bin` or `ControlPanel`, or a folder or a link on the way to them, that another
+  account than SYSTEM, the Administrators and TrustedInstaller controls:** setup refuses it with exit code 7, naming
+  the `icacls` that deals with it, and asks for a restart of Windows before it runs again
+  ([ServiceAccount.md](hmailserver/docs/ServiceAccount.md)).
+- **Anything that counts the error log or relies on an OnError script during a stop:** a stop's interruption is no
+  longer written there; an event script's call that meets a stop fails with "The server is stopping. The request was
+  not completed." and its script error goes to the debug log.
+- **On Windows, an installation of the original hMailServer's 5.7** is refused by 6.3.8's setup before it changes
+  anything; move its mail over IMAP instead.
+
+**What 6.3.8 fixes of what 6.3.7 left open, and what it does not.** The four narrower cases of work item 78 that
+6.3.7's notes listed as still open are fixed in this release
+([work item 78](https://gitlab.com/hmailserver/hmailserver/-/work_items/78), above). The original hMailServer's 5.7
+releases are still not on the upgrade chain: 6.3.8's installer refuses an installation of them, and its mail moves
+over IMAP ([Migration.md](hmailserver/docs/Migration.md), "From the original hMailServer").
+
+**Known issues.**
+
+- **The ARM64 installer has never run on ARM64 hardware.** It is cross-compiled on the project's x64 Windows runner and
+  remains a preview ([WindowsOnArm.md](hmailserver/docs/WindowsOnArm.md)); the AArch64 Linux files are cross-compiled,
+  and installed - the generic `.deb` and `.rpm` started as well - in the release's pipeline under emulation: no AArch64
+  machine has run them. If you install either, please say how it went, working or not, in
+  [an issue](https://gitlab.com/hmailserver/hmailserver/-/issues).
+- **The channels are published to by jobs started by hand.** The Ubuntu PPA, Fedora Copr, Docker Hub, Chocolatey,
+  PyPI and the PowerShell Gallery are sent 6.3.8 from this release, verified against its bundles, by a job started by
+  hand on `master` once the release is published; a Chocolatey version is listed once its moderators have approved
+  it. The openSUSE Build Service's job runs once its package holds this tree's new `_service`, which a maintainer puts
+  in after the release is published, since 6.3.7's tarball lacks a file it takes; until then it keeps 6.3.7. A job
+  started the same way uploads the snaps to the Snap Store's `edge` and `candidate` channels, `stable` being promoted
+  by hand; 6.3.8's are the first there, since 6.3.7's snaps could not read their configuration and were never uploaded
+  ([Channels.md](hmailserver/docs/Channels.md), [Snap.md](hmailserver/docs/Snap.md)). The Ansible collection is not on
+  Ansible Galaxy yet ([Ansible.md](hmailserver/docs/Ansible.md)): the collection in the tree pins 6.3.7's `.deb` files,
+  and installs that release unless it is given another's SHA-256, until the collection built for Galaxy pins 6.3.8's.
+  The operator's pull request to OperatorHub.io is made by hand.
+- **The Proxmox VE scripts have not run on a Proxmox VE host.** None was available: the container's creation is shown
+  by a dry run and by stand-ins of Proxmox VE's commands, and the install ran in a container made from Proxmox VE's own
+  `debian-13-standard` template ([Proxmox.md](hmailserver/docs/Proxmox.md), "What has run"). If you run them, please
+  say how it went in [an issue](https://gitlab.com/hmailserver/hmailserver/-/issues).
+- **The image's OpenSSL** is Ubuntu 24.04's 3.0.13, which has neither the hybrid post-quantum key exchange groups
+  (OpenSSL 3.5) nor Argon2id (3.2): its server logs HM5720 at its start and takes the classical groups, makes with
+  scrypt the hashes it would make with Argon2id, and `GET /api/v1/status` now says `false` for `argon2id` and
+  `post_quantum_key_exchange`, from the library it runs with ([ContainerImage.md](hmailserver/docs/ContainerImage.md),
+  "What is not shown yet").
+- **An AppImage on Fedora, Enterprise Linux or openSUSE** runs on the host's glibc and cannot require its extra
+  character-set converters: install `glibc-gconv-extra` (Fedora, EL) or `glibc-gconv-modules-extra` (openSUSE) by
+  hand; the server says when they are missing.
 
 ### Security
 
@@ -617,6 +930,184 @@ with `--check`).
   every folder, program and library in `Bin` and `ControlPanel`, and `Bin\hMailServer.INI`, to the live update's rule,
   and said the first it found on a `CHECK` line. Found by the hMailServer project (Progressive Robot Ltd).
 
+### What changes on upgrade without a switch
+
+1. **ACME: a host the certificate lacks is ordered at the first check.** A server whose `AcmeDomains` lists a host its
+   certificate does not name orders a certificate for every host at the first check after the upgrade, where it waited
+   for the renewal; if the CA cannot validate that host, the attempt fails from then on, at most three times an hour
+   (no order within twenty minutes of a failed one), and since each order names every host, no certificate is issued
+   and the one the other hosts use is not renewed while it stays on the list. A name no certificate can carry - a
+   wildcard, an IP address, a name past ASCII not in its `xn--` form, one holding a character no host name can - is left
+   out of the check and the order and named in the application log at each check, where it failed every order. A CA's
+   `rateLimited` answer holds every order until its `Retry-After` (an hour without one, at most seven days). An ACME URL
+   that is not `https` is refused unless it is to this machine. The certificate a CA sends is installed only when it is
+   a PEM certificate for the request's key, naming every host asked for and not expired; otherwise the certificate in
+   use stays, and the log says why. Installing one reinitialises the server, as before. (*Correctness*, "a host added to
+   `AcmeDomains`")
+2. **A stop is no longer an error.** Work that outlasted a stop of the servers - a reinitialise among them - writes a
+   line to the debug log where it wrote HM5136 or one of the other codes the entries name to the error log, which also
+   ran an installed OnError script; the error log of a server that reinitialises may be quieter.
+   An event script's call that meets a stop fails with "The server is stopping. The request was not completed.", its
+   script error goes to the debug log, and the event ends there; `Scripting.Reload`, `CheckSyntax` and `Enabled` met by
+   a stop keep the scripts loaded before. A database connection such a call held goes back to the pool, where on SQL
+   Server Compact every later statement waited a minute and failed (HM5180). (*Correctness*, "a session whose
+   command outlasted a stop" and "work that outlasted a stop")
+3. **With the servers stopped, or after a stop that could not end a thread:** a delivery going on after the stop
+   defers its recipients (4.3.0) and is retried after the start with the try not counted; a message being finalised
+   goes on without a SpamAssassin verdict; an external account's `DownloadNow` succeeds and the account is fetched when
+   the servers start; a clear of the delivery queue reports HM4210 and clears nothing; a change made through COM, a
+   message saved into an IMAP folder among them, succeeds where it was answered with an error after being made; and a
+   session that lived through a stop gives back its own folder subscription and nobody else's. (*Correctness*, "an
+   IMAP session that ended after a stop" and "a task or a session that a stop of the servers could not end")
+4. **On Windows, a stop of the REST API's or the web services' HTTP listener** gives the connections it closed five
+   seconds to drain, where it gave about six and a quarter. (*Correctness*)
+5. **On Windows, setup refuses an installation of the original hMailServer's 5.7** (5.7.0 and its pre-release builds
+   2788 and 2843, 5.7.1 and 5.7.2) before it changes anything; silent, it ends with exit code 1, and writes the reason
+   to its log with `/LOG` and to `hMailServer-setup-refused.txt` in its `%TEMP%`, which a later setup that is not
+   refused deletes. Installations of this fork, and of the original up to 5.6 and its 5.7 development builds up to
+   schema 5708, are upgraded as before. (*Correctness*)
+6. **On Windows, setup and the uninstaller find and stop the service through routines written anew** from Microsoft's
+   documentation: the service's name reaches Windows through its Unicode functions, the Service Control Manager is
+   opened with `SC_MANAGER_CONNECT` alone; where Windows will not open it, setup, or the uninstaller, says so with
+   Windows' reason in its log and in a message, and a stop that Windows refuses is written to the setup log with
+   Windows' reason. (*Correctness*, "the Windows installer finds, reads and stops")
+7. **On Windows, setup makes or hardens the program folder, `Bin` and `ControlPanel` before it copies a file or runs a
+   program of the installation.** A folder, a link on the way to them, or a program, library, script or settings file
+   in them, that another account than SYSTEM, the Administrators and TrustedInstaller controls, and a program folder
+   on a share or on a volume that keeps no permissions, end the installation with exit code 7, each named with the
+   `icacls` that deals with it and, where it says so, a restart of Windows before setup runs again; anything not as
+   setup left it after the files ends it with exit code 12 and sets the service not to start until setup runs again.
+   An entry of a folder's own that lets a named account or group change it is kept and said in the setup log.
+   `hMailServer.exe /ProtectFolders` says a key or certificate file that inherits a group of every user's Read as
+   inheriting it, and `hMailServer.Updater` puts no earlier version back over folders setup found changed. (*Security*,
+   work item 78's entries)
+8. **The log's redaction of literals:** the slow-query line and the trace's `db.statement` read a literal as the
+   configured database does, so a line may differ from before. (*Security*)
+9. **The auto-ban's ranges:** a ban for a long user name is named with the user name cut so that the name and its
+   suffix fit the column, and the Auto-ban page shows it so; a range name over 100 characters given over COM or the
+   REST API is stored as its first 100, as before, and now reads back as stored; and `POST /api/v1/ipranges` reads a
+   name in UTF-8, as `PUT` does. (*Security*, "a run of failed logons")
+10. **Sign-in names:** a name signs in to an account only when it is the account's stored address, compared in lower
+    case, as the C library lowers it in the C locale (with glibc, A to Z alone), after a domain alias and the default
+    domain; any other spelling the database would have found the account under, and a name with
+    white space at either end, fails as a name that does not exist fails and is counted as a failure, for every
+    protocol and for an OpenID Connect or SAML sign-in (*Before you upgrade*, above). The IMAP master user's own hold,
+    country policy and lockout are asked of its own address as well; the `account.locked` webhook is raised only for a
+    locked name that is an account's own; and COM and the Control Panel save a domain alias's name, and COM and the
+    REST API the default domain, without white space at either end. (*Security*, "a sign-in took for an account")
+11. **Password reset:** `POST /api/v1/password-reset` counts its per-address limit under the address as a sign-in
+    compares it, so every spelling that names a mailbox shares its one limit. (*Security*, "a mailbox's recovery
+    address")
+12. **The web services listener and IP ranges:** with the listener on, an address whose IP range allows none of SMTP,
+    POP3 and IMAP - an auto-ban's, or an administrator's that allows nothing - or one met while the ranges cannot be
+    read, is closed with no answer before the TLS handshake; loopback and the addresses in `WebServicesTrustedProxies`
+    are never refused by a range. Such an administrator's range now closes this listener to the addresses it holds -
+    ACME's http-01 validation when this listener answers it, MTA-STS, CalDAV, CardDAV, Autodiscover, autoconfiguration
+    and the Web Key Directory among them - and each refusal is said in the application log, naming the range, once an
+    hour for each address. (*Security*, "an address an auto-ban or an administrator's IP range banned")
+13. **Failed sign-ins through a proxy:** a failed sign-in at the web services listener from loopback or an address in
+    `WebServicesTrustedProxies`, and a failed account sign-in at the REST listener from loopback, is counted against
+    the name alone (`AccountLockoutThreshold`, off by default, is then the limit on the guesses at one account through
+    the proxy), never towards a ban of the address, and the REST listener writes no `Auto-ban: logon failure` line for
+    it; a failure from any other address counts as before. The REST listener's own accounting spares all of
+    127.0.0.0/8, where it spared 127.0.0.1 and ::1. (*Security*, "a failed CardDAV, CalDAV or Autodiscover sign-in
+    through a proxy" and "an account's failed sign-in at the REST listener")
+14. **REST request bodies:** a body meant to be JSON, on every route under `/api/` and `/scim/` that takes one, must be
+    one JSON object within the bounds the entries give - no text after the value, no member named twice - or it is
+    answered 400 saying why (on `/scim/`, RFC 7644's `invalidSyntax`), before the route reads a member; every member
+    reader reads the one parse, and a member whose absence is the wider setting, written as another type than its
+    route reads, is refused too, where it was read as absent (the entry lists them); the reply to a password-protected
+    message is held to 2 MB, room for its one armoured message; and a TLS-RPT report mailed to a domain's report
+    address is read through the bounded parse, within bounds of its own. (*Correctness*, "a REST request body meant to
+    be JSON"; *Security*, "the REST API, and the reader of a report")
+15. **The database client's TLS:** `TlsMode=verify-full` on MySQL and MariaDB through MariaDB Connector/C without
+    `TlsCaFile` is refused with HM7535 (new) on a connection to this machine (*Before you upgrade*, above);
+    `TlsCaFile`, and on Windows `PostgreSQLSslRootCert`, reach the client as named, and a name the client cannot be
+    handed as named is refused before anything is attempted, with HM7534 (new) (*Before you upgrade*, above); and the
+    lines that say what was checked - `--check-database`'s settings line, the application log's and the diagnostics'
+    connection line - say what the client checks, for PostgreSQL the root certificate libpq is handed.
+    (*Security*, the entries on `verify-full` and on a root certificate's name; *Correctness*, "`--check-database`
+    names the root certificate" and "PostgreSQL's connection line")
+16. **On Windows, the files the server hands to OpenSSL by name** - the TLS certificates' certificate and private key
+    files, `dh2048.pem`, a TCP/IP port's client-certificate CA file, `MessageStoreObjectCaFile`, `OAuth2PublicKeyFile`
+    and the files in `AcmeCertificateDirectory` - are read from the file configured, and a name the server cannot hand
+    over as it is named is refused with HM7536 (new) in the error log, with what the file was for: a port whose
+    certificate or key it names does not start, a client-certificate CA file verifies no certificate, the object
+    store's CA file allows no request, the public key verifies no token, `dh2048.pem` is left out as a missing one is,
+    and the ACME client reads and writes nothing there and orders no certificate (*Before you upgrade*, above).
+    `OAuth2PublicKeyFile` was handed over in UTF-8 up to 6.3.7, so a name outside the code page that worked then is
+    refused now. A name in ASCII is handed over as before; on Linux every name goes over in UTF-8, as every other file
+    name there does (*On Linux, file names outside ASCII*, below). The Control Panel's SSL certificates page shows a
+    certificate or key file whose name is refused as *Name refused*, at Critical, and the setup checklist says that
+    the server does not read it (error 7536). (*Security*, "on Windows the files the server hands to OpenSSL by name")
+17. **On Linux, file names outside ASCII are UTF-8 whatever `LANG` says.** A server that ran under a `LANG` that is not
+    UTF-8 named such files in that locale's bytes and no longer finds them: rename each folder to its UTF-8 name before
+    upgrading (*Before you upgrade*, above). A `LANG`, `LC_ALL` or `LC_CTYPE` naming a locale the machine does not have
+    no longer stops the server at its start; the values `--set-setting`, `--apply-profile`, `--account` and `--domain`
+    take, and `--config`, are read as UTF-8 and refused with exit 2 when they are not; and what `hmailserver` prints to
+    a terminal is UTF-8 throughout. (*Correctness*, "on Linux a file's name outside ASCII")
+18. **spamd's `User:` header** carries a name outside ASCII, where it was left out and the message scanned, or the
+    lesson told, as spamd's default user: an address that arrived as SMTPUTF8 bytes goes as those bytes, any other name
+    as UTF-8, and on Windows a name within Latin-1 as before; a name the header cannot carry is sent as no header with
+    HM5514 (new). (*Correctness*, "spamd's `User:` header")
+19. **The legacy Blowfish scheme** refuses a secret it cannot carry (HM7278, new), where it wrote an empty one: a
+    backup's XML leaves such a secret out and names it in the error log and the backup log (HM7280, new), to be entered
+    again after a restore; COM's database calls answer an error for such a password; and on Linux a text within
+    Latin-1 is written as Windows writes it. (*Correctness*, "the legacy Blowfish scheme")
+20. **On Alpine,** a log line or other formatted text holding a character outside ASCII is written, where it came out
+    empty; on every Linux build a formatted text longer than 65,535 characters is made whole, where it came out empty.
+    (*Correctness*, "on Alpine, every log line")
+21. **Argon2id where the OpenSSL the server runs with has none:** `GET /api/v1/status`'s `argon2id` and
+    `post_quantum_key_exchange` say what the library the server runs with does; HM5606 and HM5607 name that library;
+    and an app password a `MinimumAcceptedHashAlgorithm` of 5 raises to Argon2id is made with scrypt and said once
+    (HM5607), where it was an empty hash the store refused. (*Correctness*, "`GET /api/v1/status` said" and "the
+    reports that a server has no Argon2id")
+22. **Moves between IMAP folders:** with `SpamAssassinLearnOnMove` on, the lessons of a `COPY` or a `MOVE` are handed on
+    after the command, a `MOVE`'s after its expunge, and the plain copy spamd is sent is made when the work queue runs
+    the lesson; spamd is sent the same bytes and taught as before. `OnIMAPMessageMoved` (`IMAPMessageMovedEvents`) and
+    Rspamd's learning (`MoveLearningBackend`) are off until they are switched on. (*Administration*,
+    "OnIMAPMessageMoved" and "Rspamd as the filter that learns from the Junk folder")
+23. **The container image:** it carries MariaDB Connector/C (`libmariadb3`, with `mariadb-common` and `mysql-common`),
+    so `HM_DB_TYPE=MySQL` reaches a MariaDB server; its `hmailserver` account is made as 999:999, the numbers it had.
+    Its entrypoint runs `hmailserver --apply-new-install-defaults --if-marked` before the command, which secures a
+    database its `--create-database` made and opens nothing at any other start; `HM_DB_PASSWORD`, `HM_ADMIN_PASSWORD`,
+    their `_FILE` forms and `HMAILSERVER_RECOVERY_PASSPHRASE` leave the environment before the entrypoint runs any
+    program, and when the command is the server itself the settings' variables (`HM_SETTING_*`, `HM_PROPERTY_*`, their
+    `_FILE` forms and the four `HM_REST_*`) leave it too, so that the server, and what it starts, no longer has them.
+    The Compose file's and the Helm chart's commands are shell command lines and still pass them to the server, so a
+    setting that is a secret belongs in a `_FILE` variable there, as their examples give it.
+    (*Downloads and the release*, "the container image reaches a MariaDB database"; *Security*, "the container image
+    secures a new installation by itself" and the two entries on the image's environment)
+24. **On Linux, `hmailserver --create-database`** asks first whether the schema's version table is there, so a new
+    installation, a container image's first start among them, no longer logs HM5033 as its first error; a database
+    that cannot answer that question is still HM5033 and is refused, and one that holds the table with no version
+    that can be read is refused too, where the create script ran before. (*Correctness*, "every new installation's
+    create step logged HM5033")
+25. **The Helm chart** runs the pod as 999:999 with `fsGroup` 999 (it was 1000), whichever of the three its values leave
+    out; an init container puts the image's `hMailServer.ini` on an empty configuration volume and makes the data
+    volume's `temp`, `events` and `database`; the server's container runs `hmailserver --apply-new-install-defaults
+    --if-marked` before the server, so a new installation is secured at its first start; `database.port` is empty by
+    default, the type's own port; and the pod sets `net.ipv4.ip_unprivileged_port_start` to 0 in its own
+    `securityContext.sysctls` unless `unprivilegedPortsSysctl` is false, a release upgraded with `--reuse-values` from
+    a chart that does not name it included. The Compose file runs the same step, and gives its REST listener the pair a
+    new installation makes; a pair in `./certs` must be readable by 999. (*Downloads and the release*, "the Helm chart
+    starts a server"; *Correctness*, "the Helm chart's server binds the mail ports")
+26. **The Control Panel:** the Logging page shows a destination never chosen (0) as *Files on disk*, and a save that
+    leaves the list alone writes 0 back; the Anti-spam page shows a refuse threshold at or below the mark threshold with
+    a Warning and saves it, where it opened in error and saved nothing; the *Anti-spam overview* reads the quarantine
+    switch for its verdict; the ACME page and the Setup checklist leave out the names the server leaves out, and say
+    so. (*Control Panel*)
+27. **The PowerShell module and `hmctl`:** the module's error for no answer gives the system's reason, and an answer
+    that is not JSON is printed as text; `hmctl config diff`, `config apply`, `--from-json`, `--password-file` and
+    `--passphrase-file` take a file with a byte order mark, where they refused it or took the mark for the password's
+    first character; and `hmctl` refuses a body holding `NaN` or `Infinity`, `--set name=NaN` sending the string `NaN`.
+    (*Correctness*, the module's two entries; "a REST request body meant to be JSON")
+28. **The Linux packages name their maintainer** as Christopher Holloway <chris.holloway@progressiverobot.com>, where
+    they gave another address, and their summaries and descriptions, the snap's and the image's labels say Progressive
+    Robot's fork. (*Downloads and the release*)
+29. **The release carries `hmailserver-6.3.8.intoto.jsonl`** beside the provenance's Sigstore bundle, 161 links in all.
+    (*Downloads and the release*)
+
 ### Correctness
 
 - **Fixed: on Alpine, every log line and other formatted text holding a character outside ASCII was empty.**
@@ -819,7 +1310,7 @@ with `--check`).
   the file 0640 (from 3 October 2026); 6.3.6's and 6.3.7's own `.deb`s pack it 0640, so every snap made from a
   released `.deb` since 6.3.6 has the fault. 6.3.7's two snaps, built on 18 October 2026 and never on the Snap Store,
   have it: unpacked with their owners and modes and started as below, the amd64 one makes no configuration ("could
-  not be read"). `Snap.md` says that they are not to be uploaded, so the next release's snap is the first in the
+  not be read"). `Snap.md` says that they are not to be uploaded, so 6.3.8's snap is the first in the
   store. In the snap the file is the template alone - the configuration made from it is `snap_daemon`'s and 0600 - so
   `snap/snapcraft.yaml` makes it 0644, as the snap's other files are. `build/ci/snap-build.sh` now runs `hmailserver-start` as `snap_daemon`, with no group and nothing of
   root's, from the snap's files unpacked with their owners and modes, and requires the configuration made,
@@ -1636,7 +2127,7 @@ with `--check`).
   "hMailServer
   (<dist>, $basearch)"; they change before the first publication, since apt refuses an update whose Origin or Label
   has changed until each user accepts the change. OBS, Copr and the PPA take the packaging from the release's source
-  tarball and the image its labels from the release's tree, so this reaches them with the next release; `aur-publish`
+  tarball and the image its labels from the release's tree, so this reaches them with 6.3.8; `aur-publish`
   renders `master`'s PKGBUILD, so the AUR's first push carries it, whichever release it is for.
   `build/check-package-texts.py`, which the checkers job runs with its self-test, holds every package text the tree
   ships to it: these, the snap's title, summary, description and website, the chart's description, the openings of the
@@ -1687,7 +2178,7 @@ with `--check`).
   Launchpad made of that address a placeholder person, unactivated and not the PPA's owner, which its package pages
   name as the maintainer. The `.deb` CPack makes now gives the name beside the address
   (`CPACK_DEBIAN_PACKAGE_MAINTAINER`), where it gave the address alone, CPack's default. The PPA's upload, OBS and
-  Copr take the packaging from the release's source tarball, so this reaches them with the next release. The principal
+  Copr take the packaging from the release's source tarball, so this reaches them with 6.3.8. The principal
   under which the release's checksums are signed (`.gitlab/allowed_signers`) is the signing key's and is unchanged.
 
 - **The Chocolatey package's install passes the installer `/LOG`, and says why when it fails.** It ran the installer
@@ -1725,7 +2216,7 @@ with `--check`).
   server has its `RestApi*` sources. `hmailserver-cli` 6.3.7, on PyPI since 21 October 2026, has the summary "hmctl:
   administer an hMailServer over its REST API from a command line" and a description that names neither the fork nor
   Progressive Robot, and the module `HmailServer` 6.3.7 on the PowerShell Gallery a description that opens "Administer
-  an hMailServer"; a published version keeps its texts, and the next release takes the new ones. `pyproject.toml`'s
+  an hMailServer"; a published version keeps its texts, and 6.3.8 takes the new ones. `pyproject.toml`'s
   description, the summary PyPI lists, is now "hmctl, the command-line client of Progressive Robot's fork of
   hMailServer, for the fork's REST API - not the original hMailServer, which has none", and the README PyPI shows
   opens the same way and says that `hmctl` does not work with the original; the manifest's Description opens "The
@@ -1739,7 +2230,7 @@ with `--check`).
   PSScriptAnalyzer 1.25.0, which finds nothing) passes under Windows PowerShell 5.1 and PowerShell 7.5, and
   `build/check-cli.py` passes with both clients.
 
-- **Fixed with the next release: deps.dev names the project as `hmailserver-cli`'s source repository, not its
+- **Fixed in 6.3.8: deps.dev names the project as `hmailserver-cli`'s source repository, not its
   changelog.** deps.dev (Google's Open Source Insights) takes one source repository from a PyPI version's metadata:
   the first `Home-page` or `Project-URL` on GitHub, GitLab or Bitbucket, in the metadata's order, whatever its label -
   read from its API on 24 October 2026 against the metadata of over a hundred packages, among them virtualenv, whose
@@ -1765,9 +2256,9 @@ with `--check`).
   unchanged: deps.dev does not index the PowerShell Gallery. `ContinuousIntegration.md` no longer says that deps.dev
   carries the Scorecard of the copy on GitHub, to which it relates no package, and `CommandLinePackages.md` says that
   deps.dev relates 6.3.7 to the project through its attestation alone, its project URLs' unverified link going to the
-  changelog. 6.3.7 on PyPI keeps its metadata; the next release carries this.
+  changelog. 6.3.7 on PyPI keeps its metadata; 6.3.8 carries this.
 
-- **New with the next release: `hmailserver-<version>.intoto.jsonl`, the release's SLSA build provenance as one line
+- **New in 6.3.8: `hmailserver-<version>.intoto.jsonl`, the release's SLSA build provenance as one line
   of JSON.** It is the DSSE envelope of `hmailserver-<version>.intoto.sigstore.json`, the provenance every release has
   carried since 6.3.6 - the statement and its one signature, each as that Sigstore bundle has it - written again
   alone, in the form in-toto's attestation specification gives a bundle of attestations: JSON Lines, one envelope a
@@ -1830,7 +2321,7 @@ with `--check`).
   its website; its title is "hMailServer (Progressive Robot's fork)" now, its summary and description open with the
   fork, not the original by Martin Knafve, and its website is the project's on GitLab. The image's
   `org.opencontainers.image.title` and `description` labels, which registries and Artifact Hub show, say the same.
-  Both reach the store and the registries with the next release's snaps and image; 6.3.7's keep their own text.
+  Both reach the store and the registries with 6.3.8's snaps and image; 6.3.7's keep their own text.
 - **The Chocolatey package, the Helm chart, the container image and the snap show the fork's icon.** None of them had
   one, and Chocolatey's automated validation of each of 6.3.7's three packages, on 21, 22 and 23 October 2026, gave
   as a guideline "The iconUrl should be added if there is one". The icon is the fork's own, the Control Panel's
@@ -1852,8 +2343,8 @@ with `--check`).
   pinned revision, packs the snap with the icon unchanged as `meta/gui/icon.png`. The AppImage keeps the icon its build
   draws, an envelope, and the comment in `build-appimage.sh` that called the Control Panel's `.ico` the only icon in
   the repository says that the fork's icon is this PNG. `PackageManagers.md`, `Snap.md`,
-  `ContainerImage.md` and the packaging README say so. The address answers once this is on `master`; the next
-  release's chart, image and snaps, and any package `chocolatey-publish` renders from then on, carry it.
+  `ContainerImage.md` and the packaging README say so. The address answers once this is on `master`;
+  6.3.8's chart, image and snaps, and any package `chocolatey-publish` renders from then on, carry it.
 - **The Chocolatey package's `projectSourceUrl` is the tree of the version's tag.** It was
   `https://gitlab.com/hmailserver/hmailserver`, the project's home, as `projectUrl` is, and Chocolatey's automated
   validation of each of 6.3.7's three packages, on 21, 22 and 23 October 2026, gave as a guideline "ProjectUrl and
@@ -1934,7 +2425,7 @@ with `--check`).
   Compose file as they were, it fails, naming what is wrong. ContainerImage.md, SecureDefaults.md, the packaging README
   and the chart's README say so.
 
-- **New with the next release: the release's SLSA provenance is held to the pipeline that publishes it and to what
+- **New in 6.3.8: the release's SLSA provenance is held to the pipeline that publishes it and to what
   GitLab certified of the run, and the documents say its SLSA Build level: Build L1, and no higher.**
   `check-provenance` in `release-verify`, and `publish` in `release-publish` before it uploads anything, refuse a
   provenance whose statement names external parameters other than the tag's repository, its ref and
@@ -2013,7 +2504,7 @@ with `--check`).
   repository (`gitlab.com/hmailserver/hmailserver/-/blob/master/changelog.md`) and its Issues URL as the tracker of
   a repository `gitlab.com/hmailserver/hmailserver/-`, and left out its Source URL; only the publish attestation
   linked the package to `gitlab.com/hmailserver/hmailserver`. deps.dev can take the source repository from any URL of
-  a package on gitlab.com and reads a path under `/-/` as part of a repository's name. From the next release the
+  a package on gitlab.com and reads a path under `/-/` as part of a repository's name. From 6.3.8 the
   package's URLs are Homepage and Source, both `https://gitlab.com/hmailserver/hmailserver`, and its README, the
   description PyPI shows, links the changelog and the issues beside the documents. `build/check-cli-packages.py`
   holds the URLs to exactly those two, with controls for a changelog URL, an issues URL, a URL elsewhere and no
@@ -2632,7 +3123,7 @@ with `--check`).
   answered `"installKind":"container","liveUpdate":false` and `docker pull
   registry.gitlab.com/hmailserver/hmailserver:latest` (state 0, the check being off), and both built images passed
   the whole test; the amd64 one built again with `HM_INSTALL_KIND` emptied answered `"installKind":"deb"` and
-  `"liveUpdate":true`, and the test failed there, where the test as it was passed that image. The next release's tag
+  `"liveUpdate":true`, and the test failed there, where the test as it was passed that image. 6.3.8's tag
   pipeline is the first to ask. `ContainerImage.md` ("The start test" and its table of the jobs), `LiveUpdateKinds.md`,
   `ContinuousIntegration.md`, `RELEASE.md`'s step on the image, `Roadmap3.md`'s row on the live update and the jobs'
   descriptions in `.gitlab/ci/container-image.yml` say so. That rule reads those lines alone, not bash: what keeps
@@ -3187,7 +3678,7 @@ with `--check`).
   through `release-chain.py`'s `check_tag`, and the Ubuntu 24.04 image the job runs in has none: on 18 October 2026
   the upload of 6.3.7's two snaps, both built and checked in `master`'s pipeline, stopped at that call
   (`FileNotFoundError: 'git'`) before the store or the credential was reached, and 6.3.7 is not on the Snap Store.
-  The next release's upload is the first this fixes, since a snap of `master` after a release is refused; the job's
+  6.3.8's upload is the first this fixes, since a snap of `master` after a release is refused; the job's
   comment in `.gitlab/ci/channels.yml` names the tools and why, and openssh-client, which `git verify-tag` needs, is
   installed by name rather than reached through snapd.
 
@@ -3318,11 +3809,11 @@ with `--check`).
   Trivy image, it lists it as a live finding against `build/ci/requirements.txt`, in GitLab's report too, without the
   statement, and as dismissed in the VEX document with it; with the advisory rated High in Trivy's report, its verdict
   fails without the statement and passes with it. The statement says in its `status_notes`, and the file's entry in its
-  comment, that it was read with an AI's help under the owner's delegation, as SECURITY.md ("Who reviews") asks of such
+  comment, how it was read, as SECURITY.md ("Who reviews") asks of such
   a declaration; mcp 1.29.0's statement and entry, made the same way on 19 and 20 October 2026, now say so too, and the
   document's `tooling`, which said "Written by hand", says that no scanner, converter or script generates it, that each
-  statement is read from the advisory, the code and how the project builds, links or runs it, and that the document and
-  every statement in it were written by AI agents under the owner's delegation; the statement's list of what the job
+  statement is read from the advisory, the code and how the project builds, links or runs it, and how the document and
+  every statement in it were written; the statement's list of what the job
   receives names the packages pip installs from PyPI too, and two older timestamps no longer come after their commits.
 
 - **The VEX document declares the vendored zlib 1.3.2 not affected by CVE-2026-85091, a heap buffer overflow in
@@ -3589,7 +4080,7 @@ with `--check`).
   `exit "$code"`. A form these rules do not name, such as a command built at run time, is left to the person who
   reads the change: the script's digest, held in the checker (below), makes every change to the script a change of
   a gate file, which `build/land-via-mr.py` lands only with `--gates-read`, a person's word that the change was read
-  whole. Each fault of the variables would otherwise have first failed in the next release's tag pipeline, after the
+  whole. Each fault of the variables would otherwise have first failed in 6.3.8's tag pipeline, after the
   push; a disabled ask would not have failed at all - the start job would have passed without asking that image.
   Master's checker passed every one of the ten mutations first tried (among them `HM_DB_TYPE: PostgreSQL` in the arm64
   job, `MARIADB_DATABASE` removed and `true || ask_image MariaDB ...`); this one refuses each, and its self-test breaks
@@ -4530,7 +5021,7 @@ with `--check`).
   and then holds each tag to GitLab's digest and reads the page. Copying 6.3.7 again does not move it up, GitHub
   making no new version of a manifest it already holds: its index pushed again on 21 October 2026, byte for byte,
   kept the times of 18 October in GitHub's packages API, and the page its signature's tag. So the page shows the
-  right tag once the next release's copy pushes its new index last, and until then the document says to pull by the
+  right tag once 6.3.8's copy pushes its new index last, and until then the document says to pull by the
   release's tag.
 
 - **ContainerImage.md's "What is not shown yet" says what holds on 21 October 2026.** It said that the pipeline had
@@ -4541,11 +5032,11 @@ with `--check`).
   verify` by hand has passed against the copy on `ghcr.io`, and `cosign verify-attestation` too against the copy on
   Docker Hub, at the same digests, while `docker compose up` and `helm install` from the published image are not
   recorded yet; and that both Artifact Hub listings are at 6.3.7 with the Verified publisher label, read through its
-  API, and say that they are the fork from the next release; and the section *Artifact Hub* gives the image's last
+  API, and say that they are the fork from 6.3.8; and the section *Artifact Hub* gives the image's last
   tracking as 21 October 2026, where it gave 20 October, as that list does. The document is the image's README on
   Artifact Hub, which shows each version's README as it read master's copy when it last listed that version: 6.3.7's
   and 6.3.6's their release's text, and `latest`'s master's text of 19 to 21 October, without the opening that says
-  this is Progressive Robot's fork, until Artifact Hub lists `latest` anew (when the tag moves with the next release,
+  this is Progressive Robot's fork, until Artifact Hub lists `latest` anew (when the tag moves with 6.3.8,
   or sooner, as between 19 and 21 October), and the chart's README is the 6.3.7 chart's own; the section says so.
 
 - **Snap.md's comment for the Snap Store's review of the name says that the snap is Progressive Robot's fork of
@@ -4625,7 +5116,7 @@ with `--check`).
   where it said that every submission was made by hand and that the job replaced the GitHub workflow from 6.3.6; and
   that the AppImages were attached to 6.3.0 to 6.3.3 and again from 6.3.6, not to 6.3.4 or 6.3.5, where it said
   that no release after 6.3.3 carried them. Snap.md has the store listing's title, summary, description and website
-  set by hand to say the fork before the first snap in the store, the next release's, goes to `stable`.
+  set by hand to say the fork before the first snap in the store, 6.3.8's, goes to `stable`.
   ContainerImage.md, which Artifact Hub shows as the image's README, opens by saying that this is Progressive Robot's
   fork of hMailServer, not the original. Roadmap2's winget and Chocolatey row is named by the two packages' ids, where it was named
   `winget install hMailServer`, the command that will install the original, and says first that Chocolatey's 6.3.7
@@ -4910,7 +5401,7 @@ with `--check`).
   each verified against its Sigstore bundle), which the Gallery's feed and search gave as the latest version ten
   minutes later. The document says what both listings showed that day - the texts 6.3.7 was published with, which name
   neither the fork nor Progressive Robot - and, in a new section, "Whose clients these are", what each text says from
-  the next release and which check holds it; that deps.dev links the package to the project by its publish
+  6.3.8 and which check holds it; that deps.dev links the package to the project by its publish
   attestation; and that the owner's settings for both exist. Roadmap3's PyPI and PowerShell Gallery rows say the same,
   and that what is left of each is an installation on clean machines against a test server. `HelpPagesData.cpp` is
   regenerated by `build/generate-help-pages.py`.
@@ -4954,7 +5445,7 @@ with `--check`).
   gives the system's reason for refusing it from the release after 6.3.7, 6.3.7's module saying "GET
   /api/v1/domains failed." alone there; and that the server is reached by the name the certificate carries, since
   `hmctl` refuses it by the server's address, saying "IP address mismatch" once it is trusted and "self-signed
-  certificate" until then. The README PyPI shows says so in a sentence, from the next release. `HelpPagesData.cpp`
+  certificate" until then. The README PyPI shows says so in a sentence, from 6.3.8. `HelpPagesData.cpp`
   is regenerated by `build/generate-help-pages.py`.
 
 - **CommandLinePackages.md no longer plans a Package Analysis rehearsal before the first upload, and ContinuousIntegration.md

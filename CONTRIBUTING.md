@@ -69,8 +69,8 @@ Contents:
 | A security problem | [SECURITY.md](SECURITY.md). Never a public issue. |
 | Copies off GitLab | The repository on GitHub, above - `master`, the `batch*` branches and every tag - pushed there by GitLab's push mirror after every push since 18 October 2026; and the issues, merge requests, releases and wiki by the weekly `forge-export` job, still to be set up: [hmailserver/docs/Mirroring.md](hmailserver/docs/Mirroring.md), which has the owner's checklist for both |
 
-The latest release is **6.3.7, published on 17 October 2026**. Anything this repository describes that
-arrived after it is in the tree after 6.3.7 and not yet released.
+The latest release is **6.3.8, published on 1 November 2026**. Anything this repository describes that
+arrived after it is in the tree after 6.3.8 and not yet released.
 
 The documents at the repository root:
 
@@ -864,7 +864,7 @@ And, for any new setting:
 * The documents at the repository root, `hmailserver/docs/README.md` and the wiki are not compiled into
   anything. The wiki copies several of the root documents; a change to one of those is a wiki change too.
 * House style: British English, plain declarative prose, and every claim true of the tree it describes. Nothing
-  after 6.3.7 is written with a version number until it is released: it is "in the tree after 6.3.7, not yet
+  after 6.3.8 is written with a version number until it is released: it is "in the tree after 6.3.8, not yet
   released".
 
 ### Roadmap2 and Roadmap3 rows

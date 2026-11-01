@@ -7,7 +7,7 @@
 | 6.3.x   | :white_check_mark: security fixes until 30 September 2027 ([While releases pause](#while-releases-pause)) |
 | < 6.3   | :x:                |
 
-The 6.3 line is the one that receives security fixes. Its latest release is 6.3.7, published on 17 October
+The 6.3 line is the one that receives security fixes. Its latest release is 6.3.8, published on 1 November
 2026. A fix for a confirmed vulnerability ships in the next release; it is not back-ported to 6.2 or anything
 older, because there are no maintenance branches. That is less of a burden than it sounds: an upgrade in place
 keeps the configuration and the mail, and the database upgrade chain runs from every earlier version of this fork,
@@ -109,8 +109,8 @@ taken under the owner's delegation. The maintainers write here when it changes.
   since: `master` goes on taking finished work during the pause (6.3.7 carried the work under way on 13 October
   2026 and row A1 of Programme A, by the owner's decisions of 13 and 15 October 2026), and a security release is
   cut from `master` like every other release. There is still no maintenance branch, and nothing is
-  back-ported. An installation of 6.3.6, 6.3.5, 6.2 or anything older is upgraded in place to the newest release, as
-  [Supported versions](#supported-versions) says.
+  back-ported. An installation of 6.3.7, 6.3.6, 6.3.5, 6.2 or anything older is upgraded in place to the newest
+  release, as [Supported versions](#supported-versions) says.
 - **Until 30 September 2027.** Before that date, the maintainers write here whether support continues. If nothing
   has been written, the 6.3 line is not supported from 1 October 2027, and the table above is changed to say so.
 - **Why that date.** It was as far as the project's own record reached when it was set, and the tokens still hold
@@ -162,8 +162,39 @@ more fixes, would go into it as well; and so 6.3.7 was released.
 So all five were public for longer than the day that step 3
 below allows, and their descriptions say more about each flaw than that step allows. 6.3.7 also carries the work that
 was under way on 13 October 2026 and, by the decision of 15 October 2026, the work already done for a later release.
-The batch it was made from was pushed and tagged on the same day, by the owner's decision of 16 October 2026. The
-list above, and step 3's window of about a day, stand for every release after 6.3.7.
+The batch it was made from was pushed and tagged on the same day, by the owner's decision of 16 October 2026.
+
+**6.3.8 is a security release.** It fixes vulnerabilities found by the project's own review, each a confidential work
+item with a CVE request through GitLab's CNA, published with the release: in the database layer's test for the marker
+that lets a statement's error be ignored
+([work item 100](https://gitlab.com/hmailserver/hmailserver/-/work_items/100)); in the auto-ban's naming of the IP
+range it adds ([work item 102](https://gitlab.com/hmailserver/hmailserver/-/work_items/102)); in the match of a
+sign-in's name to its account ([work item 104](https://gitlab.com/hmailserver/hmailserver/-/work_items/104)); in the
+IP ranges at the web services listener
+([work item 105](https://gitlab.com/hmailserver/hmailserver/-/work_items/105)); in the address a failed sign-in at
+that listener is charged to ([work item 106](https://gitlab.com/hmailserver/hmailserver/-/work_items/106)); in the
+address a failed sign-in at the REST listener is charged to
+([work item 107](https://gitlab.com/hmailserver/hmailserver/-/work_items/107)); in the cost of the REST API's reading
+of a request's JSON body ([work item 110](https://gitlab.com/hmailserver/hmailserver/-/work_items/110);
+[work item 111](https://gitlab.com/hmailserver/hmailserver/-/work_items/111)); in the database client's check of the
+database server's certificate ([work item 112](https://gitlab.com/hmailserver/hmailserver/-/work_items/112)); in the
+database client's check of a database server on this machine
+([work item 113](https://gitlab.com/hmailserver/hmailserver/-/work_items/113)); in the database clients' reading of
+the root certificate file named on Windows
+([work item 114](https://gitlab.com/hmailserver/hmailserver/-/work_items/114)); in the server's reading of the files
+it hands to OpenSSL by name on Windows
+([work item 115](https://gitlab.com/hmailserver/hmailserver/-/work_items/115)); and in the folder the bundled
+database client loads its authentication plugins from on Windows
+([work item 116](https://gitlab.com/hmailserver/hmailserver/-/work_items/116)). It also publishes the advisory for a
+flaw in the auto-ban on MySQL and MariaDB that 6.3.4 fixed
+([work item 103](https://gitlab.com/hmailserver/hmailserver/-/work_items/103)), and it fixes the four narrower cases
+that 6.3.7's notes listed of [work item 78](https://gitlab.com/hmailserver/hmailserver/-/work_items/78). It was first
+decided on 24 October 2026, under the owner's delegation, for a reason of its own, which stands beside them: the
+published Helm charts of 6.3.6 and 6.3.7 start no server, which only a release can put right. One of its fixes was
+public before the release for longer than step 3 below allows: work item 100's, on GitLab from 19 October 2026 and on
+`master` from 20 October 2026, a week before the project judged it a vulnerability and requested its CVE, on 26
+October 2026. The others were pushed with the batch the release was made from, about half a day before it was
+published. The list above, and step 3's window of about a day, stand for every release after 6.3.8.
 
 ### How a report is handled
 

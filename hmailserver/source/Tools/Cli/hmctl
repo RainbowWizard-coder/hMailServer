@@ -59,7 +59,7 @@ import urllib.request
 # The server's version, which hmctl is released with: stamped at a release with the
 # rest (RELEASE.md, "Version stamp"), and held to Common/Application/Version.h by
 # build/check-cli-packages.py. Until 6.3.6 it said 1.0, its own first version.
-VERSION = "6.3.7"
+VERSION = "6.3.8"
 
 DEFAULT_URL = "https://localhost:8045"
 
