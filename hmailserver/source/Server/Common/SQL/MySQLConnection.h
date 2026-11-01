@@ -46,9 +46,17 @@ namespace HM
       // ANSI code page. The directory's name in the code page
       // (DALConnection::CodePageBytes), or, where the code page cannot carry it,
       // its short (8.3) name in the code page. False, with nothing written, where
-      // neither can be written - and the empty value is then handed over, so that
-      // the client never builds a plugin's name without a directory.
+      // neither can be written (PluginFolderOption then hands over another folder).
       static bool PluginDirectoryBytes(const String &directory, AnsiString &bytes);
+
+      // The plugin folder the client is handed, always an absolute folder that
+      // only administrators control and never the empty value:
+      // directory as PluginDirectoryBytes writes it, or, where it cannot be
+      // written so, a folder under the Windows system folder that holds no
+      // plugin (standIn true), so that a plugin found only in directory fails to
+      // load with the client's own error. False, with nothing written, where
+      // neither can be written - and Connect then attempts nothing (HM7537).
+      static bool PluginFolderOption(const String &directory, AnsiString &bytes, bool &standIn);
 #endif
 
       // Whether MariaDB Connector/C takes a connection to server as one to this
@@ -176,11 +184,13 @@ namespace HM
    private:
 
       // One attempt at the server: a fresh handle (the one before it closed), the
-      // plugin directory, the TLS options for the mode, mysql_real_connect. The
-      // connected handle, or null with the client's error text in error and its
-      // error number in errorNumber (0 when nothing reached the client).
+      // plugin directory (pluginFolder, which Connect has written with
+      // PluginFolderOption; unused on POSIX), the TLS options for the mode,
+      // mysql_real_connect. The connected handle, or null with the client's error
+      // text in error and its error number in errorNumber (0 when nothing reached
+      // the client).
       hm_MYSQL *ConnectOnce_(const String &server, const String &username, const String &password, const String &database, long port,
-                             DatabaseTls::Mode mode, const String &caFile, String &error, unsigned int &errorNumber);
+                             DatabaseTls::Mode mode, const String &caFile, const AnsiString &pluginFolder, String &error, unsigned int &errorNumber);
 
       // The TLS options for the mode, in the numbers of whichever client is loaded
       // (MySQLInterface.h). False, with the reason, when require or verify-full
@@ -271,7 +281,9 @@ namespace HM
    // and MySQLConnection::QuoteIdentifier, a database's name quoted whatever it
    // holds; TlsCaFile's name for each client; on Windows the bundled client's
    // plugin directory (PluginDirectoryBytes), over a scratch folder in the
-   // temporary folder that it removes; and verify-full as each client
+   // temporary folder that it removes, and the folder it is handed where that
+   // directory is refused (PluginFolderOption: absolute, never empty or
+   // drive-relative); and verify-full as each client
    // checks it (ClientTakesAsLocal, VerifyFullCheck). Throws std::logic_error
    // with a sentence. connection-string-tests runs
    // it on Linux, ClassTester inside the Windows service. No database,

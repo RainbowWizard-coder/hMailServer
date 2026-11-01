@@ -120,8 +120,27 @@ namespace HM
             }
          }
 
+         // The bundled client's authentication-plugin folder (PluginFolderOption):
+         // Bin\plugin by a name the client reads, or a folder under the system
+         // folder that holds no plugin. Where neither can be written nothing is
+         // attempted, since the client must never be handed an empty or a
+         // drive-relative folder.
+         AnsiString pluginFolder;
+         bool pluginFolderStandIn = false;
+#ifndef HM_PLATFORM_POSIX
+         if (MySQLInterface::Instance()->p_mysql_options != 0 && MySQLInterface::Instance()->IsMariaDbClient() &&
+             !PluginFolderOption(MySQLInterface::Instance()->GetLibraryDirectory() + _T("\\plugin"), pluginFolder, pluginFolderStandIn))
+         {
+            sErrorMessage = _T("The MySQL client's authentication-plugin folder, Bin\\plugin, cannot be handed to the client by a name it reads, "
+               "and neither can the folder under the Windows system folder that stands in for it. "
+               "Install hMailServer in a folder whose name this computer's code page carries. The connection was not attempted.");
+            ErrorManager::Instance()->ReportError(ErrorManager::Critical, 7537, "MySQLConnection::Connect", sErrorMessage);
+            return FatalError;
+         }
+#endif
+
          unsigned int errorNumber = 0;
-         hm_MYSQL *pResult = ConnectOnce_(sServer, sUsername, sPassword, sDatabase, lDBPort, effectiveMode, tlsCaFile, sErrorMessage, errorNumber);
+         hm_MYSQL *pResult = ConnectOnce_(sServer, sUsername, sPassword, sDatabase, lDBPort, effectiveMode, tlsCaFile, pluginFolder, sErrorMessage, errorNumber);
 
          // prefer, the way libpq means it: TLS the two ends cannot agree on - a server
          // that offers only TLS 1.0 or 1.1 to a client that no longer speaks them, the
@@ -132,7 +151,7 @@ namespace HM
          if (pResult == 0 && effectiveMode == DatabaseTls::ModePrefer && errorNumber == HM_MYSQL_CR_SSL_CONNECTION_ERROR)
          {
             tlsNotAgreed = sErrorMessage;
-            pResult = ConnectOnce_(sServer, sUsername, sPassword, sDatabase, lDBPort, DatabaseTls::ModeDisable, String(), sErrorMessage, errorNumber);
+            pResult = ConnectOnce_(sServer, sUsername, sPassword, sDatabase, lDBPort, DatabaseTls::ModeDisable, String(), pluginFolder, sErrorMessage, errorNumber);
 
             if (pResult == 0)
                sErrorMessage = _T("With TLS: ") + tlsNotAgreed + _T(" Without TLS: ") + sErrorMessage;
@@ -187,6 +206,16 @@ namespace HM
                   "password authentication on the server:\r\n"
                   "    ALTER USER 'user'@'host' IDENTIFIED WITH mysql_native_password BY 'password';   -- MySQL\r\n"
                   "    ALTER USER 'user'@'host' IDENTIFIED VIA mysql_native_password USING PASSWORD('password');   -- MariaDB");
+
+               // Bin\plugin could not be named to the client, which was handed a
+               // folder that holds no plugin instead (PluginFolderOption).
+               if (pluginFolderStandIn)
+               {
+                  sErrorMessage += _T("\r\n\r\n"
+                     "The client was not given the Bin\\plugin folder: its name holds a character this computer's code page does not have, "
+                     "and the volume keeps no short name for it. Install hMailServer in a folder whose name the code page carries, "
+                     "or use an account that signs in with mysql_native_password.");
+               }
             }
 
             return TemporaryFailure;
@@ -283,7 +312,7 @@ namespace HM
 
    hm_MYSQL *
    MySQLConnection::ConnectOnce_(const String &server, const String &username, const String &password, const String &database, long port,
-                                 DatabaseTls::Mode mode, const String &caFile, String &error, unsigned int &errorNumber)
+                                 DatabaseTls::Mode mode, const String &caFile, const AnsiString &pluginFolder, String &error, unsigned int &errorNumber)
    {
       MySQLInterface *client = MySQLInterface::Instance();
 
@@ -320,21 +349,24 @@ namespace HM
       {
          // The client makes a plugin's file name from this option alone - or from
          // MARIADB_PLUGIN_DIR in the environment, and with neither from the plugin's
-         // bare name - and loads it with LoadLibraryEx in its narrow form
-         // (libmariadb/ma_client_plugin.c.in, mysql_load_plugin_v). So the option is
-         // always set, to Bin\plugin as the client reads it: in the code page, or by
-         // the folder's short name (PluginDirectoryBytes). Where neither can be
-         // written it is set to the empty value, from which the client makes
-         // "\<plugin>.dll", a name at the root of the current drive (the service's
-         // is the system drive's), where only an administrator can make a file;
-         // an account whose plugin is only in Bin\plugin is then refused, which the
-         // connection's error says.
-         AnsiString sPluginDir;
-         if (!PluginDirectoryBytes(client->GetLibraryDirectory() + _T("\\plugin"), sPluginDir))
-            sPluginDir.Empty();
-         client->p_mysql_options(dbconn_, HM_MYSQL_PLUGIN_DIR, sPluginDir.c_str());
+         // bare name - as "<option>\<plugin>.dll", and loads it with LoadLibraryEx in
+         // its narrow form (libmariadb/ma_client_plugin.c.in, mysql_load_plugin_v).
+         // So the option is always set, and always to an absolute folder that only
+         // administrators control (PluginFolderOption, which Connect has refused
+         // the connection without): Bin\plugin as the client reads it, or, where
+         // that cannot be written, a folder under the system folder that holds no
+         // plugin, so that an account whose plugin is only in Bin\plugin is refused
+         // with the client's own error. Never the empty value, which is not a
+         // folder only administrators control.
+         if (pluginFolder.IsEmpty())
+         {
+            error = _T("The MySQL client's authentication-plugin folder was not decided. The connection was not attempted.");
+            return 0;
+         }
+         client->p_mysql_options(dbconn_, HM_MYSQL_PLUGIN_DIR, pluginFolder.c_str());
       }
 #else
+      (void) pluginFolder;
       // Nothing is pointed anywhere on POSIX, and that is the whole of the
       // POSIX behaviour rather than an omission. The plugin directory above
       // exists because Windows carries its own copy of the client in the Bin
@@ -554,6 +586,52 @@ namespace HM
          if (length > 0 && length < needed &&
              DALConnection::CodePageBytes(String(std::wstring(shortName.data(), (size_t) length).c_str()), bytes) && !bytes.IsEmpty())
             return true;
+      }
+
+      bytes.Empty();
+      return false;
+   }
+
+   namespace
+   {
+      // A folder named from a drive's root ("C:\...") or a UNC or \\?\ name: one a
+      // narrow file call reads the same whatever the process's current drive and
+      // folder are. "\x", "C:x" and a bare name are not.
+      bool IsAbsoluteFolderBytes(const AnsiString &bytes)
+      {
+         const std::string text(bytes.c_str());
+         if (text.size() >= 3 && ((text[0] >= 'A' && text[0] <= 'Z') || (text[0] >= 'a' && text[0] <= 'z')) && text[1] == ':' && text[2] == '\\')
+            return true;
+
+         return text.size() >= 3 && text[0] == '\\' && text[1] == '\\' && text[2] != '\\';
+      }
+   }
+
+   bool
+   MySQLConnection::PluginFolderOption(const String &directory, AnsiString &bytes, bool &standIn)
+   {
+      standIn = false;
+
+      if (PluginDirectoryBytes(directory, bytes) && IsAbsoluteFolderBytes(bytes))
+         return true;
+
+      // A folder that holds no plugin and that only administrators can create: a
+      // name under the system folder, which is never made. An account whose
+      // plugin is only in Bin\plugin is then refused with the client's own error.
+      wchar_t systemFolder[MAX_PATH + 1] = { 0 };
+      const UINT length = GetSystemDirectoryW(systemFolder, MAX_PATH + 1);
+      if (length > 0 && length <= MAX_PATH)
+      {
+         std::wstring folder(systemFolder, (size_t) length);
+         if (folder.back() != L'\\')
+            folder += L'\\';
+         folder += L"hMailServer-no-plugins";
+
+         if (DALConnection::CodePageBytes(String(folder.c_str()), bytes) && IsAbsoluteFolderBytes(bytes))
+         {
+            standIn = true;
+            return true;
+         }
       }
 
       bytes.Empty();
@@ -1765,7 +1843,8 @@ namespace HM
       // A real folder whose name no ANSI code page carries (Georgian, U+10D0
       // U+10D1): where the code page is not UTF-8, the client is handed its short
       // name, which names the same folder to a narrow call, and only where the
-      // volume keeps no short name the code page carries, nothing.
+      // volume keeps no short name the code page carries is it refused (and
+      // PluginFolderOption hands the client another folder, below).
       {
          wchar_t tempPath[MAX_PATH + 1] = { 0 };
          const DWORD tempLength = GetTempPathW(MAX_PATH + 1, tempPath);
@@ -1829,6 +1908,69 @@ namespace HM
 
          if (!failure.empty())
             throw std::logic_error("MySQLConnectionTester: " + failure);
+      }
+
+      // The folder the client is handed (PluginFolderOption). Bin\plugin as
+      // PluginDirectoryBytes writes it where that is an absolute folder; where it
+      // is refused, or would be completed by the current drive or folder, a folder
+      // under the system folder that does not exist - never the empty value, nor
+      // any name the current drive or folder completes.
+      {
+         const auto fromRoot = [](const AnsiString &bytes)
+         {
+            const std::string text(bytes.c_str());
+            return text.size() >= 3 && ((text[0] >= 'A' && text[0] <= 'Z') || (text[0] >= 'a' && text[0] <= 'z')) && text[1] == ':' && text[2] == '\\';
+         };
+
+         AnsiString option;
+         bool standIn = true;
+         if (!MySQLConnection::PluginFolderOption(_T("C:\\Program Files\\hMailServer\\Bin\\plugin"), option, standIn) ||
+             option != AnsiString("C:\\Program Files\\hMailServer\\Bin\\plugin") || standIn)
+            throw std::logic_error("MySQLConnectionTester: an ASCII Bin\\plugin was not the plugin folder handed to the client");
+
+         wchar_t systemFolder[MAX_PATH + 1] = { 0 };
+         const UINT systemLength = GetSystemDirectoryW(systemFolder, MAX_PATH + 1);
+         AnsiString systemBytes;
+         if (systemLength == 0 || systemLength > MAX_PATH || !DALConnection::CodePageBytes(String(systemFolder), systemBytes) || systemBytes.IsEmpty())
+            throw std::logic_error("MySQLConnectionTester: the system folder could not be found for the plugin folder's case");
+         std::string systemPrefix(systemBytes.c_str());
+         if (systemPrefix.back() != '\\')
+            systemPrefix += '\\';
+
+         // A Bin\plugin no code page carries - half of a surrogate pair - in a
+         // folder that does not exist, so that it has no short name either; and
+         // two that PluginDirectoryBytes takes but that a current drive or folder
+         // would complete.
+         std::wstring refused(L"C:\\hm-plugin-refused-");
+         refused += std::to_wstring(GetCurrentProcessId());
+         refused += (wchar_t) 0xD800;
+         refused += L"\\Bin\\plugin";
+         AnsiString refusedBytes;
+         if (MySQLConnection::PluginDirectoryBytes(String(refused.c_str()), refusedBytes) || !refusedBytes.IsEmpty())
+            throw std::logic_error("MySQLConnectionTester: PluginDirectoryBytes took a Bin\\plugin with half of a surrogate pair, so the refused folder's case was not tried");
+
+         const std::wstring cases[] = { refused, L"\\hMailServer\\Bin\\plugin", L"C:hMailServer\\Bin\\plugin" };
+         for (const std::wstring &bin : cases)
+         {
+            option = AnsiString("unset");
+            standIn = false;
+            const bool handed = MySQLConnection::PluginFolderOption(String(bin.c_str()), option, standIn);
+            const std::string text(option.c_str());
+            if (!handed)
+               throw std::logic_error("MySQLConnectionTester: PluginFolderOption handed the client no plugin folder where Bin\\plugin was refused");
+            if (text.empty())
+               throw std::logic_error("MySQLConnectionTester: the plugin folder handed to the client where Bin\\plugin was refused is the empty value, "
+                  "not an absolute folder only administrators control");
+            if (!fromRoot(option))
+               throw std::logic_error("MySQLConnectionTester: the plugin folder handed to the client where Bin\\plugin was refused, [" + text +
+                  "], is not an absolute folder: the current drive or folder completes it");
+            if (!standIn || text.compare(0, systemPrefix.size(), systemPrefix) != 0 || text.size() == systemPrefix.size())
+               throw std::logic_error("MySQLConnectionTester: the plugin folder handed to the client where Bin\\plugin was refused, [" + text +
+                  "], is not a folder under the system folder [" + systemPrefix + "]");
+            if (GetFileAttributesA(text.c_str()) != INVALID_FILE_ATTRIBUTES)
+               throw std::logic_error("MySQLConnectionTester: the plugin folder handed to the client where Bin\\plugin was refused, [" + text +
+                  "], exists, where it is to hold no plugin");
+         }
       }
 #endif
 

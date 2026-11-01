@@ -109,12 +109,21 @@ with `--check`).
   client in the encoding it opens the file in - on Linux UTF-8, on Windows the ANSI code page - and a name that cannot
   be written so is refused before anything is attempted, with HM7534 (new) in the error log, and never handed over as
   nothing. `DALConnection::FileNameBytes` is the one conversion, which PostgreSQL's root certificate goes through
-  too. On Windows the bundled client is always handed its authentication-plugin folder, `Bin\plugin`, in the code
-  page it loads a plugin in, or by the folder's short name (`MySQLConnection::PluginDirectoryBytes`).
-  `hmailserver/docs/DatabaseTls.md` says what the client is given, no
-  longer asks for the path in ASCII, and asks on Linux for MariaDB Connector/C 3.4.11 or later. connection-string-tests'
-  MySQLConnectionTester, which ClassTester runs on Windows, holds the name's bytes for both clients, the refusals and
-  the plugin folder's name.
+  too. On Windows the authentication-plugin folder the bundled client is handed is always one that only
+  administrators control, and never empty: `Bin\plugin`, in the code page it loads a plugin in, or by the folder's
+  short name (`MySQLConnection::PluginDirectoryBytes`), and where neither can be written, a folder under the Windows
+  system folder that holds no plugin, so that an account whose plugin is only in `Bin\plugin` is refused with the
+  client's own error; where even that cannot be written, the connection is refused before anything is attempted,
+  with HM7537 (new) in the error log (`MySQLConnection::PluginFolderOption`).
+  `hmailserver/docs/DatabaseTls.md` says what the client is given, with HM7537 in its table, no
+  longer asks for the path in ASCII, and asks on Linux for MariaDB Connector/C 3.4.11 or later, and
+  `hmailserver/docs/ThirdPartyBinaries.md` says which plugin folder the client is handed. connection-string-tests'
+  MySQLConnectionTester, which ClassTester runs on Windows, holds the name's bytes for both clients, the refusals,
+  the plugin folder's name and the folder handed where that name is refused.
+  `build/check-mysql-plugin-folder.py`, run by the checkers job with its self-test, holds that the connection hands
+  the client that folder and no other: the option is set in one place, from the folder
+  `MySQLConnection::PluginFolderOption` gave, and `PluginDirectoryBytes` is called by `PluginFolderOption` and the
+  tester alone.
   Found by the project's own review.
 
 - **Changed: a command run as root on Linux examines and opens the folders it will work in by the names the server

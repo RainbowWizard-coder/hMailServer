@@ -276,14 +276,15 @@ certificate CA files and OAuth2 say that the server does not read it, with error
 | HM7534 | `TlsMode=verify-full` and `TlsCaFile`, or for PostgreSQL `PostgreSQLSslRootCert`, names a file whose name cannot be handed to the database's client as it is named: on Windows a character the ANSI code page does not have, or characters whose bytes in it also read as another name in UTF-8, which OpenSSL opens first; on either platform half of a surrogate pair or a U+0000. The connection was not attempted |
 | HM7535 | `TlsMode=verify-full` on MySQL or MariaDB through MariaDB Connector/C, with no `TlsCaFile`, and `Server=` a connection the client takes as one to this machine (`127.0.0.1`, `::1`, `localhost`, an empty `Server=`, a socket or a named pipe), or a list of servers with a comma that holds one of them, on which it would check neither the certificate's issuer nor its name. The connection was not attempted |
 | HM7536 | On Windows, a file the server hands to OpenSSL by its name - a TLS certificate's certificate or key file (the REST API's, the metrics listener's and the web services' among them), `dh2048.pem`, a port's client-certificate CA file, `MessageStoreObjectCaFile`, `OAuth2PublicKeyFile`, a file in `AcmeCertificateDirectory` - has a name with a character the ANSI code page does not have, characters whose bytes in it also read as another name in UTF-8, which OpenSSL opens first, or a U+0000. The file was not read, and what it was for was refused (*File names handed to OpenSSL on Windows*, above). The certificate alert, the expiry metric, the object store's requests, token verification and the ACME client say it once for a name |
+| HM7537 | On Windows, with MariaDB Connector/C as the client, the client's authentication-plugin folder, `Bin\plugin`, cannot be handed to it by a name it reads, and neither can the folder under the Windows system folder that stands in for it ([ThirdPartyBinaries.md](ThirdPartyBinaries.md), the Connector/C row). The connection was not attempted |
 
 A connection refused for TLS - no TLS offered to `require`, a certificate
 `verify-full` does not accept - is the connect failure it always was (HM4354 at the
 service's start), with the database client's own reason and a sentence saying which
 setting to change.
 
-None of these is raised on a server whose `[Database]` has neither `TlsMode` nor
-`TlsCaFile`.
+None of these but HM7537, which is not about TLS, is raised on a server whose
+`[Database]` has neither `TlsMode` nor `TlsCaFile`.
 
 ---
 
