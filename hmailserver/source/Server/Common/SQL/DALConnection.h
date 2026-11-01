@@ -140,7 +140,18 @@ namespace HM
       // there - or half of a surrogate pair: such a name would open another file
       // or none, and a CA file that is not the one named is a certificate checked
       // against something else. Up to 6.3.7 the second was handed over.
+      // CodePageBytes, and on Windows the refusal of bytes that also read as UTF-8.
       static bool FileNameBytes(const String &path, AnsiString &bytes);
+
+      // A name in the bytes a narrow Windows file call - CreateFileA,
+      // LoadLibraryExA - reads it in: the ANSI code page with no best-fit letter put
+      // in a character's place, or UTF-8 when that is the code page; on POSIX
+      // UTF-8. False, with nothing written, for a name the code page cannot carry,
+      // half of a surrogate pair or a U+0000. FileNameBytes refuses more, for
+      // OpenSSL's reading; a caller whose opener reads the code page alone - the
+      // bundled client's plugin directory (MySQLConnection::PluginDirectoryBytes) -
+      // takes these bytes.
+      static bool CodePageBytes(const String &path, AnsiString &bytes);
 
       // What a name FileNameBytes refuses holds, for the sentence that refuses it:
       // "TlsCaFile ... names <file>, which holds <this>".

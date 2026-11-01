@@ -40,6 +40,17 @@ namespace HM
       // ApplyTlsOptions_ refuses (HM7534), never a connection with no CA set.
       static bool CaFileBytes(const String &caFile, bool mariaDbClient, AnsiString &bytes);
 
+#ifndef HM_PLATFORM_POSIX
+      // The bundled MariaDB Connector/C's authentication-plugin directory, as the
+      // client loads a plugin from it: LoadLibraryEx in its narrow form, in the
+      // ANSI code page. The directory's name in the code page
+      // (DALConnection::CodePageBytes), or, where the code page cannot carry it,
+      // its short (8.3) name in the code page. False, with nothing written, where
+      // neither can be written - and the empty value is then handed over, so that
+      // the client never builds a plugin's name without a directory.
+      static bool PluginDirectoryBytes(const String &directory, AnsiString &bytes);
+#endif
+
       // Whether MariaDB Connector/C takes a connection to server as one to this
       // machine, as its plugins/auth/my_auth.c does from 3.4.1 (is_local_connection):
       // Server= exactly 127.0.0.1 or ::1, localhost or empty - over a Unix socket
@@ -258,7 +269,9 @@ namespace HM
    // conninfo are written in - UTF-8 on POSIX; on Windows Latin-1 for a value it
    // carries, as before, and UTF-8 for any other, which reached the server empty -
    // and MySQLConnection::QuoteIdentifier, a database's name quoted whatever it
-   // holds; TlsCaFile's name for each client; and verify-full as each client
+   // holds; TlsCaFile's name for each client; on Windows the bundled client's
+   // plugin directory (PluginDirectoryBytes), over a scratch folder in the
+   // temporary folder that it removes; and verify-full as each client
    // checks it (ClientTakesAsLocal, VerifyFullCheck). Throws std::logic_error
    // with a sentence. connection-string-tests runs
    // it on Linux, ClassTester inside the Windows service. No database,

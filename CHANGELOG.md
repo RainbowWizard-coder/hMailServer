@@ -109,9 +109,12 @@ with `--check`).
   client in the encoding it opens the file in - on Linux UTF-8, on Windows the ANSI code page - and a name that cannot
   be written so is refused before anything is attempted, with HM7534 (new) in the error log, and never handed over as
   nothing. `DALConnection::FileNameBytes` is the one conversion, which PostgreSQL's root certificate goes through
-  too. `hmailserver/docs/DatabaseTls.md` says what the client is given, no
+  too. On Windows the bundled client is always handed its authentication-plugin folder, `Bin\plugin`, in the code
+  page it loads a plugin in, or by the folder's short name (`MySQLConnection::PluginDirectoryBytes`).
+  `hmailserver/docs/DatabaseTls.md` says what the client is given, no
   longer asks for the path in ASCII, and asks on Linux for MariaDB Connector/C 3.4.11 or later. connection-string-tests'
-  MySQLConnectionTester, which ClassTester runs on Windows, holds the name's bytes for both clients and the refusals.
+  MySQLConnectionTester, which ClassTester runs on Windows, holds the name's bytes for both clients, the refusals and
+  the plugin folder's name.
   Found by the project's own review.
 
 - **Changed: a command run as root on Linux examines and opens the folders it will work in by the names the server

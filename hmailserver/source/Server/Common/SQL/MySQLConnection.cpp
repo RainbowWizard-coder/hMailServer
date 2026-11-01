@@ -318,11 +318,21 @@ namespace HM
 #ifndef HM_PLATFORM_POSIX
       if (client->p_mysql_options != 0 && client->IsMariaDbClient())
       {
-         // In the code page the client's LoadLibraryA reads it in (DALConnection::
-         // FileNameBytes).
+         // The client makes a plugin's file name from this option alone - or from
+         // MARIADB_PLUGIN_DIR in the environment, and with neither from the plugin's
+         // bare name - and loads it with LoadLibraryEx in its narrow form
+         // (libmariadb/ma_client_plugin.c.in, mysql_load_plugin_v). So the option is
+         // always set, to Bin\plugin as the client reads it: in the code page, or by
+         // the folder's short name (PluginDirectoryBytes). Where neither can be
+         // written it is set to the empty value, from which the client makes
+         // "\<plugin>.dll", a name at the root of the current drive (the service's
+         // is the system drive's), where only an administrator can make a file;
+         // an account whose plugin is only in Bin\plugin is then refused, which the
+         // connection's error says.
          AnsiString sPluginDir;
-         if (FileNameBytes(client->GetLibraryDirectory() + _T("\\plugin"), sPluginDir) && !sPluginDir.IsEmpty())
-            client->p_mysql_options(dbconn_, HM_MYSQL_PLUGIN_DIR, sPluginDir.c_str());
+         if (!PluginDirectoryBytes(client->GetLibraryDirectory() + _T("\\plugin"), sPluginDir))
+            sPluginDir.Empty();
+         client->p_mysql_options(dbconn_, HM_MYSQL_PLUGIN_DIR, sPluginDir.c_str());
       }
 #else
       // Nothing is pointed anywhere on POSIX, and that is the whole of the
@@ -523,6 +533,33 @@ namespace HM
       // does Oracle's client there: DALConnection::FileNameBytes.
       return DALConnection::FileNameBytes(caFile, bytes);
    }
+
+#ifndef HM_PLATFORM_POSIX
+   bool
+   MySQLConnection::PluginDirectoryBytes(const String &directory, AnsiString &bytes)
+   {
+      // LoadLibraryEx reads the name in the code page alone, so FileNameBytes'
+      // refusal of bytes that also read as UTF-8, which is OpenSSL's, is not made.
+      if (DALConnection::CodePageBytes(directory, bytes) && !bytes.IsEmpty())
+         return true;
+
+      // The short name, where the volume keeps one, is the same folder by a name
+      // the volume made, which the code page may carry where the long one's
+      // characters are not in it.
+      const DWORD needed = GetShortPathNameW(directory.c_str(), nullptr, 0);
+      if (needed > 1)
+      {
+         std::vector<wchar_t> shortName((size_t) needed, L'\0');
+         const DWORD length = GetShortPathNameW(directory.c_str(), shortName.data(), needed);
+         if (length > 0 && length < needed &&
+             DALConnection::CodePageBytes(String(std::wstring(shortName.data(), (size_t) length).c_str()), bytes) && !bytes.IsEmpty())
+            return true;
+      }
+
+      bytes.Empty();
+      return false;
+   }
+#endif
 
    bool
    MySQLConnection::CheckServerVersion(String &errorMessage)
@@ -1701,6 +1738,97 @@ namespace HM
          AnsiString caBytes;
          if (MySQLConnection::CaFileBytes(String(cjk), true, caBytes) || !caBytes.IsEmpty())
             throw std::logic_error("MySQLConnectionTester: a CA file's name code page 1252 cannot carry was handed to the MariaDB client");
+      }
+
+      // The plugin directory goes to the client as LoadLibraryEx reads it, in the
+      // code page alone: a name FileNameBytes refuses because its bytes also read
+      // as UTF-8 - on code page 1252 U+00C3 U+00A9, C3 A9 - is handed over in the
+      // code page all the same, never as nothing.
+      {
+         AnsiString pluginBytes;
+         if (!MySQLConnection::PluginDirectoryBytes(_T("C:\\Program Files\\hMailServer\\Bin\\plugin"), pluginBytes) ||
+             pluginBytes != AnsiString("C:\\Program Files\\hMailServer\\Bin\\plugin"))
+            throw std::logic_error("MySQLConnectionTester: an ASCII plugin directory was not handed to the client as it is");
+
+         if (GetACP() == 1252)
+         {
+            const wchar_t readsAsUtf8[] = { L'C', L':', L'\\', 0x00C3, 0x00A9, L'\\', L'p', L'l', L'u', L'g', L'i', L'n', 0 };
+            AnsiString refused;
+            if (DALConnection::FileNameBytes(String(readsAsUtf8), refused) || !refused.IsEmpty())
+               throw std::logic_error("MySQLConnectionTester: FileNameBytes took a name whose bytes in code page 1252 also read as UTF-8");
+            if (!MySQLConnection::PluginDirectoryBytes(String(readsAsUtf8), pluginBytes) || pluginBytes != AnsiString("C:\\\xC3\xA9\\plugin"))
+               throw std::logic_error("MySQLConnectionTester: a plugin directory whose bytes in code page 1252 also read as UTF-8 was not handed to the client "
+                  "in the code page, but as [" + std::string(pluginBytes.c_str()) + "]");
+         }
+      }
+
+      // A real folder whose name no ANSI code page carries (Georgian, U+10D0
+      // U+10D1): where the code page is not UTF-8, the client is handed its short
+      // name, which names the same folder to a narrow call, and only where the
+      // volume keeps no short name the code page carries, nothing.
+      {
+         wchar_t tempPath[MAX_PATH + 1] = { 0 };
+         const DWORD tempLength = GetTempPathW(MAX_PATH + 1, tempPath);
+         if (tempLength == 0 || tempLength > MAX_PATH)
+            throw std::logic_error("MySQLConnectionTester: the temporary folder could not be found for the plugin directory's case");
+
+         std::wstring folder(tempPath);
+         folder += L"hm-plugin-dir-";
+         folder += std::to_wstring(GetCurrentProcessId());
+         folder += L"-";
+         folder += (wchar_t) 0x10D0;
+         folder += (wchar_t) 0x10D1;
+         const std::wstring plugin = folder + L"\\plugin";
+         const std::wstring marker = plugin + L"\\marker.txt";
+
+         if (!CreateDirectoryW(folder.c_str(), nullptr) || !CreateDirectoryW(plugin.c_str(), nullptr))
+         {
+            RemoveDirectoryW(plugin.c_str());
+            RemoveDirectoryW(folder.c_str());
+            throw std::logic_error("MySQLConnectionTester: the plugin directory's scratch folder could not be made");
+         }
+         const HANDLE markerFile = CreateFileW(marker.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
+         const bool markerMade = markerFile != INVALID_HANDLE_VALUE;
+         if (markerMade)
+            CloseHandle(markerFile);
+
+         std::string failure;
+         AnsiString acp;
+         const bool longTaken = DALConnection::CodePageBytes(String(plugin.c_str()), acp);
+         AnsiString pluginBytes;
+         const bool taken = MySQLConnection::PluginDirectoryBytes(String(plugin.c_str()), pluginBytes);
+         if (!markerMade)
+            failure = "the plugin directory's marker file could not be made";
+         else if (GetACP() != CP_UTF8 && longTaken)
+            failure = "code page " + std::to_string(GetACP()) + " carried a Georgian name, so the case was not tried";
+         else if (taken && pluginBytes.IsEmpty())
+            failure = "PluginDirectoryBytes took the folder and handed over nothing";
+         else if (!taken && !pluginBytes.IsEmpty())
+            failure = "PluginDirectoryBytes refused the folder and left bytes written";
+         else if (taken)
+         {
+            // The bytes the client is handed name the same folder to a narrow call.
+            AnsiString markerBytes = pluginBytes;
+            markerBytes += "\\marker.txt";
+            if (GetFileAttributesA(markerBytes.c_str()) == INVALID_FILE_ATTRIBUTES)
+               failure = "the plugin directory handed to the client, [" + std::string(pluginBytes.c_str()) + "], is not the folder named";
+         }
+         else
+         {
+            // Refused: only where the volume gave no short name the code page carries.
+            wchar_t shortName[MAX_PATH + 1] = { 0 };
+            const DWORD shortLength = GetShortPathNameW(plugin.c_str(), shortName, MAX_PATH + 1);
+            AnsiString shortBytes;
+            if (shortLength > 0 && shortLength <= MAX_PATH && DALConnection::CodePageBytes(String(shortName), shortBytes) && !shortBytes.IsEmpty())
+               failure = "PluginDirectoryBytes refused a folder whose short name the code page carries";
+         }
+
+         DeleteFileW(marker.c_str());
+         RemoveDirectoryW(plugin.c_str());
+         RemoveDirectoryW(folder.c_str());
+
+         if (!failure.empty())
+            throw std::logic_error("MySQLConnectionTester: " + failure);
       }
 #endif
 

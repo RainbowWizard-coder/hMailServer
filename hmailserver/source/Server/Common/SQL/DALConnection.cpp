@@ -153,7 +153,7 @@ namespace HM
    }
 
    bool
-   DALConnection::FileNameBytes(const String &path, AnsiString &bytes)
+   DALConnection::CodePageBytes(const String &path, AnsiString &bytes)
    {
       bytes.Empty();
 
@@ -184,6 +184,24 @@ namespace HM
       if (WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, path.c_str(), path.GetLength(), &narrow[0], size, nullptr, &defaulted) != size || defaulted)
          return false;
 
+      bytes = narrow.c_str();
+      return true;
+#endif
+   }
+
+   bool
+   DALConnection::FileNameBytes(const String &path, AnsiString &bytes)
+   {
+      if (!CodePageBytes(path, bytes))
+         return false;
+
+#ifndef HM_PLATFORM_POSIX
+      // A UTF-8 code page's bytes are the reading OpenSSL takes first.
+      if (GetACP() == CP_UTF8)
+         return true;
+
+      const std::string narrow(bytes.c_str(), (size_t) bytes.GetLength());
+
       // OpenSSL's fopen on Windows (crypto/o_fopen.c, openssl_fopen) reads a name
       // as UTF-8 first and opens the file at that reading when there is one,
       // falling back to the code page's only when there is none - while libpq
@@ -202,11 +220,13 @@ namespace HM
       for (const char c : narrow)
          widened += (wchar_t) (unsigned char) c;
       if (Unicode::IsWidenedUtf8(String(widened.c_str())))
+      {
+         bytes.Empty();
          return false;
-
-      bytes = narrow.c_str();
-      return true;
+      }
 #endif
+
+      return true;
    }
 
    String
