@@ -674,16 +674,19 @@ namespace HM
       // interrupted as WorkQueue::Stop interrupts a worker.
       enum class HoldEndOutcome
       {
-         // Waited for the pool with the interruption held off and returned once
-         // the pool was handed back, the request still pending: as it is to.
+         // Was still ending the hold when the half second ran out, the pool held,
+         // and returned as the pool was handed back, or after, the request still
+         // pending: the interruption held off, as it is to.
          HeldOff,
          // Returned with the request gone: the interruption was met at the
          // recount's wait and taken for a fault, as HM7352 took it until 20
          // October 2026.
          Taken,
-         // Returned while the pool was still held, the request pending: it did
-         // not wait, being handed a connection that another thread had out and
-         // gave back.
+         // Showed nothing, and is made again: the round held no connection, every
+         // one being out with another thread; or the end of the hold returned
+         // within the half second, the request pending - it did not wait, being
+         // handed a connection that another thread had out and gave back; or the
+         // thread had not begun to end the hold when the half second ran out.
          NotMet,
          // Did not end within two minutes of the pool's being handed back.
          DidNotEnd
@@ -701,13 +704,20 @@ namespace HM
          std::vector<std::shared_ptr<DALConnection> > held;
          String error;
 
+         // Each connection leaves the list before it is given back, so that a
+         // hand-back an exception cut short is not made again, below, over those
+         // given back already.
          auto handBack = [&manager, &held, &error]()
          {
-            for (const std::shared_ptr<DALConnection> &connection : held)
+            while (!held.empty())
+            {
+               std::shared_ptr<DALConnection> connection = held.back();
+               held.pop_back();
                manager.RollbackTransaction(connection, error);
-            held.clear();
+            }
          };
 
+         std::atomic<bool> ending(false);
          std::atomic<bool> handedBack(false);
          std::atomic<HoldEndOutcome> outcome(HoldEndOutcome::DidNotEnd);
          bool joined = false;
@@ -723,7 +733,12 @@ namespace HM
                held.push_back(connection);
             }
 
-            boost::thread worker([&outcome, &handedBack]()
+            // Every connection out with another thread: one given back would be the
+            // recount's without a wait.
+            if (held.empty())
+               return HoldEndOutcome::NotMet;
+
+            boost::thread worker([&outcome, &handedBack, &ending]()
             {
                // The hold ends once the thread has been interrupted, as a restore's
                // hold ends on a worker that a stop interrupted. Neither the
@@ -733,6 +748,10 @@ namespace HM
 
                {
                   MessageStoreBlobs::DeletionHold hold(true);
+
+                  // Its end, which asks the pool for a connection to recount
+                  // with, follows.
+                  ending = true;
                }
 
                if (!boost::this_thread::interruption_requested())
@@ -749,10 +768,25 @@ namespace HM
             // the pool still held, did not wait - or took the interruption.
             joined = worker.timed_join(boost::posix_time::milliseconds(500));
 
-            // Handed back before it is said to be: an end of the hold between the
-            // two is taken for one that did not wait, and the round made again.
+            // Said to be handed back before it is, if the end of the hold had begun
+            // and was still running when the half second ran out, waiting for the
+            // pool: the first connection given back can go to it at once, and the
+            // hold end before this thread runs again. Said after the hand-back,
+            // such an end was taken for one that did not wait - on SQL Server
+            // Compact's pool of one, with the rest of the suite running beside it,
+            // in every round of thirty seconds (the Windows gate, 1 November 2026).
+            // An end not begun by then, its thread kept off the processor, is
+            // handed a free connection and waits for nothing: the round is made
+            // again. On SQL Server Compact the round holds the pool's one
+            // connection, so an end still running then is waiting for it - or for
+            // the blobs' lock, behind a thread that waits for it with the lock held
+            // (Keep, AddReferences and Release make their statements under it),
+            // and is then taken for one that waited; on another engine's pool a
+            // connection another thread gave back can be the recount's without a
+            // wait, and a recount slower than the half second is then taken for
+            // one that waited.
+            handedBack = !joined && ending;
             handBack();
-            handedBack = true;
 
             if (!joined)
             {
@@ -788,7 +822,10 @@ namespace HM
       // has out when a round holds the pool's free ones is not held, and given
       // back before the recount asks, it is the recount's at once: no wait, and no
       // interruption met. Such a round shows nothing - its hold ends while the
-      // pool is still held - and is made again, for thirty seconds at most.
+      // pool is still held - and is made again, for thirty seconds at most; so is
+      // a round that held no connection, every one being out with another thread,
+      // and one whose thread had not begun to end the hold when the half second
+      // ran out (InterruptAHoldsEnd).
       const std::chrono::steady_clock::time_point giveUp = std::chrono::steady_clock::now() + std::chrono::seconds(30);
 
       for (int round = 1; ; round++)
@@ -808,7 +845,7 @@ namespace HM
          }
 
          if (std::chrono::steady_clock::now() >= giveUp)
-            HoldStopInterruptionFailed("in " + std::to_string(round) + " rounds over thirty seconds the end of the hold never waited for a pooled connection: each time it was given a connection that another thread had out and gave back before it asked.");
+            HoldStopInterruptionFailed("in " + std::to_string(round) + " rounds over thirty seconds the end of the hold never waited for a pooled connection: each round's connections were all out with other threads, or the end was given one that another thread had out and gave back before it asked, or had not begun when the half second ran out.");
 
          Sleep(50);
       }
