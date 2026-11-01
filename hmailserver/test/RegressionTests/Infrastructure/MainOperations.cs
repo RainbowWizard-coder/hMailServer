@@ -178,7 +178,13 @@ namespace RegressionTests.Infrastructure
 
          application.GlobalObjects.DeliveryQueue.Clear();
 
-         CustomAsserts.AssertRecipientsInDeliveryQueue(0, false);
+         // The clear runs as a task of its own. Wait for it without asking the queue to send:
+         // AssertRecipientsInDeliveryQueue asks for a delivery on every poll while the count is not yet
+         // reached, and that delivery reads the message the clear is deleting (HM5006 in the error log,
+         // which the next test's set-up reports).
+         RetryHelper.TryAction(System.TimeSpan.FromSeconds(20),
+            () => RetryableAssert.AreEqual(TestSetup.GetNumberOfMessagesInDeliveryQueue(), 0));
+         Assert.AreEqual(0, TestSetup.GetNumberOfMessagesInDeliveryQueue());
       }
 
       [Test]
