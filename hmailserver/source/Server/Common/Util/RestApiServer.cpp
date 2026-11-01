@@ -1315,8 +1315,9 @@ namespace HM
             if (!SslContextInitializer::InitServer(*context, certificate, bind_address, port))
             {
                // InitServer has already reported the specific failure - an unreadable
-               // certificate file, a private key that does not match - as HM5113.
-               // This line records only the consequence for this listener.
+               // certificate file, a private key that does not match - as HM5113, or
+               // HM7536 for a name OpenSSL cannot be handed as it is named. This line
+               // records only the consequence for this listener.
                LOG_APPLICATION("RestApi: Refusing to start - the shared TLS configuration could not be applied to the configured certificate.");
                return false;
             }

@@ -532,8 +532,18 @@ namespace HM
       if (sKeyFile.IsEmpty())
          return false;
 
+      // The name as OpenSSL is to open it (FileUtilities::OpenSslPath). Up to
+      // 6.3.7 its UTF-8 on Windows as on Linux, which OpenSSL's fopen on Windows
+      // opens at that reading and, when no file is there, at the code page's
+      // reading of the same bytes - another name. A name it refuses verifies
+      // nothing.
       AnsiString keyPath;
-      Unicode::WideToMultiByte(sKeyFile, keyPath);
+      if (!FileUtilities::OpenSslPath(sKeyFile, keyPath))
+      {
+         FileUtilities::ReportOpenSslPathRefused(_T("The public key file tokens are verified with"), sKeyFile,
+            _T("OAuth2TokenValidator::VerifyWithPublicKey_"), true);
+         return false;
+      }
 
       BIO *bio = BIO_new_file(keyPath, "r");
       if (bio == nullptr)

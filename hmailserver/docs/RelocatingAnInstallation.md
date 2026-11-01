@@ -500,6 +500,13 @@ under the old root:
 - **Client-certificate CA bundle.** *Connections & protocols → TCP/IP ports*, per
   port. A port set to *require* a client certificate refuses every client when its
   bundle cannot be loaded.
+- **On Windows, a name OpenSSL can be handed as it is named.** The certificate,
+  key and CA files above, `OAuth2PublicKeyFile` and `AcmeCertificateDirectory` are
+  opened by OpenSSL, and under a new tree whose name has a character the code page
+  does not have, or characters whose bytes in it also read as UTF-8, each is refused
+  (HM7536): its port does not start, its tokens are not verified, its certificate
+  is not renewed ([DatabaseTls.md](DatabaseTls.md), *File names handed to OpenSSL
+  on Windows*). A name in ASCII always does.
 - **Backup destination, ClamWin, custom scanner, rule actions.** Each in its own
   page.
 - **Archive index.** `hm_archiveindex.archivepath` holds one row per archived

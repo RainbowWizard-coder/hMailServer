@@ -7560,6 +7560,9 @@ Nothing already there is removed.</value>
   <data name="Name or suffix" xml:space="preserve">
     <value>Name or suffix</value>
   </data>
+  <data name="Name refused" xml:space="preserve">
+    <value>Name refused</value>
+  </data>
   <data name="Name servers" xml:space="preserve">
     <value>Name servers</value>
   </data>
@@ -8639,6 +8642,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them.</value>
+  </data>
+  <data name="On this computer's code page its name holds a character the code page does not have, or characters whose bytes also read as another name in UTF-8, which OpenSSL would open instead, so the server does not hand it to OpenSSL (server error 7536). Give the file, and the folders above it, names in ASCII." xml:space="preserve">
+    <value>On this computer's code page its name holds a character the code page does not have, or characters whose bytes also read as another name in UTF-8, which OpenSSL would open instead, so the server does not hand it to OpenSSL (server error 7536). Give the file, and the folders above it, names in ASCII.</value>
   </data>
   <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
     <value>On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred.</value>
@@ -13916,6 +13922,15 @@ Add it anyway?</value>
   <data name="The server does not answer {0} in {1}; it may be older than this Control Panel." xml:space="preserve">
     <value>The server does not answer {0} in {1}; it may be older than this Control Panel.</value>
   </data>
+  <data name="The server does not read the RSA/EC public key file {0}, so RS256 tokens cannot be verified." xml:space="preserve">
+    <value>The server does not read the RSA/EC public key file {0}, so RS256 tokens cannot be verified.</value>
+  </data>
+  <data name="The server does not read the certificate file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>The server does not read the certificate file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops.</value>
+  </data>
+  <data name="The server does not read the private key file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>The server does not read the private key file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops.</value>
+  </data>
   <data name="The server fails closed rather than guessing (server error 5921): no password is sent and the sign-in is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
     <value>The server fails closed rather than guessing (server error 5921): no password is sent and the sign-in is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password.</value>
   </data>
@@ -18420,6 +18435,15 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate before promoting the secondary key, or mail will sign with a key the world cannot look up." xml:space="preserve">
     <value>{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate before promoting the secondary key, or mail will sign with a key the world cannot look up.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the listener does not start." xml:space="preserve">
+    <value>{0}: the server does not read the CA file {1}, so no CA is loaded and the listener does not start.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the port verifies no client certificate." xml:space="preserve">
+    <value>{0}: the server does not read the CA file {1}, so no CA is loaded and the port verifies no client certificate.</value>
+  </data>
+  <data name="{0}: the server does not read the key file {1}, so every port using this certificate does not start." xml:space="preserve">
+    <value>{0}: the server does not read the key file {1}, so every port using this certificate does not start.</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name.</value>

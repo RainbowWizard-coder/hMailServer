@@ -156,6 +156,28 @@ with `--check`).
   so, and connection-string-tests'
   PGConnectionTester, which ClassTester runs on Windows, holds the refusal. Found by the project's own review.
 
+- **Fixed: on Windows the files the server hands to OpenSSL by name are read from the file configured, or refused.**
+  The certificate and private key files of the TLS certificates - the REST API's, the metrics listener's and the web
+  services' among them - `dh2048.pem`, a TCP/IP port's client-certificate CA file, `MessageStoreObjectCaFile` and the
+  files in `AcmeCertificateDirectory` were handed to OpenSSL in an encoding in which a name with some characters
+  outside ASCII could name another file than the one configured, in every release up to and including 6.3.7. Each name
+  now goes through one conversion, `FileUtilities::OpenSslPath`, which holds to the rule the database's CA files
+  follow (`FileUtilities::FileNameBytes`, which `DALConnection::FileNameBytes` now calls), and a name it cannot hand
+  over as it is named is refused, with HM7536 (new) in the error log, together with what the file was for: a port
+  whose certificate or key it names does not start, a client-certificate CA file verifies no certificate, the object
+  store's CA file allows no request, the public key verifies no token, `dh2048.pem` is left out as a missing one is,
+  and the ACME client reads and writes nothing there and orders no certificate. A name in ASCII is handed over as
+  before, and on Linux every name in UTF-8, the bytes `FileUtilities::NarrowPath` gives every other call there (under
+  Correctness), which OpenSSL opens as they are. The Control Panel holds the same rule where it reads these files on
+  the server's own computer: the SSL certificates page shows such a certificate or key file as Name refused, at
+  Critical, and the setup checklist's items on the TLS private keys, the client-certificate CA files and
+  `OAuth2PublicKeyFile` say the server does not read it (error 7536), since they read the file by its wide name, which
+  works whatever the name. `OAuth2PublicKeyFile` was handed over in UTF-8 up to 6.3.7, so a name outside the code page
+  that worked then is refused now. `build/check-openssl-file-names.py`, run by the checkers job with its self-test,
+  holds every call in the server that opens a file through OpenSSL by its name to a name `OpenSslPath` gave.
+  DatabaseTls.md says which names are refused and what to do, and Acme.md, ObjectStorage.md and
+  RelocatingAnInstallation.md say so beside the settings. Found by the project's own review.
+
 - **Fixed: the container image secures a new installation by itself, whatever the container's command, as the
   packaged systemd unit's and OpenRC service's first starts do.** Its entrypoint now runs `hmailserver
   --apply-new-install-defaults --if-marked` last, before the command: a database the entrypoint's `--create-database`

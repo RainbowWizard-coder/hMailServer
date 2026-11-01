@@ -147,6 +147,7 @@ LOCALISED = {
    "Services/SpamPipeline.cs",
    "Services/VirusPipeline.cs",
    "Services/CertificateInspector.cs",
+   "Services/OpenSslFileName.cs",
    "Services/ApiKeyStore.cs",
    "Services/ListenerProbe.cs",
    "Services/PaletteSearch.cs",

@@ -7560,6 +7560,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Name or suffix" xml:space="preserve">
     <value>Ad veya sonek</value>
   </data>
+  <data name="Name refused" xml:space="preserve">
+    <value>Ad reddedildi</value>
+  </data>
   <data name="Name servers" xml:space="preserve">
     <value>Ad sunucuları</value>
   </data>
@@ -8639,6 +8642,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>Sunucuda, Bin klasöründe yükseltilmiş bir komut isteminden: hMailServer.exe --create-stored-secrets-key anahtarı oluşturur, hMailServer.exe --export-stored-secrets-key FILE ise dışa aktarır. Dosyayı veritabanı yedekleriyle birlikte, ama onlardan ayrı saklayın.</value>
+  </data>
+  <data name="On this computer's code page its name holds a character the code page does not have, or characters whose bytes also read as another name in UTF-8, which OpenSSL would open instead, so the server does not hand it to OpenSSL (server error 7536). Give the file, and the folders above it, names in ASCII." xml:space="preserve">
+    <value>Bu makinenin kod sayfasında adı, kod sayfasında bulunmayan bir karakter ya da baytları UTF-8 olarak başka bir ad olarak da okunan karakterler içeriyor; OpenSSL bunun yerine o adı açar, bu yüzden sunucu bu adı OpenSSL'e vermez (sunucu hatası 7536). Dosyaya ve üstündeki klasörlere ASCII adlar verin.</value>
   </data>
   <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
     <value>Açıkken tamamlanamayan bir denetime 451 4.4.3 ile yanıt verilir; böylece gönderen DNS çalışınca yeniden dener ve yukarıdaki temperror puanı kullanılmaz. Kapalıyken temperror kabul edilir ve puanlanır; izin verilen bir alan adından gelen gönderen asla ertelenmez.</value>
@@ -13916,6 +13922,15 @@ Yine de eklensin mi?</value>
   <data name="The server does not answer {0} in {1}; it may be older than this Control Panel." xml:space="preserve">
     <value>Sunucu {1} üzerinde {0} için yanıt vermiyor; bu Denetim Masası'ndan eski olabilir.</value>
   </data>
+  <data name="The server does not read the RSA/EC public key file {0}, so RS256 tokens cannot be verified." xml:space="preserve">
+    <value>Sunucu {0} RSA/EC ortak anahtar dosyasını okumuyor; bu yüzden RS256 belirteçleri doğrulanamıyor.</value>
+  </data>
+  <data name="The server does not read the certificate file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>Sunucu {0} sertifika dosyasını okumuyor; bu yüzden bu sertifikayı kullanacak şekilde yapılandırılmış her TLS portu başlatılamıyor ve bu portlardaki posta duruyor.</value>
+  </data>
+  <data name="The server does not read the private key file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>Sunucu {0} özel anahtar dosyasını okumuyor; bu yüzden bu sertifikayı kullanacak şekilde yapılandırılmış her TLS portu başlatılamıyor ve bu portlardaki posta duruyor.</value>
+  </data>
   <data name="The server fails closed rather than guessing (server error 5921): no password is sent and the sign-in is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
     <value>Sunucu tahmin etmek yerine kapalı olarak başarısız olur (sunucu hatası 5921): parola gönderilmez ve oturum açma reddedilir. LDAPS veya StartTLS ya da (parolayı hiçbir zaman iletmeyen) Negotiate bağlama yöntemini seçerek - veya uçtan uca denetlediğiniz bir ağda korumasız parolaya açıkça izin vererek - düzeltin.</value>
   </data>
@@ -18420,6 +18435,15 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate before promoting the secondary key, or mail will sign with a key the world cannot look up." xml:space="preserve">
     <value>{0}: ikincil anahtar hazırlanmış ama {1} konumunda henüz TXT kaydı yok. İkincil anahtarı yükseltmeden önce yayımlayın ve yayılmasına izin verin, yoksa posta dünyanın arayamayacağı bir anahtarla imzalanır.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the listener does not start." xml:space="preserve">
+    <value>{0}: sunucu {1} CA dosyasını okumuyor; bu yüzden hiçbir CA yüklenmiyor ve dinleyici başlatılmıyor.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the port verifies no client certificate." xml:space="preserve">
+    <value>{0}: sunucu {1} CA dosyasını okumuyor; bu yüzden hiçbir CA yüklenmiyor ve port hiçbir istemci sertifikasını doğrulamıyor.</value>
+  </data>
+  <data name="{0}: the server does not read the key file {1}, so every port using this certificate does not start." xml:space="preserve">
+    <value>{0}: sunucu {1} anahtar dosyasını okumuyor; bu yüzden bu sertifikayı kullanan hiçbir port başlatılmıyor.</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: {1} TXT kaydı yayımlanmış. Buradan denetlenemeyenler: mta-sts.{2} adının bu sunucuya çözümlenmesi ve sertifikanın o adı kapsaması.</value>

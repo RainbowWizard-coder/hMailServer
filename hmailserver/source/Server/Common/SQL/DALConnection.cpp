@@ -192,41 +192,9 @@ namespace HM
    bool
    DALConnection::FileNameBytes(const String &path, AnsiString &bytes)
    {
-      if (!CodePageBytes(path, bytes))
-         return false;
-
-#ifndef HM_PLATFORM_POSIX
-      // A UTF-8 code page's bytes are the reading OpenSSL takes first.
-      if (GetACP() == CP_UTF8)
-         return true;
-
-      const std::string narrow(bytes.c_str(), (size_t) bytes.GetLength());
-
-      // OpenSSL's fopen on Windows (crypto/o_fopen.c, openssl_fopen) reads a name
-      // as UTF-8 first and opens the file at that reading when there is one,
-      // falling back to the code page's only when there is none - while libpq
-      // stat()s the code page's bytes before it hands them to OpenSSL. Bytes
-      // outside ASCII that also read as UTF-8 - on code page 1252 U+00C3 U+00A9
-      // are C3 A9, which is U+00E9 in UTF-8 - therefore name two files, and the
-      // one read would be another file whenever one sits at the other reading. In
-      // a code page that is not UTF-8 such bytes always read as another name, so
-      // such a name is refused, as one the code page cannot carry is. Any other
-      // name outside ASCII is not UTF-8, and OpenSSL opens it in the code page.
-      // Unicode::IsWidenedUtf8 over the bytes, one to a character, is that test:
-      // true when one is outside ASCII and they are well-formed UTF-8 (RFC 3629),
-      // which is what OpenSSL's MB_ERR_INVALID_CHARS conversion accepts.
-      std::wstring widened;
-      widened.reserve(narrow.size());
-      for (const char c : narrow)
-         widened += (wchar_t) (unsigned char) c;
-      if (Unicode::IsWidenedUtf8(String(widened.c_str())))
-      {
-         bytes.Empty();
-         return false;
-      }
-#endif
-
-      return true;
+      // The rule is FileUtilities', which OpenSSL's own file calls hold to too
+      // (FileUtilities::OpenSslPath).
+      return FileUtilities::FileNameBytes(path, bytes);
    }
 
    String

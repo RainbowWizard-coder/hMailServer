@@ -7571,6 +7571,9 @@
   <data name="Name or suffix" xml:space="preserve">
     <value>名前またはサフィックス</value>
   </data>
+  <data name="Name refused" xml:space="preserve">
+    <value>名前が拒否されました</value>
+  </data>
   <data name="Name servers" xml:space="preserve">
     <value>ネーム サーバー</value>
   </data>
@@ -8650,6 +8653,9 @@
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>サーバー上で、Bin フォルダーの管理者として実行したコマンド プロンプトから: hMailServer.exe --create-stored-secrets-key でキーを作成し、hMailServer.exe --export-stored-secrets-key FILE でエクスポートします。そのファイルはデータベースのバックアップと一緒に、ただし別の場所に保管してください。</value>
+  </data>
+  <data name="On this computer's code page its name holds a character the code page does not have, or characters whose bytes also read as another name in UTF-8, which OpenSSL would open instead, so the server does not hand it to OpenSSL (server error 7536). Give the file, and the folders above it, names in ASCII." xml:space="preserve">
+    <value>このコンピューターのコード ページでは、名前にコード ページにない文字、またはバイトが UTF-8 では別の名前としても読める文字が含まれており、OpenSSL は代わりにその名前を開くため、サーバーはこの名前を OpenSSL に渡しません (サーバー エラー 7536)。ファイルとその上のフォルダーに ASCII の名前を付けてください。</value>
   </data>
   <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
     <value>オンにすると、完了できなかったチェックには 451 4.4.3 で応答して DNS が復旧してから送信者に再試行させ、上の temperror スコアは使いません。オフでは temperror は受け入れられてスコア付けされ、許可するドメインの送信者は決して保留されません。</value>
@@ -13927,6 +13933,15 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The server does not answer {0} in {1}; it may be older than this Control Panel." xml:space="preserve">
     <value>サーバーは {1} で {0} に応答しません。このコントロールパネルより古いサーバーの可能性があります。</value>
   </data>
+  <data name="The server does not read the RSA/EC public key file {0}, so RS256 tokens cannot be verified." xml:space="preserve">
+    <value>サーバーは RSA/EC 公開キー ファイル {0} を読み取らないため、RS256 トークンを検証できません。</value>
+  </data>
+  <data name="The server does not read the certificate file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>サーバーは証明書ファイル {0} を読み取らないため、この証明書を使うよう設定されたすべての TLS ポートが起動に失敗し、それらのポートでのメールは止まります。</value>
+  </data>
+  <data name="The server does not read the private key file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>サーバーは秘密キー ファイル {0} を読み取らないため、この証明書を使うよう設定されたすべての TLS ポートが起動に失敗し、それらのポートでのメールは止まります。</value>
+  </data>
   <data name="The server fails closed rather than guessing (server error 5921): no password is sent and the sign-in is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
     <value>サーバーは推測せず、安全側に倒します (サーバー エラー 5921)。パスワードは送信されず、サインインは拒否されます。LDAPS または StartTLS を選ぶか、Negotiate バインド方式 (パスワードを決して送信しない) を選ぶことで解決します。あるいは、端から端まで管理下にあるネットワークでは、保護されていないパスワードを明示的に許可することでも解決します。</value>
   </data>
@@ -18431,6 +18446,15 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate before promoting the secondary key, or mail will sign with a key the world cannot look up." xml:space="preserve">
     <value>{0}: 副次キーはステージングされていますが、{1} にはまだ TXT レコードがありません。副次キーを昇格する前にレコードを公開し、伝播させてください。そうしないと、世界から参照できないキーでメールに署名することになります。</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the listener does not start." xml:space="preserve">
+    <value>{0}: サーバーは CA ファイル {1} を読み取らないため、CA は読み込まれず、リスナーは開始されません。</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the port verifies no client certificate." xml:space="preserve">
+    <value>{0}: サーバーは CA ファイル {1} を読み取らないため、CA は読み込まれず、ポートはクライアント証明書を検証しません。</value>
+  </data>
+  <data name="{0}: the server does not read the key file {1}, so every port using this certificate does not start." xml:space="preserve">
+    <value>{0}: サーバーはキー ファイル {1} を読み取らないため、この証明書を使うすべてのポートが起動しません。</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: {1} の TXT レコードは公開されています。ここからは確認できないこと: mta-sts.{2} がこのサーバーに解決されること、および証明書がその名前を含んでいること。</value>

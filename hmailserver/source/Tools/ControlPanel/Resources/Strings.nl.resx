@@ -7560,6 +7560,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Name or suffix" xml:space="preserve">
     <value>Naam of achtervoegsel</value>
   </data>
+  <data name="Name refused" xml:space="preserve">
+    <value>Naam geweigerd</value>
+  </data>
   <data name="Name servers" xml:space="preserve">
     <value>Naamservers</value>
   </data>
@@ -8639,6 +8642,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>Op de server, vanaf een opdrachtprompt met verhoogde rechten in de map Bin: hMailServer.exe --create-stored-secrets-key maakt de sleutel, en hMailServer.exe --export-stored-secrets-key FILE exporteert hem. Bewaar het bestand bij de databaseback-ups, maar apart ervan.</value>
+  </data>
+  <data name="On this computer's code page its name holds a character the code page does not have, or characters whose bytes also read as another name in UTF-8, which OpenSSL would open instead, so the server does not hand it to OpenSSL (server error 7536). Give the file, and the folders above it, names in ASCII." xml:space="preserve">
+    <value>In de codetabel van deze machine bevat de naam een teken dat de codetabel niet heeft, of tekens waarvan de bytes in UTF-8 ook als een andere naam gelezen worden, die OpenSSL in plaats daarvan zou openen, dus geeft de server hem niet aan OpenSSL (serverfout 7536). Geef het bestand, en de mappen erboven, namen in ASCII.</value>
   </data>
   <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
     <value>Aan: een controle die niet kon worden voltooid, krijgt 451 4.4.3, zodat de afzender het opnieuw probeert als DNS weer werkt, en de temperror-score hierboven wordt niet gebruikt. Uit: een temperror wordt geaccepteerd en gescoord; een afzender uit een toegestaan domein wordt nooit uitgesteld.</value>
@@ -13916,6 +13922,15 @@ Toch toevoegen?</value>
   <data name="The server does not answer {0} in {1}; it may be older than this Control Panel." xml:space="preserve">
     <value>De server beantwoordt {0} in {1} niet; hij is mogelijk ouder dan dit Control Panel.</value>
   </data>
+  <data name="The server does not read the RSA/EC public key file {0}, so RS256 tokens cannot be verified." xml:space="preserve">
+    <value>De server leest het bestand met de publieke RSA-/EC-sleutel {0} niet, dus RS256-tokens kunnen niet worden geverifieerd.</value>
+  </data>
+  <data name="The server does not read the certificate file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>De server leest het certificaatbestand {0} niet, dus elke TLS-poort die is geconfigureerd om dit certificaat te gebruiken start niet en mail op die poorten stopt.</value>
+  </data>
+  <data name="The server does not read the private key file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>De server leest het privésleutelbestand {0} niet, dus elke TLS-poort die is geconfigureerd om dit certificaat te gebruiken start niet en mail op die poorten stopt.</value>
+  </data>
   <data name="The server fails closed rather than guessing (server error 5921): no password is sent and the sign-in is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
     <value>De server faalt dicht in plaats van te gokken (serverfout 5921): er wordt geen wachtwoord verzonden en de aanmelding wordt geweigerd. Los het op door LDAPS of StartTLS te kiezen, of de bindmethode Negotiate (die het wachtwoord nooit verzendt) - of, op een netwerk dat u van begin tot eind beheert, door het onbeschermde wachtwoord uitdrukkelijk toe te staan.</value>
   </data>
@@ -18420,6 +18435,15 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate before promoting the secondary key, or mail will sign with a key the world cannot look up." xml:space="preserve">
     <value>{0}: de secundaire sleutel is klaargezet, maar er bestaat nog geen TXT-record op {1}. Publiceer het en laat het propageren voordat u de secundaire sleutel promoveert, anders ondertekent mail met een sleutel die de wereld niet kan opzoeken.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the listener does not start." xml:space="preserve">
+    <value>{0}: de server leest het CA-bestand {1} niet, dus er wordt geen CA geladen en de listener start niet.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the port verifies no client certificate." xml:space="preserve">
+    <value>{0}: de server leest het CA-bestand {1} niet, dus er wordt geen CA geladen en de poort verifieert geen clientcertificaat.</value>
+  </data>
+  <data name="{0}: the server does not read the key file {1}, so every port using this certificate does not start." xml:space="preserve">
+    <value>{0}: de server leest het sleutelbestand {1} niet, dus geen enkele poort die dit certificaat gebruikt, start.</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: het {1}-TXT-record is gepubliceerd. Niet vanaf hier te controleren: dat mta-sts.{2} naar deze server verwijst, en dat het certificaat die naam dekt.</value>

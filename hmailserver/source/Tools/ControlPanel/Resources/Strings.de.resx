@@ -7560,6 +7560,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Name or suffix" xml:space="preserve">
     <value>Name oder Suffix</value>
   </data>
+  <data name="Name refused" xml:space="preserve">
+    <value>Name abgelehnt</value>
+  </data>
   <data name="Name servers" xml:space="preserve">
     <value>Nameserver</value>
   </data>
@@ -8639,6 +8642,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>Auf dem Server, in einer Eingabeaufforderung mit erhöhten Rechten im Ordner Bin: hMailServer.exe --create-stored-secrets-key erstellt den Schlüssel, und hMailServer.exe --export-stored-secrets-key FILE exportiert ihn. Bewahren Sie die Datei bei den Datenbanksicherungen auf, aber getrennt von ihnen.</value>
+  </data>
+  <data name="On this computer's code page its name holds a character the code page does not have, or characters whose bytes also read as another name in UTF-8, which OpenSSL would open instead, so the server does not hand it to OpenSSL (server error 7536). Give the file, and the folders above it, names in ASCII." xml:space="preserve">
+    <value>In der Codepage dieses Rechners enthält der Name ein Zeichen, das die Codepage nicht hat, oder Zeichen, deren Bytes in UTF-8 auch als ein anderer Name gelesen werden, den OpenSSL stattdessen öffnen würde; der Server übergibt ihn daher nicht an OpenSSL (Serverfehler 7536). Geben Sie der Datei und den Ordnern darüber Namen in ASCII.</value>
   </data>
   <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
     <value>Ein: eine Prüfung, die nicht abgeschlossen werden konnte, wird mit 451 4.4.3 beantwortet, damit der Absender es erneut versucht, wenn DNS wieder funktioniert, und die Temperror-Bewertung oben wird nicht verwendet. Aus: ein Temperror wird angenommen und bewertet; ein Absender aus einer zugelassenen Domain wird nie zurückgestellt.</value>
@@ -13916,6 +13922,15 @@ Trotzdem hinzufügen?</value>
   <data name="The server does not answer {0} in {1}; it may be older than this Control Panel." xml:space="preserve">
     <value>Der Server liefert {0} in {1} nicht; er ist möglicherweise älter als dieses Control Panel.</value>
   </data>
+  <data name="The server does not read the RSA/EC public key file {0}, so RS256 tokens cannot be verified." xml:space="preserve">
+    <value>Der Server liest die öffentliche RSA-/EC-Schlüsseldatei {0} nicht, RS256-Tokens können also nicht verifiziert werden.</value>
+  </data>
+  <data name="The server does not read the certificate file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>Der Server liest die Zertifikatdatei {0} nicht, jeder TLS-Port, der für dieses Zertifikat konfiguriert ist, startet also nicht, und Mail auf diesen Ports steht still.</value>
+  </data>
+  <data name="The server does not read the private key file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>Der Server liest die private Schlüsseldatei {0} nicht, jeder TLS-Port, der für dieses Zertifikat konfiguriert ist, startet also nicht, und Mail auf diesen Ports steht still.</value>
+  </data>
   <data name="The server fails closed rather than guessing (server error 5921): no password is sent and the sign-in is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
     <value>Der Server scheitert geschlossen, statt zu raten (Serverfehler 5921): es wird kein Passwort gesendet und die Anmeldung wird abgelehnt. Beheben Sie das, indem Sie LDAPS oder StartTLS wählen oder die Bind-Methode Negotiate (die das Passwort nie überträgt) - oder, in einem Netz, das Sie durchgehend kontrollieren, indem Sie das ungeschützte Passwort ausdrücklich erlauben.</value>
   </data>
@@ -18420,6 +18435,15 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate before promoting the secondary key, or mail will sign with a key the world cannot look up." xml:space="preserve">
     <value>{0}: Der Zweitschlüssel ist bereitgestellt, aber unter {1} existiert noch kein TXT-Eintrag. Veröffentlichen Sie ihn und lassen Sie ihn sich verbreiten, bevor Sie den Zweitschlüssel befördern, sonst signiert Mail mit einem Schlüssel, den die Welt nicht nachschlagen kann.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the listener does not start." xml:space="preserve">
+    <value>{0}: Der Server liest die CA-Datei {1} nicht, es wird also keine CA geladen, und der Listener startet nicht.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the port verifies no client certificate." xml:space="preserve">
+    <value>{0}: Der Server liest die CA-Datei {1} nicht, es wird also keine CA geladen, und der Port verifiziert kein Clientzertifikat.</value>
+  </data>
+  <data name="{0}: the server does not read the key file {1}, so every port using this certificate does not start." xml:space="preserve">
+    <value>{0}: Der Server liest die Schlüsseldatei {1} nicht, kein Port, der dieses Zertifikat verwendet, startet also.</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: Der {1}-TXT-Eintrag ist veröffentlicht. Von hier aus nicht prüfbar: dass mta-sts.{2} auf diesen Server auflöst und dass das Zertifikat diesen Namen abdeckt.</value>

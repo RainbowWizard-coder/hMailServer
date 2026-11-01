@@ -122,7 +122,7 @@ card), which reads and writes them over the REST API, so the REST API has to be 
 | `MessageStoreObjectAccessKey` | `message_store_object_access_key` | empty | S3's access key id; Azure's storage account name |
 | `MessageStoreObjectSecret` | `message_store_object_secret` | empty | S3's secret access key; Azure's account key. **Protected** as the relayer password is, never emitted, and left out of a backup |
 | `MessageStoreObjectSasToken` | `message_store_object_sas_token` | empty | Azure: a SAS (`sv=...&sig=...`), used instead of the account key. Protected, never emitted, left out of a backup; printable ASCII only |
-| `MessageStoreObjectCaFile` | `message_store_object_ca_file` | empty | A PEM file of the CA that issued the store's certificate (below) |
+| `MessageStoreObjectCaFile` | `message_store_object_ca_file` | empty | A PEM file of the CA that issued the store's certificate (below). On Windows a name OpenSSL cannot be handed as it is named - a character the code page does not have, or characters whose bytes in it also read as UTF-8 - is refused, and no request is made (HM7536, [DatabaseTls.md](DatabaseTls.md)) |
 | `MessageStoreObjectCacheMB` | `message_store_object_cache_mb` | `32` | What was read a moment ago, kept half a minute (below); 0 keeps nothing, 4096 at most |
 
 The secret and the SAS are recorded on the audit trail as changed, never by value. A

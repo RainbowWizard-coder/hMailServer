@@ -562,7 +562,8 @@ namespace HM
                }
                else
                {
-                  // InitServer has already reported the specific failure as HM5113.
+                  // InitServer has already reported the specific failure as HM5113, or
+                  // HM7536 for a name OpenSSL cannot be handed as it is named.
                   LOG_APPLICATION("WebServices: The shared TLS configuration could not be applied to the certificate. The HTTPS listener is disabled.");
                }
             }

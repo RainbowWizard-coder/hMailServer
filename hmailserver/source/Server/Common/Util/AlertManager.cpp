@@ -1124,7 +1124,15 @@ namespace HM
          if (file.IsEmpty() || !FileUtilities::Exists(file))
             continue;
 
-         AnsiString narrowFile = FileUtilities::NarrowPath(file);
+         // A name FileUtilities::OpenSslPath refuses is read from nowhere: its
+         // listener does not start either, and says so; this says it once.
+         AnsiString narrowFile;
+         if (!FileUtilities::OpenSslPath(file, narrowFile))
+         {
+            FileUtilities::ReportOpenSslPathRefused(String(_T("The certificate file of certificate ")) + certificate->GetName(), file,
+               _T("AlertManager::EvaluateCertificates_"), true);
+            continue;
+         }
 
          BIO *bio = BIO_new_file(narrowFile.c_str(), "r");
          if (bio == nullptr)

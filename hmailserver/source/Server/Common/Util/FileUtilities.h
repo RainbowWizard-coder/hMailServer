@@ -27,8 +27,48 @@ namespace HM
       // that one name outside ASCII was one file to Boost and another, or none,
       // to them. Empty for a name UTF-8 cannot carry (half of a surrogate pair),
       // which no call then finds. On Windows AnsiString(String), as it has always
-      // been: the narrow calls there read the ANSI code page.
+      // been: the narrow calls there read the ANSI code page - all but OpenSSL's,
+      // which are handed OpenSslPath's bytes instead.
       static AnsiString NarrowPath(const String &path);
+
+      // A file's name as the bytes a library that opens it with a narrow call is
+      // handed, so that the file it opens is the one named: the database clients'
+      // CA files (DALConnection::FileNameBytes) and OpenSSL's own file functions
+      // (OpenSslPath). On POSIX, UTF-8: the bytes of the name on the file system,
+      // which the server makes every file name in (NarrowPath). On Windows, the
+      // ANSI code page, with no best-fit letter put in a character's place - or
+      // UTF-8 when the code page is UTF-8 (the system-wide "Beta: Use Unicode
+      // UTF-8" setting). OpenSSL's fopen on Windows (crypto/o_fopen.c,
+      // openssl_fopen) reads a name as UTF-8 first and opens the file at that
+      // reading when there is one, falling back to the code page only when there
+      // is none, so a name whose bytes outside ASCII in the code page also read as
+      // UTF-8 - on code page 1252 U+00C3 U+00A9 are C3 A9, which is U+00E9 - names
+      // two files, and the one opened is another whenever a file is at the other
+      // reading. False, with nothing written, for such a name, for one with a
+      // character the code page cannot carry, for one with U+0000 (a narrow call
+      // would cut it short) and for half of a surrogate pair.
+      static bool FileNameBytes(const String &path, AnsiString &bytes);
+
+      // The bytes OpenSSL's file functions are handed for a file's name -
+      // BIO_new_file, SSL_load_client_CA_file, and Boost.Asio's ssl::context
+      // use_certificate_file, use_certificate_chain_file, use_private_key_file,
+      // use_tmp_dh_file and load_verify_file, which reach OpenSSL's fopen. On
+      // Windows FileNameBytes', and false, with nothing written, for a name it
+      // refuses: the caller reads nothing and accepts nothing from the file, and
+      // says so (ReportOpenSslPathRefused). Up to 6.3.7 those calls were handed
+      // AnsiString(String)'s bytes, and a name whose bytes also read as UTF-8 was
+      // read from another file whenever one was at that reading. On POSIX
+      // NarrowPath's UTF-8, which OpenSSL opens as it is, and always true.
+      // build/check-openssl-file-names.py holds every such call in the server to
+      // a name this filled.
+      static bool OpenSslPath(const String &path, AnsiString &bytes);
+
+      // HM7536 in the error log, for a name OpenSslPath refused: what - "The
+      // certificate file of the listener on 0.0.0.0:465" - names the file, path is
+      // its name, source the function reporting. once reports a name from that
+      // source the first time alone, for a reader that runs again and again on
+      // the same configuration (the expiry metric, the certificate alert).
+      static void ReportOpenSslPathRefused(const String &what, const String &path, const String &source, bool once = false);
 
       // The way back, for a name the system gives as bytes: an argument of the
       // command line, /proc/self/exe, a directory of PATH. On POSIX the bytes
@@ -171,7 +211,10 @@ namespace HM
       // A name with characters outside ASCII is one file to every call: Boost.
       // Filesystem's paths, File::Open, NarrowPath's bytes for a narrow call, and
       // the name read back from a directory's listing - on POSIX in UTF-8 whatever
-      // LANG says. Public for file-utilities-tests, as TestFailedClose is.
+      // LANG says. And the bytes OpenSslPath hands OpenSSL: NarrowPath's on
+      // POSIX; on Windows a name in ASCII as it is, a name with U+00C3 U+00A9
+      // refused but under the UTF-8 code page, and on code page 1252 U+00E9 alone
+      // in it. Public for file-utilities-tests, as TestFailedClose is.
       void TestFileNameEncoding();
    private:
 

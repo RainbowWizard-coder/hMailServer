@@ -1153,7 +1153,17 @@ namespace HM
 
             if (trustFile)
             {
-               const AnsiString narrowCaFile = FileUtilities::NarrowPath(*ca_file);
+               // A name FileUtilities::OpenSslPath refuses would be read from
+               // another file whenever one is at its other reading, so nothing
+               // is trusted and no request is made.
+               AnsiString narrowCaFile;
+               if (!FileUtilities::OpenSslPath(*ca_file, narrowCaFile))
+               {
+                  FileUtilities::ReportOpenSslPathRefused(_T("The CA file of an HTTPS request"), *ca_file,
+                     _T("HttpsClient::Request_"), true);
+                  error = "The CA file " + *ca_file + " is not read: OpenSSL cannot be handed its name as it is named (HM7536).";
+                  return false;
+               }
                boost::system::error_code loaded;
                sslContext.load_verify_file(std::string(narrowCaFile.c_str()), loaded);
                if (loaded)

@@ -330,9 +330,19 @@ namespace HM
          String bin_directory = Utilities::GetBinDirectory();
          String dh2048_file = FileUtilities::Combine(bin_directory, "dh2048.pem");
 
-         if (FileUtilities::Exists(dh2048_file))
+         // OpenSSL opens the file by the bytes FileUtilities::OpenSslPath gives,
+         // and a name it refuses is not read: the listener goes on without the
+         // file's parameters, as it does when the file is missing.
+         AnsiString dh2048_bytes;
+         if (!FileUtilities::OpenSslPath(dh2048_file, dh2048_bytes))
          {
-            context.use_tmp_dh_file(FileUtilities::NarrowPath(dh2048_file));
+            FileUtilities::ReportOpenSslPathRefused(
+               Formatter::Format(_T("The Diffie-Hellman parameters file of the listener on {0}:{1}"), ip_address, port),
+               dh2048_file, _T("SslContextInitializer::InitServer"));
+         }
+         else if (FileUtilities::Exists(dh2048_file))
+         {
+            context.use_tmp_dh_file(dh2048_bytes);
          }
          else
          {
@@ -353,8 +363,27 @@ namespace HM
 
       }
 
-      AnsiString certificateFile = FileUtilities::NarrowPath(certificate->GetCertificateFile());
-      AnsiString privateKeyFile = FileUtilities::NarrowPath(certificate->GetPrivateKeyFile());
+      // The names as OpenSSL is to open them (FileUtilities::OpenSslPath). A name
+      // it refuses would be read from another file whenever one is at its other
+      // reading, so the listener does not start, as it does not when the file
+      // cannot be loaded.
+      AnsiString certificateFile;
+      if (!FileUtilities::OpenSslPath(certificate->GetCertificateFile(), certificateFile))
+      {
+         FileUtilities::ReportOpenSslPathRefused(
+            Formatter::Format(_T("The certificate file of the listener on {0}:{1}"), ip_address, port),
+            certificate->GetCertificateFile(), _T("SslContextInitializer::InitServer"));
+         return false;
+      }
+
+      AnsiString privateKeyFile;
+      if (!FileUtilities::OpenSslPath(certificate->GetPrivateKeyFile(), privateKeyFile))
+      {
+         FileUtilities::ReportOpenSslPathRefused(
+            Formatter::Format(_T("The private key file of the listener on {0}:{1}"), ip_address, port),
+            certificate->GetPrivateKeyFile(), _T("SslContextInitializer::InitServer"));
+         return false;
+      }
 
 
       try

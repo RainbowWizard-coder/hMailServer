@@ -7648,6 +7648,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Name or suffix" xml:space="preserve">
     <value>Nazwa lub sufiks</value>
   </data>
+  <data name="Name refused" xml:space="preserve">
+    <value>Nazwa odrzucona</value>
+  </data>
   <data name="Name servers" xml:space="preserve">
     <value>Serwery nazw</value>
   </data>
@@ -8745,6 +8748,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>Na serwerze, w wierszu polecenia z podwyższonymi uprawnieniami w folderze Bin: hMailServer.exe --create-stored-secrets-key tworzy klucz, a hMailServer.exe --export-stored-secrets-key FILE go eksportuje. Przechowuj plik razem z kopiami zapasowymi bazy danych, ale oddzielnie od nich.</value>
+  </data>
+  <data name="On this computer's code page its name holds a character the code page does not have, or characters whose bytes also read as another name in UTF-8, which OpenSSL would open instead, so the server does not hand it to OpenSSL (server error 7536). Give the file, and the folders above it, names in ASCII." xml:space="preserve">
+    <value>W stronie kodowej tego komputera jego nazwa zawiera znak, którego ta strona kodowa nie ma, albo znaki, których bajty czytane jako UTF-8 dają też inną nazwę, którą OpenSSL otworzyłby zamiast niej, więc serwer nie przekazuje jej do OpenSSL (błąd serwera 7536). Nadaj plikowi i folderom nad nim nazwy w ASCII.</value>
   </data>
   <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
     <value>Włączone: na sprawdzenie, którego nie dało się dokończyć, odpowiada się 451 4.4.3, żeby nadawca spróbował ponownie, gdy DNS działa, a powyższa punktacja temperror nie jest używana. Wyłączone: temperror jest przyjmowany i punktowany; nadawca z dozwolonej domeny nigdy nie jest odraczany.</value>
@@ -14103,6 +14109,15 @@ Dodać mimo to?</value>
   <data name="The server does not answer {0} in {1}; it may be older than this Control Panel." xml:space="preserve">
     <value>Serwer nie odpowiada {0} w {1}; może być starszy niż ten Control Panel.</value>
   </data>
+  <data name="The server does not read the RSA/EC public key file {0}, so RS256 tokens cannot be verified." xml:space="preserve">
+    <value>Serwer nie czyta pliku klucza publicznego RSA/EC {0}, więc tokenów RS256 nie da się zweryfikować.</value>
+  </data>
+  <data name="The server does not read the certificate file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>Serwer nie czyta pliku certyfikatu {0}, więc żaden port TLS skonfigurowany do używania tego certyfikatu nie uruchomi się, a poczta na tych portach się zatrzymuje.</value>
+  </data>
+  <data name="The server does not read the private key file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>Serwer nie czyta pliku klucza prywatnego {0}, więc żaden port TLS skonfigurowany do używania tego certyfikatu nie uruchomi się, a poczta na tych portach się zatrzymuje.</value>
+  </data>
   <data name="The server fails closed rather than guessing (server error 5921): no password is sent and the sign-in is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
     <value>Serwer zawodzi w stronę bezpieczną, zamiast zgadywać (błąd serwera 5921): żadne hasło nie jest wysyłane, a logowanie zostaje odrzucone. Naprawia się to, wybierając LDAPS lub StartTLS albo metodę bind Negotiate (która nigdy nie przesyła hasła) - albo, w sieci w pełni kontrolowanej, przez jawne zezwolenie na niezabezpieczone hasło.</value>
   </data>
@@ -18865,6 +18880,15 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate before promoting the secondary key, or mail will sign with a key the world cannot look up." xml:space="preserve">
     <value>{0}: klucz dodatkowy jest przygotowany, ale pod adresem {1} nie ma jeszcze rekordu TXT. Należy go opublikować i pozwolić mu się rozpropagować, zanim klucz dodatkowy zostanie promowany - inaczej poczta będzie podpisywana kluczem, którego świat nie zdoła wyszukać.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the listener does not start." xml:space="preserve">
+    <value>{0}: serwer nie czyta pliku CA {1}, więc żadne CA nie zostaje wczytane i nasłuch się nie uruchamia.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the port verifies no client certificate." xml:space="preserve">
+    <value>{0}: serwer nie czyta pliku CA {1}, więc żadne CA nie zostaje wczytane, a port nie weryfikuje żadnego certyfikatu klienta.</value>
+  </data>
+  <data name="{0}: the server does not read the key file {1}, so every port using this certificate does not start." xml:space="preserve">
+    <value>{0}: serwer nie czyta pliku klucza {1}, więc żaden port używający tego certyfikatu się nie uruchamia.</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: rekord TXT {1} jest opublikowany. Z tego miejsca nie da się sprawdzić, czy mta-sts.{2} rozwiązuje się na ten serwer i czy certyfikat obejmuje tę nazwę.</value>

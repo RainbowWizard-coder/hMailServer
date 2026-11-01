@@ -7648,6 +7648,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Name or suffix" xml:space="preserve">
     <value>Název nebo přípona</value>
   </data>
+  <data name="Name refused" xml:space="preserve">
+    <value>Název odmítnut</value>
+  </data>
   <data name="Name servers" xml:space="preserve">
     <value>Jmenné servery</value>
   </data>
@@ -8745,6 +8748,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>Na serveru, z příkazového řádku se zvýšenými oprávněními ve složce Bin: hMailServer.exe --create-stored-secrets-key vytvoří klíč a hMailServer.exe --export-stored-secrets-key FILE jej exportuje. Soubor uchovávejte se zálohami databáze, ale odděleně od nich.</value>
+  </data>
+  <data name="On this computer's code page its name holds a character the code page does not have, or characters whose bytes also read as another name in UTF-8, which OpenSSL would open instead, so the server does not hand it to OpenSSL (server error 7536). Give the file, and the folders above it, names in ASCII." xml:space="preserve">
+    <value>Ve znakové stránce tohoto počítače obsahuje jeho název znak, který tato znaková stránka nemá, nebo znaky, jejichž bajty se v UTF-8 čtou také jako jiný název, který by OpenSSL otevřel místo něj, takže jej server OpenSSL nepředá (chyba serveru 7536). Dejte souboru i složkám nad ním názvy v ASCII.</value>
   </data>
   <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
     <value>Zapnuto: na kontrolu, kterou nebylo možné dokončit, se odpoví 451 4.4.3, takže to odesílatel zkusí znovu, až bude DNS fungovat, a skóre temperror výše se nepoužije. Vypnuto: temperror se přijme a oboduje; odesílatel z povolené domény se nikdy neodkládá.</value>
@@ -14103,6 +14109,15 @@ Přesto přidat?</value>
   <data name="The server does not answer {0} in {1}; it may be older than this Control Panel." xml:space="preserve">
     <value>Server neodpovídá {0} v {1}; může být starší než tento Control Panel.</value>
   </data>
+  <data name="The server does not read the RSA/EC public key file {0}, so RS256 tokens cannot be verified." xml:space="preserve">
+    <value>Server nečte soubor veřejného klíče RSA/EC {0}, takže tokeny RS256 nelze ověřit.</value>
+  </data>
+  <data name="The server does not read the certificate file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>Server nečte soubor certifikátu {0}, takže se žádný TLS port nastavený k použití tohoto certifikátu nespustí a pošta na těchto portech se zastaví.</value>
+  </data>
+  <data name="The server does not read the private key file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>Server nečte soubor soukromého klíče {0}, takže se žádný TLS port nastavený k použití tohoto certifikátu nespustí a pošta na těchto portech se zastaví.</value>
+  </data>
   <data name="The server fails closed rather than guessing (server error 5921): no password is sent and the sign-in is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
     <value>Server raději selže, než aby hádal (chyba serveru 5921): žádné heslo se neposílá a přihlášení je odmítnuto. Napravte to volbou LDAPS nebo StartTLS, nebo metody bind Negotiate (která heslo nikdy nepřenáší) - anebo, v síti, kterou ovládáte od konce ke konci, výslovným povolením nechráněného hesla.</value>
   </data>
@@ -18865,6 +18880,15 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate before promoting the secondary key, or mail will sign with a key the world cannot look up." xml:space="preserve">
     <value>{0}: sekundární klíč je připraven, ale na {1} zatím žádný TXT záznam neexistuje. Publikujte jej a nechte jej propagovat před povýšením sekundárního klíče, jinak se pošta bude podepisovat klíčem, který svět nemůže vyhledat.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the listener does not start." xml:space="preserve">
+    <value>{0}: server nečte soubor CA {1}, takže se nenačte žádná CA a listener se nespustí.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the port verifies no client certificate." xml:space="preserve">
+    <value>{0}: server nečte soubor CA {1}, takže se nenačte žádná CA a port neověří žádný klientský certifikát.</value>
+  </data>
+  <data name="{0}: the server does not read the key file {1}, so every port using this certificate does not start." xml:space="preserve">
+    <value>{0}: server nečte soubor klíče {1}, takže se žádný port používající tento certifikát nespustí.</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: TXT záznam {1} je publikován. Odsud nelze zkontrolovat: že se mta-sts.{2} překládá na tento server a že certifikát tento název pokrývá.</value>

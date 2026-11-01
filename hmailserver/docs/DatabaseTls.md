@@ -230,6 +230,41 @@ The IMAP migration client already did the same.
 
 ---
 
+## File names handed to OpenSSL on Windows
+
+The same rule holds for every file the server itself hands to OpenSSL by its name
+on Windows (`FileUtilities::OpenSslPath`): a TLS certificate's certificate and
+private key files - and `RestApiCertificateFile`, `MetricsServerCertificateFile` and
+`WebServicesCertificateFile` with their key files - the Diffie-Hellman parameters beside the program
+(`dh2048.pem`), a TCP/IP port's client-certificate CA file, the object store's
+`MessageStoreObjectCaFile`, `OAuth2PublicKeyFile`, and the files in
+`AcmeCertificateDirectory` - `fullchain.pem`, `privkey.pem` and `account.key`. Each
+is handed over in the ANSI code page, or in UTF-8 when the code page is UTF-8, and a
+name with a character the code page does not have, with characters whose bytes in
+it also read as another name in UTF-8, or with a U+0000 is refused: the file is not
+read (nor, in the ACME directory, written), and HM7536 says which it was. Such a
+name refuses what that file was for: a port whose certificate or key it names does
+not start, as one whose file cannot be loaded does not; a port's client-certificate
+CA file verifies no certificate, so a port that requires one does not start and one
+that requests one starts verifying none; the object store's CA file makes no
+request; the public key verifies no token; the ACME client neither reads nor writes
+its files there and orders no certificate; and `dh2048.pem` is left out, as a
+missing one is. A name in ASCII is handed over as before; on Linux any name goes
+over in UTF-8, which names the file itself.
+Give such a file, and the folders above it, a name in the code page that does not
+also read as UTF-8 - a name in ASCII always does. `OAuth2PublicKeyFile` was handed
+over in UTF-8 up to 6.3.7, so a name with a character outside the code page, which
+worked then, is refused now.
+
+The Control Panel holds the same rule where it reads these files on the server's
+own computer, since it reads them by their wide names, which always work: the SSL
+certificates page shows such a certificate or key file as *Name refused*, at
+Critical, and the setup checklist's items on the TLS private keys, the client
+certificate CA files and OAuth2 say that the server does not read it, with error
+7536, rather than calling the file good.
+
+---
+
 ## In the error log
 
 | Code | When |
@@ -240,6 +275,7 @@ The IMAP migration client already did the same.
 | HM7533 | `TlsMode` is set and `ConnectionStringOptions` names SQL Server's encryption as well. The connection was not attempted |
 | HM7534 | `TlsMode=verify-full` and `TlsCaFile`, or for PostgreSQL `PostgreSQLSslRootCert`, names a file whose name cannot be handed to the database's client as it is named: on Windows a character the ANSI code page does not have, or characters whose bytes in it also read as another name in UTF-8, which OpenSSL opens first; on either platform half of a surrogate pair or a U+0000. The connection was not attempted |
 | HM7535 | `TlsMode=verify-full` on MySQL or MariaDB through MariaDB Connector/C, with no `TlsCaFile`, and `Server=` a connection the client takes as one to this machine (`127.0.0.1`, `::1`, `localhost`, an empty `Server=`, a socket or a named pipe), or a list of servers with a comma that holds one of them, on which it would check neither the certificate's issuer nor its name. The connection was not attempted |
+| HM7536 | On Windows, a file the server hands to OpenSSL by its name - a TLS certificate's certificate or key file (the REST API's, the metrics listener's and the web services' among them), `dh2048.pem`, a port's client-certificate CA file, `MessageStoreObjectCaFile`, `OAuth2PublicKeyFile`, a file in `AcmeCertificateDirectory` - has a name with a character the ANSI code page does not have, characters whose bytes in it also read as another name in UTF-8, which OpenSSL opens first, or a U+0000. The file was not read, and what it was for was refused (*File names handed to OpenSSL on Windows*, above). The certificate alert, the expiry metric, the object store's requests, token verification and the ACME client say it once for a name |
 
 A connection refused for TLS - no TLS offered to `require`, a certificate
 `verify-full` does not accept - is the connect failure it always was (HM4354 at the

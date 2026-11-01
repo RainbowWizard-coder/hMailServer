@@ -97,6 +97,20 @@ namespace HM
       // certificates did.
       const int ImminentExpiryDays = 7;
 
+      // The name of one of this client's files as OpenSSL is to open it
+      // (FileUtilities::OpenSslPath). False for a name it refuses - which would
+      // be read from, or written to, another file whenever one is at its other
+      // reading - said in the error log (HM7536) the first time for that name:
+      // the caller reads and writes nothing there.
+      bool OpenSslPathOf_(const String &file, AnsiString &bytes, const String &what)
+      {
+         if (FileUtilities::OpenSslPath(file, bytes))
+            return true;
+
+         FileUtilities::ReportOpenSslPathRefused(what, file, _T("AcmeClient"), true);
+         return false;
+      }
+
       // Reads the notAfter of the first certificate in a PEM file as a time_t.
       // False when there is no file, it does not parse, or the date does not
       // convert - all of which callers treat as "no usable certificate" rather than
@@ -114,7 +128,9 @@ namespace HM
          if (!FileUtilities::Exists(certificateFile))
             return false;
 
-         AnsiString narrowFileName = FileUtilities::NarrowPath(certificateFile);
+         AnsiString narrowFileName;
+         if (!OpenSslPathOf_(certificateFile, narrowFileName, _T("The ACME certificate file")))
+            return false;
 
          BIO *bio = BIO_new_file(narrowFileName.c_str(), "r");
          if (bio == nullptr)
@@ -453,7 +469,9 @@ namespace HM
          if (!FileUtilities::Exists(file))
             return nullptr;
 
-         AnsiString narrowFileName = FileUtilities::NarrowPath(file);
+         AnsiString narrowFileName;
+         if (!OpenSslPathOf_(file, narrowFileName, _T("The certificate file")))
+            return nullptr;
 
          BIO *bio = BIO_new_file(narrowFileName.c_str(), "r");
          if (bio == nullptr)
@@ -664,7 +682,9 @@ namespace HM
       if (!FileUtilities::Exists(certificateFile))
          return false;
 
-      AnsiString narrowFileName = FileUtilities::NarrowPath(certificateFile);
+      AnsiString narrowFileName;
+      if (!OpenSslPathOf_(certificateFile, narrowFileName, _T("The ACME certificate file")))
+         return false;
 
       BIO *bio = BIO_new_file(narrowFileName.c_str(), "r");
       if (bio == nullptr)
@@ -1442,7 +1462,10 @@ namespace HM
       FileUtilities::CreateDirectory(directory);
 
       String keyFile = directory + FileUtilities::PathSeparator + _T("account.key");
-      AnsiString narrowKeyFile = FileUtilities::NarrowPath(keyFile);
+      // Neither read nor made under a name OpenSSL cannot be handed as it is.
+      AnsiString narrowKeyFile;
+      if (!OpenSslPathOf_(keyFile, narrowKeyFile, _T("The ACME account key file")))
+         return false;
 
       if (FileUtilities::Exists(keyFile))
       {
@@ -1830,10 +1853,19 @@ namespace HM
       // across renewals.
       EVP_PKEY *domainKey = nullptr;
 
+      // A name OpenSSL cannot be handed as it is stops the renewal here, before
+      // the order is finalised: the key it would reuse, and the one it would
+      // write after the certificate is issued, are in that directory.
+      const String domainKeyFile = GetCertificateDirectory() + FileUtilities::PathSeparator + _T("privkey.pem");
+      AnsiString keyPath;
+      if (!OpenSslPathOf_(domainKeyFile, keyPath, _T("The ACME certificate key file")))
+      {
+         Fail_("finalize", "The certificate key's file name cannot be handed to OpenSSL as it is named (HM7536).");
+         return false;
+      }
+
       if (IniFileSettings::Instance()->GetAcmeReuseKey())
       {
-         AnsiString keyPath = FileUtilities::NarrowPath(GetCertificateDirectory() + FileUtilities::PathSeparator + _T("privkey.pem"));
-
          // A BIO, not a FILE*: see GetCertificateTlsa for why a FILE* of this
          // executable's C runtime handed to the OpenSSL DLL ends the process
          // (issue #93). This is the renewal half of that: with an existing key on
@@ -2029,11 +2061,12 @@ namespace HM
       String pendingKeyFile = keyFile + _T(".new");
       String pendingCertificateFile = certificateFile + _T(".new");
 
-      AnsiString narrowPendingKeyFile = FileUtilities::NarrowPath(pendingKeyFile);
+      AnsiString narrowPendingKeyFile;
+      const bool keyNamed = OpenSslPathOf_(pendingKeyFile, narrowPendingKeyFile, _T("The new ACME certificate key file"));
 
       bool keyWritten = false;
 
-      BIO *bio = BIO_new_file(narrowPendingKeyFile.c_str(), "w");
+      BIO *bio = keyNamed ? BIO_new_file(narrowPendingKeyFile.c_str(), "w") : nullptr;
       if (bio != nullptr)
       {
          keyWritten = PEM_write_bio_PrivateKey(bio, domainKey, nullptr, nullptr, 0, nullptr, nullptr) == 1;
@@ -2309,7 +2342,9 @@ namespace HM
       // because this ran before the deployment. Every other file this client
       // reads or writes already goes through BIO_new_file; this function and
       // the key reuse in FinalizeOrder_ were the two that did not.
-      AnsiString narrowPath = FileUtilities::NarrowPath(certificate_file);
+      AnsiString narrowPath;
+      if (!OpenSslPathOf_(certificate_file, narrowPath, _T("The certificate file")))
+         return false;
 
       BIO *bio = BIO_new_file(narrowPath.c_str(), "r");
       if (bio == nullptr)

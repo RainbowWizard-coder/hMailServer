@@ -139,8 +139,9 @@ namespace HM
       // as UTF-8 - another name, which OpenSSL would open first when a file is
       // there - or half of a surrogate pair: such a name would open another file
       // or none, and a CA file that is not the one named is a certificate checked
-      // against something else. Up to 6.3.7 the second was handed over.
-      // CodePageBytes, and on Windows the refusal of bytes that also read as UTF-8.
+      // against something else. Up to 6.3.7 the second was handed over. The rule
+      // is FileUtilities::FileNameBytes', which OpenSSL's own file calls in the
+      // server hold to as well (FileUtilities::OpenSslPath).
       static bool FileNameBytes(const String &path, AnsiString &bytes);
 
       // A name in the bytes a narrow Windows file call - CreateFileA,

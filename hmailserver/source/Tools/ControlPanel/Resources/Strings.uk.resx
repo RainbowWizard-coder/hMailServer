@@ -7648,6 +7648,9 @@
   <data name="Name or suffix" xml:space="preserve">
     <value>Ім'я або суфікс</value>
   </data>
+  <data name="Name refused" xml:space="preserve">
+    <value>Ім’я відхилено</value>
+  </data>
   <data name="Name servers" xml:space="preserve">
     <value>Сервери імен</value>
   </data>
@@ -8745,6 +8748,9 @@
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>На сервері, у командному рядку з підвищеними правами в папці Bin: hMailServer.exe --create-stored-secrets-key створює ключ, а hMailServer.exe --export-stored-secrets-key FILE експортує його. Зберігайте файл разом із резервними копіями бази даних, але окремо від них.</value>
+  </data>
+  <data name="On this computer's code page its name holds a character the code page does not have, or characters whose bytes also read as another name in UTF-8, which OpenSSL would open instead, so the server does not hand it to OpenSSL (server error 7536). Give the file, and the folders above it, names in ASCII." xml:space="preserve">
+    <value>У кодовій сторінці цього комп’ютера його ім’я містить символ, якого кодова сторінка не має, або символи, байти яких в UTF-8 читаються також як інше ім’я, яке OpenSSL відкрив би замість нього, тому сервер не передає його OpenSSL (помилка сервера 7536). Дайте файлу та папкам над ним імена в ASCII.</value>
   </data>
   <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
     <value>Увімкнено: на перевірку, яку не вдалося завершити, відповідають 451 4.4.3, щоб відправник повторив спробу, коли запрацює DNS, а бал temperror вище не використовується. Вимкнено: temperror приймається й оцінюється; відправник із дозволеного домену ніколи не відкладається.</value>
@@ -14103,6 +14109,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The server does not answer {0} in {1}; it may be older than this Control Panel." xml:space="preserve">
     <value>Сервер не відповідає {0} в {1}; можливо, він старіший за цю Панель керування.</value>
   </data>
+  <data name="The server does not read the RSA/EC public key file {0}, so RS256 tokens cannot be verified." xml:space="preserve">
+    <value>Сервер не читає файл відкритого ключа RSA/EC {0}, тому токени RS256 неможливо перевірити.</value>
+  </data>
+  <data name="The server does not read the certificate file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>Сервер не читає файл сертифіката {0}, тому жоден порт TLS, налаштований на цей сертифікат, не запуститься, і пошта на цих портах зупиниться.</value>
+  </data>
+  <data name="The server does not read the private key file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>Сервер не читає файл закритого ключа {0}, тому жоден порт TLS, налаштований на цей сертифікат, не запуститься, і пошта на цих портах зупиниться.</value>
+  </data>
   <data name="The server fails closed rather than guessing (server error 5921): no password is sent and the sign-in is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
     <value>Сервер відмовляє, а не вгадує (помилка сервера 5921): пароль не надсилається, і у вході відмовлено. Виправте це, вибравши LDAPS або StartTLS чи метод прив'язки Negotiate (який ніколи не передає пароль), - або, в мережі, яку ви контролюєте з кінця в кінець, явно дозволивши незахищений пароль.</value>
   </data>
@@ -18865,6 +18880,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate before promoting the secondary key, or mail will sign with a key the world cannot look up." xml:space="preserve">
     <value>{0}: вторинний ключ підготовлено, але за адресою {1} ще немає TXT-запису. Опублікуйте його й дайте йому поширитися до підвищення вторинного ключа, інакше пошта підписуватиметься ключем, якого світ не може знайти.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the listener does not start." xml:space="preserve">
+    <value>{0}: сервер не читає файл ЦС {1}, тому жоден ЦС не завантажується і слухач не запускається.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the port verifies no client certificate." xml:space="preserve">
+    <value>{0}: сервер не читає файл ЦС {1}, тому жоден ЦС не завантажується і порт не перевіряє жодного сертифіката клієнта.</value>
+  </data>
+  <data name="{0}: the server does not read the key file {1}, so every port using this certificate does not start." xml:space="preserve">
+    <value>{0}: сервер не читає файл ключа {1}, тому жоден порт, який використовує цей сертифікат, не запускається.</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: TXT-запис {1} опубліковано. Звідси неможливо перевірити, що mta-sts.{2} розв’язується в цей сервер і що сертифікат охоплює це ім’я.</value>

@@ -395,7 +395,20 @@ namespace HM
    bool
    TCPServer::InitInboundClientCertificateVerification_()
    {
-      AnsiString ca_file = FileUtilities::NarrowPath(client_certificate_ca_file_);
+      // The name as OpenSSL is to open it (FileUtilities::OpenSslPath). A name it
+      // refuses would be read from another file whenever one is at its other
+      // reading - CAs that would admit a certificate someone else issued - so no
+      // CA is loaded from it, and the port is handled as one whose CA file cannot
+      // be loaded: "require" does not start, "request" verifies nothing.
+      AnsiString ca_file;
+      if (!FileUtilities::OpenSslPath(client_certificate_ca_file_, ca_file))
+      {
+         FileUtilities::ReportOpenSslPathRefused(
+            Formatter::Format(_T("The client certificate CA file for port {0}:{1}"), String(ipaddress_.ToString()), port_),
+            client_certificate_ca_file_, _T("TCPServer::InitInboundClientCertificateVerification_"));
+
+         return client_certificate_policy_ != CCPRequire;
+      }
 
       // The bundle goes into this listener's own SSL context, so it is the ONLY
       // trust anchor set for client certificates on this port - deliberately not

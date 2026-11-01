@@ -7560,6 +7560,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Name or suffix" xml:space="preserve">
     <value>Namn eller suffix</value>
   </data>
+  <data name="Name refused" xml:space="preserve">
+    <value>Namnet avvisat</value>
+  </data>
   <data name="Name servers" xml:space="preserve">
     <value>Namnservrar</value>
   </data>
@@ -8639,6 +8642,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>På servern, från en kommandotolk med förhöjda behörigheter i mappen Bin: hMailServer.exe --create-stored-secrets-key skapar nyckeln, och hMailServer.exe --export-stored-secrets-key FILE exporterar den. Förvara filen tillsammans med databasens säkerhetskopior, men åtskild från dem.</value>
+  </data>
+  <data name="On this computer's code page its name holds a character the code page does not have, or characters whose bytes also read as another name in UTF-8, which OpenSSL would open instead, so the server does not hand it to OpenSSL (server error 7536). Give the file, and the folders above it, names in ASCII." xml:space="preserve">
+    <value>I den här datorns teckentabell innehåller namnet ett tecken som teckentabellen inte har, eller tecken vars byte även läses som ett annat namn i UTF-8, som OpenSSL skulle öppna i stället, så servern lämnar inte över det till OpenSSL (serverfel 7536). Ge filen, och mapparna ovanför den, namn i ASCII.</value>
   </data>
   <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
     <value>På: en kontroll som inte kunde slutföras besvaras med 451 4.4.3, så att avsändaren försöker igen när DNS fungerar, och temperror-poängen ovan används inte. Av: ett temperror accepteras och poängsätts; en avsändare från en tillåten domän skjuts aldrig upp.</value>
@@ -13916,6 +13922,15 @@ Lägg till det ändå?</value>
   <data name="The server does not answer {0} in {1}; it may be older than this Control Panel." xml:space="preserve">
     <value>Servern svarar inte {0} i {1}; den kan vara äldre än den här Control Panel.</value>
   </data>
+  <data name="The server does not read the RSA/EC public key file {0}, so RS256 tokens cannot be verified." xml:space="preserve">
+    <value>Servern läser inte den publika RSA/EC-nyckelfilen {0}, så RS256-token kan inte verifieras.</value>
+  </data>
+  <data name="The server does not read the certificate file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>Servern läser inte certifikatfilen {0}, så varje TLS-port konfigurerad att använda det här certifikatet misslyckas att starta och post på de portarna stannar.</value>
+  </data>
+  <data name="The server does not read the private key file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>Servern läser inte den privata nyckelfilen {0}, så varje TLS-port konfigurerad att använda det här certifikatet misslyckas att starta och post på de portarna stannar.</value>
+  </data>
   <data name="The server fails closed rather than guessing (server error 5921): no password is sent and the sign-in is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
     <value>Servern faller åt det säkra hållet i stället för att gissa (serverfel 5921): inget lösenord skickas och inloggningen avvisas. Åtgärda genom att välja LDAPS eller StartTLS, eller bindningsmetoden Negotiate (som aldrig sänder lösenordet) - eller, på ett nätverk du kontrollerar från ände till ände, genom att uttryckligen tillåta det oskyddade lösenordet.</value>
   </data>
@@ -18420,6 +18435,15 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate before promoting the secondary key, or mail will sign with a key the world cannot look up." xml:space="preserve">
     <value>{0}: den sekundära nyckeln är förberedd men ingen TXT-post finns på {1} ännu. Publicera den och låt den spridas innan du befordrar den sekundära nyckeln, annars signeras post med en nyckel världen inte kan slå upp.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the listener does not start." xml:space="preserve">
+    <value>{0}: servern läser inte CA-filen {1}, så ingen CA läses in och lyssnaren startar inte.</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the port verifies no client certificate." xml:space="preserve">
+    <value>{0}: servern läser inte CA-filen {1}, så ingen CA läses in och porten verifierar inget klientcertifikat.</value>
+  </data>
+  <data name="{0}: the server does not read the key file {1}, so every port using this certificate does not start." xml:space="preserve">
+    <value>{0}: servern läser inte nyckelfilen {1}, så ingen port som använder det här certifikatet startar.</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}: TXT-posten {1} är publicerad. Kan inte kontrolleras härifrån: att mta-sts.{2} slås upp till den här servern, och att certifikatet täcker det namnet.</value>

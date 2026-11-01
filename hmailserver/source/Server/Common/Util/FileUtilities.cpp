@@ -17,11 +17,13 @@
 
 #include <boost/filesystem.hpp>
 #include <climits>
+#include <mutex>
+#include <set>
+#include <string>
 
 #ifdef HM_PLATFORM_POSIX
 #include <boost/filesystem/detail/utf8_codecvt_facet.hpp>
 #include <locale>
-#include <mutex>
 #endif
 
 #ifdef _DEBUG
@@ -53,6 +55,101 @@ namespace HM
 #else
       return AnsiString(path);
 #endif
+   }
+
+   bool
+   FileUtilities::FileNameBytes(const String &path, AnsiString &bytes)
+   {
+      bytes.Empty();
+
+      // A name with U+0000 in it would be cut short where a narrow call reads it,
+      // and is refused before any branch below, Windows' UTF-8 code page's
+      // among them.
+      if (std::wstring(path.c_str(), (size_t) path.GetLength()).find(L'\0') != std::wstring::npos)
+         return false;
+
+#ifdef HM_PLATFORM_POSIX
+      return Unicode::ToUtf8Exact(path, bytes);
+#else
+      if (path.IsEmpty())
+         return true;
+
+      // WideCharToMultiByte takes neither WC_NO_BEST_FIT_CHARS nor a used-default
+      // flag for CP_UTF8, and UTF-8 needs neither: it carries every character but
+      // half of a surrogate pair, which ToUtf8Exact refuses.
+      if (GetACP() == CP_UTF8)
+         return Unicode::ToUtf8Exact(path, bytes);
+
+      BOOL defaulted = FALSE;
+      const int size = WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, path.c_str(), path.GetLength(), nullptr, 0, nullptr, &defaulted);
+      if (size <= 0 || defaulted)
+         return false;
+
+      std::string narrow((size_t) size, '\0');
+      if (WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, path.c_str(), path.GetLength(), &narrow[0], size, nullptr, &defaulted) != size || defaulted)
+         return false;
+
+      // OpenSSL's fopen on Windows (crypto/o_fopen.c, openssl_fopen) reads a name
+      // as UTF-8 first and opens the file at that reading when there is one,
+      // falling back to the code page's only when there is none - while libpq
+      // stat()s the code page's bytes before it hands them to OpenSSL. Bytes
+      // outside ASCII that also read as UTF-8 - on code page 1252 U+00C3 U+00A9
+      // are C3 A9, which is U+00E9 in UTF-8 - therefore name two files, and the
+      // one read would be another file whenever one sits at the other reading. In
+      // a code page that is not UTF-8 such bytes always read as another name, so
+      // such a name is refused, as one the code page cannot carry is. Any other
+      // name outside ASCII is not UTF-8, and OpenSSL opens it in the code page.
+      // Unicode::IsWidenedUtf8 over the bytes, one to a character, is that test:
+      // true when one is outside ASCII and they are well-formed UTF-8 (RFC 3629),
+      // which is what OpenSSL's MB_ERR_INVALID_CHARS conversion accepts.
+      std::wstring widened;
+      widened.reserve(narrow.size());
+      for (const char c : narrow)
+         widened += (wchar_t) (unsigned char) c;
+      if (Unicode::IsWidenedUtf8(String(widened.c_str())))
+         return false;
+
+      bytes = narrow.c_str();
+      return true;
+#endif
+   }
+
+   bool
+   FileUtilities::OpenSslPath(const String &path, AnsiString &bytes)
+   {
+#ifdef HM_PLATFORM_POSIX
+      // OpenSSL opens the bytes as they are, which are the name NarrowPath gives
+      // every other call: nothing to refuse, and nothing changed.
+      bytes = NarrowPath(path);
+      return true;
+#else
+      return FileNameBytes(path, bytes);
+#endif
+   }
+
+   void
+   FileUtilities::ReportOpenSslPathRefused(const String &what, const String &path, const String &source, bool once)
+   {
+      if (once)
+      {
+         static std::mutex reportedMutex;
+         static std::set<std::wstring> reported;
+
+         const std::wstring key = std::wstring(source.c_str()) + L"\n" + std::wstring(path.c_str(), (size_t) path.GetLength());
+         std::lock_guard<std::mutex> guard(reportedMutex);
+         if (!reported.insert(key).second)
+            return;
+      }
+
+      // The name is shown as it is configured; what it holds, in the words of
+      // FileNameBytes' refusal, and what to do about it.
+      const String message = Formatter::Format(
+         _T("{0} {1} is not read, and nothing in it is used: its name holds a character this system's code page does not have, ")
+         _T("characters whose bytes in that code page also read as another name in UTF-8 - which OpenSSL opens first when a file ")
+         _T("is there - or a U+0000. Give the file, and the folders above it, a name in the code page that does not also read as ")
+         _T("UTF-8 (a name in ASCII always does)."), what, path);
+
+      ErrorManager::Instance()->ReportError(ErrorManager::High, 7536, source, message);
    }
 
    bool
@@ -1481,12 +1578,58 @@ namespace HM
       CheckName_(FileUtilities::WidePath("c\xC3\xA0", read) && read == String(L"c\x00E0"), "WidePath did not read UTF-8 bytes as UTF-8");
       CheckName_(!FileUtilities::WidePath("c\xE0", read) && read.GetLength() == 2 && (unsigned int) read[1] == 0xE0,
          "WidePath took bytes that are not UTF-8 for UTF-8, or did not widen them");
+
+      // OpenSslPath on POSIX is NarrowPath's UTF-8, which OpenSSL opens as it is:
+      // nothing refused, nothing changed - U+00C3 U+00A9 among the rest.
+      const wchar_t twoCharacters[] = { L'/', 0x00C3, 0x00A9, L'/', L'c', L'a', L'.', L'p', L'e', L'm', 0 };
+      AnsiString openSslBytes;
+      CheckName_(FileUtilities::OpenSslPath(name, openSslBytes) && openSslBytes == expected,
+         "OpenSslPath gave " + Hex_(openSslBytes) + " where NarrowPath gives " + Hex_(expected));
+      CheckName_(FileUtilities::OpenSslPath(String(twoCharacters), openSslBytes) && openSslBytes == AnsiString("/\xC3\x83\xC2\xA9/ca.pem"),
+         "OpenSslPath did not hand over the UTF-8 of a name with U+00C3 U+00A9: " + Hex_(openSslBytes));
 #else
       // As it has always been on Windows: the ANSI code page's narrowing.
       CheckName_(FileUtilities::NarrowPath(_T("C:\\Temp\\caf\x00E9.txt")) == AnsiString(String(_T("C:\\Temp\\caf\x00E9.txt"))),
          "NarrowPath is not AnsiString(String) on Windows");
       String read;
       CheckName_(FileUtilities::WidePath("abc", read) && read == _T("abc"), "WidePath did not widen ASCII");
+
+      // OpenSslPath: the bytes OpenSSL's file functions are handed. A name in
+      // ASCII goes over as it is, NarrowPath's bytes.
+      {
+         const String asciiName(_T("C:\\Program Files\\hMailServer\\Data\\ACME\\fullchain.pem"));
+         AnsiString bytes;
+         CheckName_(FileUtilities::OpenSslPath(asciiName, bytes) && bytes == FileUtilities::NarrowPath(asciiName) &&
+            bytes == AnsiString("C:\\Program Files\\hMailServer\\Data\\ACME\\fullchain.pem"),
+            "OpenSslPath did not hand a name in ASCII over as it is");
+      }
+
+      // U+00C3 U+00A9 are the bytes C3 A9 on code page 1252, which read as U+00E9
+      // in UTF-8: another name, which OpenSSL's fopen opens first when a file is
+      // there (crypto/o_fopen.c). Refused in every code page but UTF-8 - in 1252
+      // for that, in one without the two characters because it cannot carry them
+      // - and handed over as UTF-8, which names the file itself, when the code
+      // page is UTF-8. Up to 6.3.7 AnsiString(String)'s C3 A9 were handed over.
+      {
+         const wchar_t twoCharacters[] = { L'C', L':', L'\\', 0x00C3, 0x00A9, L'\\', L'c', L'a', L'.', L'p', L'e', L'm', 0 };
+         AnsiString bytes;
+         if (GetACP() == CP_UTF8)
+            CheckName_(FileUtilities::OpenSslPath(String(twoCharacters), bytes) && bytes == AnsiString("C:\\\xC3\x83\xC2\xA9\\ca.pem"),
+               "OpenSslPath did not hand over the UTF-8 of a name with U+00C3 U+00A9 under the UTF-8 code page");
+         else
+            CheckName_(!FileUtilities::OpenSslPath(String(twoCharacters), bytes) && bytes.IsEmpty(),
+               "OpenSslPath handed over a name with U+00C3 U+00A9, whose bytes in the code page OpenSSL may read as another file's name");
+      }
+
+      // Within code page 1252 and not UTF-8 - U+00E9 alone, E9 - is the file's
+      // name to OpenSSL as to every other call, and is handed over in it.
+      if (GetACP() == 1252)
+      {
+         const wchar_t eacute[] = { L'C', L':', L'\\', 0x00E9, L'\\', L'c', L'a', L'.', L'p', L'e', L'm', 0 };
+         AnsiString bytes;
+         CheckName_(FileUtilities::OpenSslPath(String(eacute), bytes) && bytes == AnsiString("C:\\\xE9\\ca.pem"),
+            "OpenSslPath did not hand over a name within code page 1252 that is not UTF-8 in it");
+      }
 #endif
 
       // One file by every way of naming it: made by File::Open, found by

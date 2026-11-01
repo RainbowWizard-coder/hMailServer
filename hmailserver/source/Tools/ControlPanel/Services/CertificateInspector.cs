@@ -66,6 +66,14 @@ namespace hMailServer.ControlPanel.Services
    ///  - A missing or unparseable certificate or key file makes
    ///    SslContextInitializer::InitServer return false (error 5113), and the
    ///    listener configured with it DOES NOT START.
+   ///  - So does a certificate or key file whose name the server does not hand
+   ///    to OpenSSL on this computer's code page (FileUtilities::OpenSslPath: a
+   ///    character the code page does not have, or bytes that also read as
+   ///    another name in UTF-8), which InitServer refuses before the file is
+   ///    read, as error 7536 (HM7536) and not 5113. This panel reads the file by
+   ///    its wide name, which works whatever the name, so it asks
+   ///    OpenSslFileName for the server's rule first and never calls such a file
+   ///    good.
    ///  - An encrypted key with no stored passphrase is reported as error 6170
    ///    ("The key was not loaded") and the listener does not start either; a
    ///    wrong passphrase fails the same way under error 5113. That is inbound
@@ -198,6 +206,16 @@ namespace hMailServer.ControlPanel.Services
             return null;
          }
 
+         // Before the file is looked for, as the server does: a name it refuses
+         // is never opened, whatever is or is not at it.
+         if (OpenSslFileName.IsRefusedHere(path))
+         {
+            health.CertificateFile = new CertificateFinding(StatusLevel.Critical, L("Name refused"),
+               Sentences(F("The server does not read the certificate file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops.", path),
+                  OpenSslFileName.Explanation()));
+            return null;
+         }
+
          if (!File.Exists(path))
          {
             health.CertificateFile = new CertificateFinding(StatusLevel.Critical, L("File missing"),
@@ -293,6 +311,14 @@ namespace hMailServer.ControlPanel.Services
          if (!local)
          {
             health.PrivateKeyFile = CannotCheckFromHere_("key");
+            return null;
+         }
+
+         if (OpenSslFileName.IsRefusedHere(path))
+         {
+            health.PrivateKeyFile = new CertificateFinding(StatusLevel.Critical, L("Name refused"),
+               Sentences(F("The server does not read the private key file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops.", path),
+                  OpenSslFileName.Explanation()));
             return null;
          }
 

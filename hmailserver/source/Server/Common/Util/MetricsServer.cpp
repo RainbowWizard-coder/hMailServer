@@ -426,7 +426,8 @@ namespace HM
       {
          // The specific cause - an unreadable certificate, a private key that does
          // not match it - has already been reported by SslContextInitializer as
-         // HM5113. This line says what the listener did about it.
+         // HM5113, or HM7536 for a name OpenSSL cannot be handed as it is named.
+         // This line says what the listener did about it.
          LOG_APPLICATION("MetricsServer: TLS is configured but could not be prepared. The health probes will still be served, over plain HTTP, but /metrics will answer 503: serving the exposition in the clear instead would publish it - and any credential presented with it - on a listener that was asked to encrypt.");
       }
 
@@ -2467,7 +2468,15 @@ namespace HM
       if (certificate_file.IsEmpty() || !FileUtilities::Exists(certificate_file))
          return 0;
 
-      AnsiString narrowFileName = FileUtilities::NarrowPath(certificate_file);
+      // A name FileUtilities::OpenSslPath refuses is read from nowhere, and said
+      // once: the listener that uses it says so as well, and does not start.
+      AnsiString narrowFileName;
+      if (!FileUtilities::OpenSslPath(certificate_file, narrowFileName))
+      {
+         FileUtilities::ReportOpenSslPathRefused(_T("A certificate file of the expiry metric"), certificate_file,
+            _T("MetricsServer::ReadCertificateExpiry_"), true);
+         return 0;
+      }
 
       BIO *bio = BIO_new_file(narrowFileName.c_str(), "r");
       if (bio == nullptr)

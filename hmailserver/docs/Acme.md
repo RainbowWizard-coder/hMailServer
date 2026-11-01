@@ -29,7 +29,7 @@ All in the `[Settings]` store (the Control Panel's *Automatic certificates
 | `AcmeDirectoryUrl` | The CA's directory. `https://acme-v02.api.letsencrypt.org/directory` by default; Let's Encrypt's staging directory is `https://acme-staging-v02.api.letsencrypt.org/directory`. | now |
 | `AcmeHttpPort` | Where the challenge is answered when the web services listener does not already hold that port. `80`. | now |
 | `AcmeReuseKey` | `1` (the default) keeps the private key across renewals, so a published DANE TLSA `3 1 1` record stays valid. | now |
-| `AcmeCertificateDirectory` | Where `fullchain.pem`, `privkey.pem` and `account.key` are kept. Empty is `Data\ACME`. | at a reinitialise |
+| `AcmeCertificateDirectory` | Where `fullchain.pem`, `privkey.pem` and `account.key` are kept. Empty is `Data\ACME`. On Windows a directory whose name OpenSSL cannot be handed as it is named - a character the code page does not have, or characters whose bytes in it also read as UTF-8 - is refused (HM7536): nothing is read or written there and no certificate is ordered ([DatabaseTls.md](DatabaseTls.md), *File names handed to OpenSSL on Windows*). | at a reinitialise |
 
 A name in `AcmeDomains` that no certificate this server orders can carry is
 **left out** of every check and every order, and the status names it in

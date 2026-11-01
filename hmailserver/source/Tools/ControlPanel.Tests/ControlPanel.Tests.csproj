@@ -222,6 +222,10 @@
          reads them as the page does. Plain file reads and parsing; whether the
          session is local is LocalHostNames, compiled in below. -->
     <Compile Include="..\ControlPanel\Services\CertificateInspector.cs" />
+    <!-- The server's rule for a file's name it hands to OpenSSL on Windows
+         (FileUtilities::OpenSslPath, HM7536), which the certificate checks above and
+         the setup checklist ask before they call a file good. -->
+    <Compile Include="..\ControlPanel\Services\OpenSslFileName.cs" />
     <!-- The count beside the three overviews' titles, which says nothing where a
          value could not be read and no problem was found. -->
     <Compile Include="..\ControlPanel\Services\OverviewProblemCount.cs" />

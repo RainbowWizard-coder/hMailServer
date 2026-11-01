@@ -7560,6 +7560,9 @@
   <data name="Name or suffix" xml:space="preserve">
     <value>名称或后缀</value>
   </data>
+  <data name="Name refused" xml:space="preserve">
+    <value>名称被拒绝</value>
+  </data>
   <data name="Name servers" xml:space="preserve">
     <value>名称服务器</value>
   </data>
@@ -8639,6 +8642,9 @@
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>在服务器上，从 Bin 文件夹中以管理员身份运行的命令提示符：hMailServer.exe --create-stored-secrets-key 创建密钥，hMailServer.exe --export-stored-secrets-key FILE 将其导出。请将该文件与数据库备份一起保存，但要与备份分开存放。</value>
+  </data>
+  <data name="On this computer's code page its name holds a character the code page does not have, or characters whose bytes also read as another name in UTF-8, which OpenSSL would open instead, so the server does not hand it to OpenSSL (server error 7536). Give the file, and the folders above it, names in ASCII." xml:space="preserve">
+    <value>在本机的代码页中，其名称包含代码页中没有的字符，或其字节在 UTF-8 中也读作另一个名称的字符，OpenSSL 会改为打开那个名称，因此服务器不会将其交给 OpenSSL（服务器错误 7536）。请为该文件及其上层文件夹使用 ASCII 名称。</value>
   </data>
   <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
     <value>打开时，对无法完成的检查以 451 4.4.3 应答，让发件人在 DNS 恢复后再试，上面的 temperror 分数不再使用。关闭时，temperror 会被接受并计分；来自允许的域的发件人从不被延迟。</value>
@@ -13916,6 +13922,15 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The server does not answer {0} in {1}; it may be older than this Control Panel." xml:space="preserve">
     <value>服务器在 {1} 上不响应 {0}；它可能比此控制面板旧。</value>
   </data>
+  <data name="The server does not read the RSA/EC public key file {0}, so RS256 tokens cannot be verified." xml:space="preserve">
+    <value>服务器不读取 RSA/EC 公钥文件 {0}，因此无法验证 RS256 令牌。</value>
+  </data>
+  <data name="The server does not read the certificate file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>服务器不读取证书文件 {0}，因此配置为使用此证书的每个 TLS 端口都无法启动，这些端口上的邮件会停止。</value>
+  </data>
+  <data name="The server does not read the private key file {0}, so every TLS port configured to use this certificate fails to start and mail on those ports stops." xml:space="preserve">
+    <value>服务器不读取私钥文件 {0}，因此配置为使用此证书的每个 TLS 端口都无法启动，这些端口上的邮件会停止。</value>
+  </data>
   <data name="The server fails closed rather than guessing (server error 5921): no password is sent and the sign-in is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
     <value>服务器宁可安全失败也不猜测 (服务器错误 5921): 不发送密码，登录被拒绝。修复方法是选择 LDAPS 或 StartTLS，或选择 Negotiate 绑定方法 (它从不传输密码) - 或者，在您端到端控制的网络上，明确允许未受保护的密码。</value>
   </data>
@@ -18420,6 +18435,15 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0}: the secondary key is staged but no TXT record exists at {1} yet. Publish it and let it propagate before promoting the secondary key, or mail will sign with a key the world cannot look up." xml:space="preserve">
     <value>{0}：次要密钥已暂存，但 {1} 处还没有 TXT 记录。请在提升次要密钥之前发布它并让它完成传播，否则邮件会用一个全世界都查不到的密钥来签名。</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the listener does not start." xml:space="preserve">
+    <value>{0}：服务器不读取 CA 文件 {1}，因此不会加载任何 CA，监听器也不会启动。</value>
+  </data>
+  <data name="{0}: the server does not read the CA file {1}, so no CA is loaded and the port verifies no client certificate." xml:space="preserve">
+    <value>{0}：服务器不读取 CA 文件 {1}，因此不会加载任何 CA，端口不会验证任何客户端证书。</value>
+  </data>
+  <data name="{0}: the server does not read the key file {1}, so every port using this certificate does not start." xml:space="preserve">
+    <value>{0}：服务器不读取密钥文件 {1}，因此任何使用此证书的端口都无法启动。</value>
   </data>
   <data name="{0}: the {1} TXT record is published. Not checkable from here: that mta-sts.{2} resolves to this server, and that the certificate covers that name." xml:space="preserve">
     <value>{0}：{1} TXT 记录已发布。无法从此处检查的是：mta-sts.{2} 是否解析到本服务器，以及证书是否覆盖该名称。</value>

@@ -1495,6 +1495,17 @@ namespace hMailServer.ControlPanel.Services
                      continue;
                   }
 
+                  // The server refuses such a name before it opens the file
+                  // (FileUtilities::OpenSslPath, HM7536), and this panel would read
+                  // it by its wide name and call it good.
+                  if (OpenSslFileName.IsRefusedHere(keyFile))
+                  {
+                     item.Add(SetupItemState.ActionNeeded,
+                        Sentences(F("{0}: the server does not read the key file {1}, so every port using this certificate does not start.", label, keyFile),
+                           OpenSslFileName.Explanation()));
+                     continue;
+                  }
+
                   if (!File.Exists(keyFile))
                   {
                      item.Add(SetupItemState.ActionNeeded,
@@ -1711,6 +1722,19 @@ namespace hMailServer.ControlPanel.Services
                      continue;
                   }
 
+                  // Verified against TCPServer::InitInboundClientCertificateVerification_:
+                  // a name FileUtilities::OpenSslPath refuses loads no CA (HM7536, not
+                  // 6140), and the port is handled as one whose CA file cannot be
+                  // loaded - require does not start, request verifies nothing.
+                  if (OpenSslFileName.IsRefusedHere(caFile))
+                  {
+                     item.Add(SetupItemState.ActionNeeded, Sentences(policy == 2
+                        ? F("{0}: the server does not read the CA file {1}, so no CA is loaded and the listener does not start.", label, caFile)
+                        : F("{0}: the server does not read the CA file {1}, so no CA is loaded and the port verifies no client certificate.", label, caFile),
+                        OpenSslFileName.Explanation()));
+                     continue;
+                  }
+
                   if (!File.Exists(caFile))
                   {
                      item.Add(SetupItemState.ActionNeeded,
@@ -1818,6 +1842,17 @@ namespace hMailServer.ControlPanel.Services
                anythingWrong = true;
                item.Add(SetupItemState.ActionNeeded,
                   L("OAuth2 is on and allows RS256, but 'RSA/EC public key file' on the Authentication page is empty - every RS256 token fails signature verification, so no client can sign in with a token. Install the identity provider's public key as a PEM file and choose it there."));
+            }
+            else if (local && OpenSslFileName.IsRefusedHere(publicKeyFile))
+            {
+               // Verified against OAuth2TokenValidator::VerifyWithPublicKey_: a name
+               // FileUtilities::OpenSslPath refuses verifies no token (HM7536). Up to
+               // 6.3.7 the server handed this name over as UTF-8, so a name outside
+               // the code page that worked then is refused now.
+               anythingWrong = true;
+               item.Add(SetupItemState.ActionNeeded,
+                  Sentences(F("The server does not read the RSA/EC public key file {0}, so RS256 tokens cannot be verified.", publicKeyFile),
+                     OpenSslFileName.Explanation()));
             }
             else if (local && !File.Exists(publicKeyFile))
             {
