@@ -1,10 +1,10 @@
-# The COM interfaces of hmailserver/source/Server/hMailServer/hMailServer.idl at v6.3.7 (commit 31d656c0ce85650202b2c0f70bdd1cffa7243e34),
-# written by python build/check-com-abi.py --write-baseline v6.3.7, which reads that tag through git.
+# The COM interfaces of hmailserver/source/Server/hMailServer/hMailServer.idl at v6.3.8 (commit 3a2fc29b7fb52a27e7c1a6b8e25c99d94a4756ba),
+# written by python build/check-com-abi.py --write-baseline v6.3.8, which reads that tag through git.
 # build/check-com-abi.py holds the tree to it: each interface's members, in this order, come first in
 # the tree's, and each enumerator keeps its value, so that an early-bound client built against that
 # release's type library calls the member it names. Not edited by hand; rewritten from the next
 # release's tag.
-release v6.3.7 31d656c0ce85650202b2c0f70bdd1cffa7243e34
+release v6.3.8 3a2fc29b7fb52a27e7c1a6b8e25c99d94a4756ba
 enum eDBtype hDBTypeUnknown = 0
 enum eDBtype hDBTypeMySQL = 1
 enum eDBtype hDBTypeMSSQL = 2
@@ -500,6 +500,17 @@ interface IInterfaceAntiSpam uuid(998A7E66-21FA-47CC-9DB4-81822F2D05C9) : IDispa
   propput id(81) HRESULT RefuseMailFromDomainNotFqdn([in] VARIANT_BOOL)
   propget id(82) HRESULT SurblTooManyDomainsScore([out,retval] long*)
   propput id(82) HRESULT SurblTooManyDomainsScore([in] long)
+  propget id(83) HRESULT MoveLearningBackend([out,retval] long*)
+  propput id(83) HRESULT MoveLearningBackend([in] long)
+  propget id(84) HRESULT MoveLearningFromCopy([out,retval] VARIANT_BOOL*)
+  propput id(84) HRESULT MoveLearningFromCopy([in] VARIANT_BOOL)
+  propget id(85) HRESULT RspamdControllerUrl([out,retval] BSTR*)
+  propput id(85) HRESULT RspamdControllerUrl([in] BSTR)
+  method id(86) HRESULT SetRspamdControllerPassword([in] BSTR)
+  propget id(87) HRESULT RspamdClassifier([out,retval] BSTR*)
+  propput id(87) HRESULT RspamdClassifier([in] BSTR)
+  propget id(88) HRESULT RspamdTimeoutSeconds([out,retval] long*)
+  propput id(88) HRESULT RspamdTimeoutSeconds([in] long)
 interface IInterfaceAntiVirus uuid(952EE84F-C1D4-4869-8B86-76A3BA8F39FA) : IDispatch dual object
   propget id(1) HRESULT ClamWinEnabled([out,retval] VARIANT_BOOL*)
   propput id(1) HRESULT ClamWinEnabled([in] VARIANT_BOOL)
@@ -1688,6 +1699,8 @@ interface IInterfaceScripting uuid(B1EA04C0-B0B7-4638-80E4-41278CEF8C19) : IDisp
   method id(4) HRESULT CheckSyntax([out,retval] BSTR*)
   propget id(5) HRESULT Directory([out,retval] BSTR*)
   propget id(6) HRESULT CurrentScriptFile([out,retval] BSTR*)
+  propget id(7) HRESULT IMAPMessageMovedEvents([out,retval] VARIANT_BOOL*)
+  propput id(7) HRESULT IMAPMessageMovedEvents([in] VARIANT_BOOL)
 interface IInterfaceSecurityRange uuid(3B1CB89D-9248-413D-BF2A-F000E6DB5F54) : IDispatch dual object
   propget id(0) HRESULT ID([out,retval] long*)
   propget id(1) HRESULT LowerIP([out,retval] BSTR*)
@@ -2223,6 +2236,8 @@ interface IInterfaceUtilities uuid(F6BB0F43-EDEE-49A8-8166-672F3017426F) : IDisp
   method id(46) HRESULT MoveMailbox([in] BSTR, [in] BSTR, [in] VARIANT_BOOL, [out,retval] BSTR*)
   method id(47) HRESULT GetMailboxMoves([in] BSTR, [in] long, [out,retval] BSTR*)
   method id(42) HRESULT BackupArchiveIsEncrypted([in] BSTR, [out,retval] VARIANT_BOOL*)
+  method id(71) HRESULT RunAcmeCheck([out,retval] BSTR*)
+  method id(72) HRESULT GetAcmeStatus([out,retval] BSTR*)
 interface IInterfaceWhiteListAddress uuid(D67457A7-3500-481F-900F-C9741C89D6AB) : IDispatch dual object
   propget id(1) HRESULT ID([out,retval] long*)
   propget id(2) HRESULT LowerIPAddress([out,retval] BSTR*)
