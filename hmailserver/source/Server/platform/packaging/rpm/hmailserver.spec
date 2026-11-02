@@ -328,6 +328,6 @@ fi
 %{_bindir}/hmctl
 
 %changelog
-* Sun Nov 01 2026 Christopher Holloway <chris.holloway@progressiverobot.com> - 6.3.8-1
+* Mon Nov 02 2026 Christopher Holloway <chris.holloway@progressiverobot.com> - 6.3.8-1
 - The project's own spec, built from the release's source tarball with the live
   update off and the distribution's shared Boost (hmailserver/docs/SourcePackages.md).

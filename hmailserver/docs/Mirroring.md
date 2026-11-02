@@ -18,12 +18,12 @@ GitLab has pushed `master`, the `batch*` branches and the tags there after every
 push, and the two forges carry the same 53 tags (one that only that clone had was
 deleted from GitHub). Nothing else GitHub holds came through the mirror: every
 release from
-6.0.0-B1 to 6.3.7, with the same files byte for byte, was copied by a script that
+6.0.0-B1 to 6.3.8, with the same files byte for byte, was copied by a script that
 checked each against the SHA-256 that GitLab's package registry records for it (the
-notes of 6.3.6 and 6.3.7 are cut at GitHub's limit of 125,000 characters and
-attached whole as a file, and GitHub writes "." where a file name has "~", so the
-per-distribution .deb files are renamed there); the labels and the milestones are
-there as well; Discussions - announcements, and questions in Q&A - are GitHub's
+notes of 6.3.6, 6.3.7 and 6.3.8 are cut at GitHub's limit of 125,000 characters
+and attached whole as a file, and GitHub writes "." where a file name has "~", so
+the per-distribution .deb files are renamed there); the labels and the milestones
+are there as well; Discussions - announcements, and questions in Q&A - are GitHub's
 alone; the wiki is there too, pushed whole - its 74 pages, 59 images and every
 commit - to GitHub's wiki on 18 October 2026 from GitLab's, which stays the one
 that is edited; and so is a copy of the container image
@@ -306,7 +306,10 @@ and how to make it again.
   wiki needs ([Using a copy](#using-a-copy)). Done on 18 October 2026;
 - the releases, each copied once GitLab has published it ([RELEASE.md](../../RELEASE.md),
   "The copy on GitHub"). Done for all 47 on 18 October 2026: every one from 6.0.0-B1
-  to 6.3.7 (45) and `build-inputs-1` and `build-inputs-2`;
+  to 6.3.7 (45) and `build-inputs-1` and `build-inputs-2`. Done for 6.3.8 on
+  2 November 2026, published at 17:03 UTC with 162 assets, the 161 files and its
+  notes attached whole as `release-notes-v6.3.8.md`, since GitHub's limit of
+  125,000 characters cuts them on the page, and immutable;
 - the container image, copied to `ghcr.io/rainbowwizard-coder/hmailserver` with
   its signatures and attestations ([ContainerImage.md](ContainerImage.md)). Done on
   18 October 2026 for 6.3.7 and 6.3.6, and the package made public by the owner on
@@ -337,10 +340,13 @@ and how to make it again.
   registry answered `201 Created` with the same digest, but GitHub's packages API
   still gave that version the creation and update times of 18 October 2026, and
   the page still showed the signature's tag as the latest version and its pull
-  command. So 6.3.7's copy stays as it is, and the page shows the right tag once
-  the next release's copy, made in that order, pushes its new index last. Until
-  then, pull by the release's tag, `ghcr.io/rainbowwizard-coder/hmailserver:6.3.7`,
-  not the command the page offers.
+  command. So 6.3.7's copy was left as it was, and the next release's copy, made
+  in that order, put the right tag on the page: 6.3.8's, made on 2 November 2026
+  on linix, took cosign's five tags, then `6.3.8`, then `6.3` and `latest`, each
+  of the eight at the digest GitLab's registry gives it, and `cosign verify` of
+  `:6.3.8`, without signing in, passed as the tag's identity. The package's newest
+  version carries `6.3.8`, `latest` and `6.3`, not a signature's tag, so the page
+  offers the release's pull command.
 
 **The export.**
 

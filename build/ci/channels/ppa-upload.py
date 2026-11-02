@@ -31,9 +31,11 @@ named (hmailserver/docs/Channels.md, "Ubuntu PPA").
      upload errors"), and an upload that only names the orig is refused while the
      PPA does not hold it - so each upload stands alone, whatever order Launchpad
      takes them in and whether an earlier one was refused.
-  5. dput to ppa.launchpad.net, which takes the upload on its signature alone.
-     Launchpad mails its answer to the key's address and shows it on the PPA's page;
-     the job reads the PPA back after a while and says what it lists.
+  5. dput to ppa.launchpad.net, which takes the upload on its signature alone. dput
+     runs without the PYTHONSAFEPATH every job is given, which keeps it from its own
+     files (dput_environment). Launchpad mails its answer to the key's address and
+     shows it on the PPA's page; the job reads the PPA back after a while and says
+     what it lists.
 
 Usage, from the root of a checkout, in Debian 13 with devscripts, dpkg-dev, dput and
 gnupg:
@@ -168,6 +170,20 @@ def series_flags(wanted, ppa_has_orig):
     another having been taken first, and by none (-sd) once the PPA holds it, whose
     bytes the uploads are then built against."""
     return [(s, "-sd" if ppa_has_orig else "-sa") for s in wanted]
+
+
+def dput_environment(environ):
+    """The environment dput runs in: the job's, without PYTHONSAFEPATH, which
+    .gitlab-ci.yml gives every job. Debian's dput (1.2.4 in Debian 13) is installed in a
+    directory of its own, /usr/share/dput - its package, its metadata
+    (dput-1.2.4.egg-info) and the entry script /usr/bin/dput links to - and the script
+    finds the other two through that directory, which Python puts first on sys.path for
+    a script, its link followed, and PYTHONSAFEPATH keeps off. With it, dput stopped at
+    "No package metadata was found for dput" before it read a file: on 2 November 2026
+    the job built and signed 6.3.8's uploads and sent none. That directory is Debian's;
+    the current one, the checkout, is never put on sys.path for a script, and the job's
+    other Python variables stand."""
+    return dict((name, value) for name, value in environ.items() if name != "PYTHONSAFEPATH")
 
 
 def ppa_upload(out, environ=None, run=subprocess.run):
@@ -314,7 +330,8 @@ def ppa_upload(out, environ=None, run=subprocess.run):
                 f.write("[ppa-hmailserver]\nfqdn = ppa.launchpad.net\nmethod = ftp\nincoming = ~%s/ubuntu/%s/\n"
                         "login = anonymous\nallow_unsigned_uploads = 0\n" % (owner, ppa))
         for s, upload_version, changes in uploads:
-            sent = run(["dput", "--config", dput_cf, "ppa-hmailserver", changes], capture_output=True, text=True, env=gpg_env)
+            sent = run(["dput", "--config", dput_cf, "ppa-hmailserver", changes], capture_output=True, text=True,
+                       env=dput_environment(gpg_env))
             if sent.returncode != 0:
                 raise Refused("dput of %s failed: %s" % (os.path.basename(changes), (sent.stderr or sent.stdout).strip()[-400:]))
             say("uploaded: %s %s for %s" % (source, upload_version, s))
@@ -370,6 +387,9 @@ def self_test():
            series_flags(["noble", "resolute"], False) == [("noble", "-sa"), ("resolute", "-sa")])
     expect("  ... and with the PPA's own, none does",
            series_flags(["noble", "resolute"], True) == [("noble", "-sd"), ("resolute", "-sd")])
+    expect("dput runs without PYTHONSAFEPATH, which keeps Debian's dput from its own files, and with the job's other"
+           " variables", dput_environment({"PYTHONSAFEPATH": "1", "PYTHONNOUSERSITE": "1", "GNUPGHOME": "/k"})
+           == {"PYTHONNOUSERSITE": "1", "GNUPGHOME": "/k"})
     expect("the PPA named by owner and name", ppa_parts(None) == ["hmailserver", "hmailserver"]
            and ppa_parts("~someone/test-ppa") == ["someone", "test-ppa"])
     refused("a PPA named otherwise", lambda: ppa_parts("ppa:hmailserver"), "<owner>/<name>")
@@ -422,6 +442,46 @@ def self_test():
                     lambda: ppa_upload(os.path.join(work, "p"), {"LAUNCHPAD_SIGNING_KEY": "a2V5"},
                                        run=lambda *a, **k: calls.append(a)), "does not verify")
             expect("  ... nothing was run", calls == [])
+
+            # A tarball that verifies, as far as dput (the fixture's local incoming, outside
+            # CI): each program the job runs is recorded with the environment it is given,
+            # and answers as the job needs - gpg lists a key, mk-origtargz writes the orig.
+            good = os.path.join(work, "hmailserver-9.9.9.tar.gz")
+            tarball(good, {"hmailserver-9.9.9/%s/changelog" % DEBIAN_DIR: changelog.encode("utf-8"),
+                           "hmailserver-9.9.9/%s/copyright" % DEBIAN_DIR: b"Files-Excluded: x\n"})
+            rf.verified_files = lambda version, names, into, cosign, fix=None: {names[0]: {"path": good}}
+            fixture_path = os.path.join(work, "fixture.json")
+            with open(fixture_path, "w", encoding="utf-8") as f:
+                json.dump({"ppa_published": [], "ppa_incoming": os.path.join(work, "incoming")}, f)
+            ran = []
+
+            def recorded(command, **kwargs):
+                ran.append((command[0], dict(kwargs.get("env") or {})))
+                if command[0] == "mk-origtargz":
+                    tarball(os.path.join(command[command.index("--directory") + 1], "hmailserver_9.9.9+ds.orig.tar.gz"),
+                            {"hmailserver-9.9.9/x": b"1"})
+                listed = ""
+                if command[:2] == ["gpg", "--list-secret-keys"]:
+                    listed = "fpr:::::::::ABCD:\nuid:::::::::A <a@example.org>:\n"
+                return subprocess.CompletedProcess(command, 0, listed, "")
+            try:
+                answer = ppa_upload(os.path.join(work, "q"), {"LAUNCHPAD_SIGNING_KEY": "a2V5", "HM_CHANNELS_FIXTURE": fixture_path,
+                                                              "PYTHONSAFEPATH": "1", "PYTHONNOUSERSITE": "1"}, run=recorded)
+            except Refused as error:
+                answer = "REFUSED: %s" % error
+            job = ran[0][1] if ran else {}
+            dputs = [environment for program, environment in ran if program == "dput"]
+            others = [environment for program, environment in ran if program != "dput"]
+            expect("with a key and a tarball that verifies: both releases' uploads built, signed and sent to dput, exit 0"
+                   + ("" if answer == 0 else " (%s)" % str(answer).splitlines()[0][:110]),
+                   answer == 0 and [program for program, _ in ran] == ["gpg", "gpg", "mk-origtargz", "dpkg-buildpackage", "debsign",
+                                                                       "dpkg-buildpackage", "debsign", "dput", "dput"])
+            expect("  ... dput in the job's environment, with the GnuPG home the key went into, without PYTHONSAFEPATH alone",
+                   job.get("PYTHONSAFEPATH") == "1" and bool(job.get("GNUPGHOME")) and len(dputs) == 2
+                   and all(environment == dict((name, value) for name, value in job.items() if name != "PYTHONSAFEPATH")
+                           for environment in dputs))
+            expect("  ... and gpg, mk-origtargz, dpkg-buildpackage and debsign in the same, PYTHONSAFEPATH and all",
+                   len(others) == 7 and all(environment == job for environment in others))
         finally:
             globals()["say"] = held_say
             rf.release_version, rf.tool_path, rf.verified_files = held

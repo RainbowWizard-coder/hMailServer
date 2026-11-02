@@ -27,7 +27,7 @@ authors:
   - name: Progressive Robot Ltd
     website: https://www.progressiverobot.com
 version: 6.3.8
-date-released: 2026-11-01
+date-released: 2026-11-02
 license: AGPL-3.0-or-later
 repository-code: https://gitlab.com/hmailserver/hmailserver
 url: https://gitlab.com/hmailserver/hmailserver

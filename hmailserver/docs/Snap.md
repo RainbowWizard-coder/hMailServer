@@ -13,12 +13,22 @@ release, `snap-upload`, started by hand on `master`'s pipeline, puts the release
 snaps on `edge` and `candidate`, and `stable` is promoted by hand (*The Snap Store*,
 below).**
 
-**6.3.7 is not in the store, and nothing is.** The store answers that it has no
-snap called `hmailserver` (read on 21 October 2026). 6.3.7's two snaps were built
+**6.3.8 is in the store, and it is the first snap there.** `snap-upload` (job
+17653735773, in `master`'s pipeline 3016322466, whose commit is `v6.3.8`'s) uploaded
+its two snaps on 2 November 2026 at 17:08 and 17:09 UTC and released both to `edge`
+and `candidate` at 17:09. Both ask for `system-usernames` (`snap_daemon: shared`), and
+the store's review at upload passed them: the job's log says "Status: ready to
+release!" for amd64 and "Status: released" for arm64. The store's channel map, read at
+17:31 UTC, gives 6.3.8 on both channels, revision 1 for amd64 and revision 2 for
+arm64, and nothing on `stable`: `stable` is the owner's step, once a maintainer has
+installed the candidate (*The Snap Store*, below).
+
+6.3.7 never was in the store. The store answered, on 21 October 2026, that it had no
+snap called `hmailserver`. 6.3.7's two snaps were built
 and checked in `master`'s pipeline 2958945008 on 18 October 2026, and its
 `snap-upload` (job 17257943981) stopped before it reached the store or the
 credential: the image had no `git` for the job's check of the release tag, which
-`build/ci/snap-tools.sh` installs since. The job cannot be run again for 6.3.7. It
+`build/ci/snap-tools.sh` installs since. The job could not be run again for 6.3.7. It
 uploads only from the pipeline of the release's own commit, and a retry of the old
 job runs the old script. The two builds' artifacts are kept, with no expiry (jobs
 17257943944, amd64, and 17257943945, arm64), but they are not to be uploaded:
@@ -27,7 +37,7 @@ neither can make its configuration at its first start. Their
 configuration from, is the `.deb`'s, 0640 and root's, which `snap_daemon` cannot
 read, so the service's first start and every `sudo hmailserver` verb would end with
 "could not be read" (*6.3.7's snaps are withdrawn*, at the end of *The Snap Store*,
-below). The next release's snap, which is 0644 there, is the first in the store.
+below). 6.3.8's snap, which is 0644 there, is the first in the store.
 
 | | |
 |---|---|
@@ -39,13 +49,14 @@ below). The next release's snap, which is 0644 there, is the first in the store.
 Installing and starting it
 --------------------------
 
-Once it is in the store:
+From the store, while 6.3.8 is on `candidate` and `edge` and `stable` has nothing:
 
-    sudo snap install hmailserver
+    sudo snap install hmailserver --candidate
 
-Until then, a snap a pipeline built (`snap-build-<arch>`'s artifacts) installs with
-`sudo snap install --dangerous hmailserver_<version>_<arch>.snap`; `--dangerous`
-because a file from outside the store carries no store signature.
+`sudo snap install hmailserver`, which takes `stable`, works once a revision has been
+released there. A snap a pipeline built (`snap-build-<arch>`'s artifacts) installs
+with `sudo snap install --dangerous hmailserver_<version>_<arch>.snap`;
+`--dangerous` because a file from outside the store carries no store signature.
 
 The service is installed but not started: it has no database yet. Name one, give the
 database password and the administrator's, and start it:
@@ -386,7 +397,6 @@ with snapcraft 9.1.3 (revisions 19192 and 19189) and core24 20260824 (2124 and 2
   MariaDB client reads at a connection has not been put to the profile.
 - **The other apps' work under AppArmor** beyond the test's: `hmctl` against the REST
   API, and verbs such as `--export-stored-secrets-key`.
-- **The store's review** of a snap that asks for `system-usernames`.
 
 The Snap Store
 --------------
@@ -462,9 +472,10 @@ makes `/var/snap/hmailserver/common/etc/hMailServer.ini` from that file while th
 none, and a squashfs mount enforces its mode, so the first start of either snap ends
 with "could not be read" and makes no configuration: unpacked with its owners and
 modes and started as `snap-build.sh` now starts a snap, as `snap_daemon` with no group,
-the amd64 one fails so (29 October 2026). Do not upload them. The next release's snap
-is the first in the store, through `snap-upload`; before its release to `stable`, set
-the store listing at <https://snapcraft.io/hmailserver/listing> with the owner's own
+the amd64 one fails so (29 October 2026). Do not upload them. 6.3.8's snap is the
+first in the store, uploaded through `snap-upload` on 2 November 2026; before its
+release to `stable`, set the store listing at
+<https://snapcraft.io/hmailserver/listing> with the owner's own
 login, as the snap's `snapcraft.yaml` gives it: the title "hMailServer (Progressive
 Robot's fork)", a summary and a description that open with "Progressive Robot's fork
 of hMailServer, not the original by Martin Knafve", the website

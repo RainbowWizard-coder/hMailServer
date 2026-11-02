@@ -133,18 +133,19 @@ writable by hmailserver": the new, empty configuration volume hid the image's fi
 Nor does such a chart run `hmailserver --apply-new-install-defaults --if-marked`
 before the server, so a server it started would not secure a new installation.
 
-This chart, which the first release made after 23 October 2026 is the first to
-serve, starts one. Installed from the project's tree with `--set image.tag=` the
-published release's version, its pod was ready 16 seconds after `helm install`.
-Through `kubectl port-forward` and through the Service's LoadBalancer address, port
-25 answered with STARTTLS, under the certificate the first start made. The REST API
-answered over TLS: 401 without credentials, the release's version and build as
-Administrator, nothing over plain HTTP. It served the Control Deck and the webmail.
+This chart, which the first release made after 23 October 2026 (published on 2
+November 2026) was the first to serve, starts one. Installed from the project's
+tree with `--set image.tag=` the published release's version, its pod was ready 16
+seconds after `helm install`. Through `kubectl port-forward` and through the
+Service's LoadBalancer address, port 25 answered with STARTTLS, under the
+certificate the first start made. The REST API answered over TLS: 401 without
+credentials, the release's version and build as Administrator, nothing over plain
+HTTP. It served the Control Deck and the webmail.
 A message sent over SMTP to an account made over the API was in its inbox. `helm
 uninstall` left the three PersistentVolumeClaims, as above. Until that release, the
 chart of a checkout of the project
 (`hmailserver/source/Server/platform/packaging/helm/hmailserver`, installed with
-`--set image.tag=` the published release's version) is the one that starts the
+`--set image.tag=` the published release's version) was the one that started the
 published image.
 
 Releases of both published charts were then moved to this one as Updates, below,
@@ -163,6 +164,23 @@ old chart's `fsGroup` 1000 and `HM_DB_PORT` 5432, and its pod, once deleted, ran
 when a later `helm upgrade` replaced the pod by itself (ready in 6 to 8 seconds),
 when the pod was deleted again, and when an upgrade moved `fsGroup` from 1000 to
 999, which Kubernetes then gave the volumes' files.
+
+On 2 November 2026 the chart that release published was installed as a user
+installs it, from the repository and not from the tree, with the published image:
+`helm repo add hmailserver https://updates.progressiverobot.com/helm/`, then `helm
+install mail hmailserver/hmailserver --version <version>`, the release's own, into a
+throwaway one-node k3s cluster, beside a PostgreSQL 18 in it. The file's SHA-256
+was the same in the repository's index, in the project's package registry and in
+what `helm pull` saved, and `cosign verify-blob` of its bundle passed. The pod
+became ready as 999:999 with the pod sysctl at 0, the server listened on 25, 110,
+143, 587 and 8045, port 25 offered STARTTLS under the certificate the first start
+made (TLS 1.3), the REST API answered 401 without credentials and the release's
+version and build as Administrator, and a message sent over SMTP to an account made
+over the API was in its inbox. A release installed from the previous release's
+chart in the same cluster stopped at `CreateContainerConfigError`; after `helm
+upgrade --version <version> --reset-then-reuse-values` and `kubectl delete pod` its
+pod started and answered the same. `hmailserver/docs/ContainerImage.md`, "What was
+run by hand", has the record, with the versions.
 
 ## Checking the chart
 

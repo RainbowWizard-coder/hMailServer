@@ -28,6 +28,8 @@
 #   --mac MAC           the MAC the .vmx must carry, and the host must answer ARP with
 #                                                            HM_SMOKE_MAC
 #   --host ADDRESS      the VM's address                     HM_SMOKE_HOST
+#   --leases PATH       VMware's DHCP leases (vmnetdhcp.leases), for the VM's address
+#                       when its tools report none           HM_SMOKE_LEASES
 #   --user NAME         the SSH user                         HM_SMOKE_USER
 #   --key PATH          the SSH private key                  HM_SMOKE_KEY
 #   --out DIR           where the logs go (a new directory under the temp directory)
@@ -97,6 +99,7 @@ vmx="${HM_SMOKE_VMX:-C:\Users\chris\Documents\Virtual Machines\Win server 2025 s
 snapshot="${HM_SMOKE_SNAPSHOT:-firstsnapshot}"
 mac="${HM_SMOKE_MAC:-00:0c:29:c8:a1:3a}"
 host="${HM_SMOKE_HOST:-192.168.11.175}"
+leases="${HM_SMOKE_LEASES:-C:/ProgramData/VMware/vmnetdhcp.leases}"
 user="${HM_SMOKE_USER:-administrator}"
 key="${HM_SMOKE_KEY:-$HOME/.ssh/hmail_ad}"
 out="${HM_SMOKE_OUT:-}"
@@ -124,6 +127,7 @@ while [ $# -gt 0 ]; do
       --snapshot) snapshot="$2"; shift 2 ;;
       --mac) mac="$2"; shift 2 ;;
       --host) host="$2"; shift 2 ;;
+      --leases) leases="$2"; shift 2 ;;
       --user) user="$2"; shift 2 ;;
       --key) key="$2"; shift 2 ;;
       --out) out="$2"; shift 2 ;;
@@ -156,6 +160,7 @@ second_local=""
 [ -n "$second" ] && second_local=$(local_path "$second")
 key_local=$(local_path "$key")
 vmx_local=$(local_path "$vmx")
+leases_local=$(local_path "$leases")
 
 database_local=""
 database_password_local=""
@@ -268,12 +273,19 @@ vm_running() {
 }
 
 # A snapshot taken with the VM powered on restores it suspended in that state; start
-# resumes it. One taken powered off leaves it off; start boots it.
+# resumes it. One taken powered off leaves it off; start boots it. The revert's time
+# is taken once the revert has powered off any instance that was running and before
+# start resumes the restored one, in UTC as the DHCP server's leases have it
+# (leased_address): an instance left running, as a run's last revert leaves one, can
+# still be given a lease in the seconds before the next revert stops it, and that
+# lease is not the restored VM's.
+reverted_at=""
 revert_vm() {
    say "== reverting to '$snapshot' ($(date -u +%H:%M:%SZ))"
    if ! "$vmrun" -T ws revertToSnapshot "$vmx" "$snapshot" 2>&1 | tr -d '\r' | tee -a "$console"; then
       return 1
    fi
+   reverted_at=$(date -u +%Y%m%d%H%M%S)
    if ! vm_running; then
       "$vmrun" -T ws start "$vmx" nogui 2>&1 | tr -d '\r' | tee -a "$console" || return 1
    fi
@@ -281,8 +293,60 @@ revert_vm() {
 }
 
 # The address the VM's own VMware Tools report for the .vmx, or nothing.
-guest_address() {
+tools_address() {
    "$vmrun" -T ws getGuestIPAddress "$vmx" 2> /dev/null | tr -d '\r' | grep -Eo '^([0-9]{1,3}[.]){3}[0-9]{1,3}$' | head -n 1
+}
+
+# The address of the newest lease VMware's DHCP server gave the VM's MAC since the
+# revert, and when ("192.168.11.252 at 14:27:56Z"), or nothing. The server keeps its
+# leases in $leases, in dhcpd.leases(5)'s form with its times in UTC, adds one each
+# time it gives, renews or abandons an address, and now and then writes the file
+# again in an order of its own, so they are taken by their start. A lease that
+# started before the revert was the VM's before it, and one marked abandoned or of
+# another MAC is not the VM's. Nor is the newest when the server has since marked its
+# address abandoned, which it does just before it offers another, or leased it to
+# another MAC: then nothing, until the next lease, and never an older one, an
+# address the VM has left. Of two that start in one second the longer is the newer,
+# and of an address's two, the one that is not the MAC's lease.
+leased_address() {
+   [ -n "$reverted_at" ] && [ -r "$leases_local" ] || return 0
+   tr -d '\r' < "$leases_local" | awk -v mac="$mac_lower" -v since="$reverted_at" '
+      function stamp(day, clock,   d, c) {
+         split(day, d, "/"); split(clock, c, ":")
+         return sprintf("%04d%02d%02d%02d%02d%02d", d[1], d[2], d[3], c[1], c[2], c[3])
+      }
+      { sub(/[ \t]*;[ \t]*$/, "") }
+      $1 == "lease" { ip = $2; starts = ""; ends = ""; hw = ""; abandoned = 0 }
+      $1 == "starts" { starts = stamp($3, $4) }
+      $1 == "ends" { ends = ($2 == "never") ? "99999999999999" : stamp($3, $4) }
+      $1 == "hardware" && $2 == "ethernet" { hw = tolower($3) }
+      $1 == "abandoned" || ($1 == "binding" && $3 == "abandoned") { abandoned = 1 }
+      $1 == "}" && ip != "" && starts != "" {
+         ours = (hw == mac && !abandoned)
+         if (!(ip in newest) || starts > newest[ip] || (starts == newest[ip] && !ours)) {
+            newest[ip] = starts; mine[ip] = ours
+         }
+         if (ours && (best == "" || starts > best_start || (starts == best_start && ends > best_end))) {
+            best = ip; best_start = starts; best_end = ends
+         }
+         ip = ""
+      }
+      END {
+         if (best != "" && best_start >= since && mine[best])
+            printf "%s at %s:%s:%sZ\n", best, substr(best_start, 9, 2), substr(best_start, 11, 2), substr(best_start, 13, 2)
+      }'
+}
+
+# The VM's address: the tools', or, when they report none, the DHCP server's last
+# lease, with when it was given after it.
+guest_address() {
+   local address
+   address=$(tools_address)
+   if [ -n "$address" ]; then
+      printf '%s\n' "$address"
+   else
+      leased_address
+   fi
 }
 
 # The VM's address once it has held for 45 seconds, followed when it is not $host.
@@ -295,11 +359,24 @@ guest_address() {
 # old address, the first copy ended in "Connection reset by peer", and the run then
 # waited ten minutes on an address nobody held. The address the tools report is the
 # .vmx's, whose MAC identify_vm checked; check_address checks it against ARP before
-# anything is copied. Tools that report nothing leave $host as it was.
+# anything is copied. When the tools report none, it is the address the DHCP server
+# last leased that MAC since the revert (leased_address). On 2 November 2026 the
+# tools reported none all day, and the server gave the VM another address after five
+# of the reverts made for 6.3.8's smoke test (.243, .153, .236, .130, .252; it marks
+# .175 abandoned when a revert begins while the MAC holds a live lease of .175, the
+# resumed VM still answering on it). A run that waited its whole 300 seconds then
+# asked $host, an address the VM no longer held, or asked just as the VM's sshd began
+# to reset every connection, which it did for as long as it was watched, from about
+# 350 seconds after the resume to about 810, having answered from about 36 seconds
+# to about 309 (Windows Update's servicing after the snapshot's 38-day jump of the
+# clock the likeliest cause); followed from the leases, SSH answered at about a
+# minute and Windows Update was held off before the resets. With neither, $host
+# stays as it was.
 settle_address() {
-   local deadline=$((SECONDS + 300)) previous="" current="" since=$SECONDS
+   local deadline=$((SECONDS + 300)) previous="" current="" found="" since=$SECONDS
    while [ $SECONDS -lt $deadline ]; do
-      current=$(guest_address)
+      found=$(guest_address)
+      current=${found%% *}
       if [ -z "$current" ] || [ "$current" != "$previous" ]; then
          previous="$current"
          since=$SECONDS
@@ -309,18 +386,33 @@ settle_address() {
       sleep 5
    done
    if [ -z "$current" ]; then
-      say "the VM's tools report no address; using $host"
-   elif [ "$current" != "$host" ]; then
+      if [ -r "$leases_local" ]; then
+         say "the VM's tools report no address, nor does $leases hold a lease of $mac since the revert; using $host"
+      else
+         say "the VM's tools report no address, and $leases cannot be read; using $host"
+      fi
+      return
+   fi
+   if [ "$found" != "$current" ]; then
+      say "the VM's tools report no address; VMware's DHCP server leased $current to $mac ${found#* }"
+   fi
+   if [ "$current" != "$host" ]; then
       say "the VM is at $current, not $host: its DHCP lease moved after the revert"
       host="$current"
       remote="$user@$host"
    fi
 }
 
+# SSH answers when "echo ready" comes back. Each try is limited: five seconds to
+# connect, fifteen without an answer once connected (ServerAliveInterval 5 x
+# ServerAliveCountMax 3, given before $ssh_opts, since ssh keeps the first value it is
+# given) and a minute in all. A try that connected and then hung would otherwise hold
+# the whole ten minutes, as $ssh_opts' 30 x 20 seconds let the other connections do.
 wait_for_ssh() {
    local deadline=$((SECONDS + 600))
    while [ $SECONDS -lt $deadline ]; do
-      if ssh "${ssh_opts[@]}" -o ConnectTimeout=5 "$remote" "echo ready" 2> /dev/null | tr -d '\r' | grep -qx ready; then
+      if timeout --foreground 60 ssh -n -o ConnectTimeout=5 -o ServerAliveInterval=5 -o ServerAliveCountMax=3 \
+            "${ssh_opts[@]}" "$remote" "echo ready" 2> /dev/null | tr -d '\r' | grep -qx ready; then
          return 0
       fi
       sleep 5

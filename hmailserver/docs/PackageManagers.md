@@ -16,7 +16,8 @@ September - and packages of it exist, so every package of this project says
 in its title or name and in its description that it is the fork, and never takes
 an identifier that is the original's.
 
-**Chocolatey: 6.3.7 is approved and listed, with the credit.** The
+**Chocolatey: 6.3.7 is approved and listed, with the credit; 6.3.8 waits for
+moderation.** The
 `chocolatey-publish` job pushed `hmailserver-progressiverobot` 6.3.7 at 23:47 UTC
 on 20 October 2026, and it passed Chocolatey's automatic checks. That package was
 titled "hMailServer" alone, with a summary that did not say fork, and its authors
@@ -48,10 +49,20 @@ release's installer, whose SHA-256 matched and whose Authenticode signature was
 Valid (Progressive Robot Ltd), installed 6.3.7 with the service running and ports
 25, 110 and 143 answering, and `choco uninstall hmailserver-progressiverobot`
 removed it, leaving no uninstall entry and no service. Every new version waits for
-moderation the same way.
+moderation the same way. 6.3.8 was pushed on 2 November 2026: `chocolatey-publish`
+(job 17653735772, in `master`'s pipeline 3016322466, `chocolatey-release` having been
+pressed there) pushed `hmailserver-progressiverobot` 6.3.8 (HTTP 201), the job ending
+at 15:28 UTC. At 17:19 UTC its page on community.chocolatey.org said "Pending
+automated review", and the community repository's feed listed 6.3.7 alone
+([Channels.md](Channels.md), "Chocolatey").
 
 **winget: not submitted.** The manifests are rendered and validated by hand for
-a release, from the release's own signed installer. The GitHub workflow
+a release, from the release's own signed installer. 6.3.8's were rendered on 2
+November 2026 from its signed installer (Authenticode valid, Progressive Robot
+Ltd) and passed `build/check-package-manifests.py --offline --release-date
+2026-11-02`; their `InstallerUrl` is the package registry's
+`hMailServer-6.3.8-x64.exe`, which answered a `HEAD` with 200 and the file's
+length. Nothing is submitted: the first submission is the owner's. The GitHub workflow
 `package-managers.yml`, which was to do it for every release, arrived on
 15 September 2026 (`6fc7ae91c`), after the `v6.3.3` tag, so no release ran it,
 and it was not ported to GitLab (below). winget's community repository takes
@@ -69,11 +80,12 @@ original's Inno installer has `AppName=hMailServer` and no `AppId`, which Inno
 then takes from the name (`section_setup.iss` of its 5.7.0 builds, whose tags
 this repository carries), and this project's pins `AppId=hMailServer`, so that
 it upgrades an existing installation in place. So winget may take an installed
-original 5.7 for this package and offer 6.3.7 as its upgrade, or take this
+original 5.7 for this package and offer 6.3.8 as its upgrade, or take this
 project's installation for the original's - and this project's database upgrade
 has no step from the original's 5.7 releases, whose database versions are 5709
-and 5711 (its chain runs from 5708 to 6001), so 6.3.7 is no upgrade of them. An
-installation of the original up to 5.6 upgrades in place. A submission of `ProgressiveRobot.hMailServer` has to say so in
+and 5711 (its chain runs from 5708 to 6001), so 6.3.8 is no upgrade of them: its
+setup refuses them before it changes anything (Upgrading.md, "Where you can upgrade
+from"). An installation of the original up to 5.6 upgrades in place. A submission of `ProgressiveRobot.hMailServer` has to say so in
 its pull request and ask the moderators how they want it handled
 ([The first submission, by hand](#the-first-submission-by-hand)).
 

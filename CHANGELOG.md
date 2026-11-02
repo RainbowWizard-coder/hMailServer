@@ -9,7 +9,7 @@ to 6.3.5 link the project's first path, `gitlab.com/Progressiverobot/hmailserver
 This project is a maintained fork of hMailServer 5.7 by Martin Knafve. Its own releases begin at 6.0.0; the
 `hMailServer-5.7.0-bNNNN` tags in the repository are upstream builds, not releases of this project.
 
-**The latest release is 6.3.8, published on 1 November 2026.** Anything that arrived after it is in the tree
+**The latest release is 6.3.8, published on 2 November 2026.** Anything that arrived after it is in the tree
 after 6.3.8 and not yet released. It is listed under [Unreleased](#unreleased---in-the-tree-after-638-not-yet-released)
 and will carry a version number when a release is cut.
 
@@ -20,15 +20,16 @@ first path on GitLab, `Progressiverobot/hmailserver`, redirects there). Its rele
 suspended the account on 18 September 2026, and every `github.com/Progressiverobot` address in older text now answers 404.
 Since 18 October 2026 the project is published on GitHub again, as a second home, at
 <https://github.com/RainbowWizard-coder/hMailServer>, under the account `RainbowWizard-coder`: the repository - `master` and
-every tag - and, at <https://github.com/RainbowWizard-coder/hMailServer/releases>, every release from 6.0.0-B1 to 6.3.7 with
+every tag - and, at <https://github.com/RainbowWizard-coder/hMailServer/releases>, every release from 6.0.0-B1 to 6.3.8 with
 GitLab's files byte for byte, each checked against the SHA-256 that GitLab's package registry records for it (the notes of
-6.3.6 and 6.3.7 are cut at GitHub's limit of 125,000 characters and attached whole as a file, and GitHub writes "." where a
-file name has "~", so the per-distribution `.deb` files are renamed there), and the project's labels and milestones and
-Discussions; it has no Issues. GitLab stays canonical: a release is built, signed and published there first and then copied
-to GitHub, and the update feed, the package repositories and the container registry are GitLab's. GitHub's immutable-releases
-setting is on: a release published there with it on keeps its files and its tag as published, though its notes can still be
-edited, and so do the copies of 6.3.6 and 6.3.7, published after it was switched on during the copying of 18 October 2026;
-the copies of the releases before them, published before it, can still be changed. Every release up to 6.3.3 has been
+6.3.6, 6.3.7 and 6.3.8 are cut at GitHub's limit of 125,000 characters and attached whole as a file, and GitHub writes "."
+where a file name has "~", so the per-distribution `.deb` files are renamed there), and the project's labels and milestones
+and Discussions; it has no Issues. GitLab stays canonical: a release is built, signed and published there first and then
+copied to GitHub, and the update feed, the package repositories and the container registry are GitLab's. GitHub's
+immutable-releases setting is on: a release published there with it on keeps its files and its tag as published, though its
+notes can still be edited, and so do the copies of 6.3.6 and 6.3.7, published after it was switched on during the copying of
+18 October 2026, and of 6.3.8, published there on 2 November 2026; the copies of the releases before them, published before
+it, can still be changed. Every release up to 6.3.3 has been
 re-created on GitLab from the GitHub original, under its original date and with its files byte for byte, but for 6.2.0 and
 6.0.0-B4, whose files were not preserved: <https://gitlab.com/hmailserver/hmailserver/-/releases>, with the latest always at
 <https://gitlab.com/hmailserver/hmailserver/-/releases/permalink/latest>. A tag with no release is at
@@ -88,9 +89,161 @@ with `--check`).
 
 ## Unreleased - in the tree after 6.3.8, not yet released
 
+### Downloads and the release
+
+- **Fixed: `ppa-upload` runs `dput`, where on 2 November 2026 it stopped before it sent 6.3.8 to the Ubuntu PPA.**
+  That day the job verified 6.3.8's source tarball, built and signed its uploads for Ubuntu 24.04 and 26.04, and was
+  refused at the first `dput`: "importlib.metadata.PackageNotFoundError: No package metadata was found for dput".
+  Nothing was missing from the install. Debian 13's `dput` 1.2.4 is installed in a directory of its own,
+  `/usr/share/dput` - its package, its metadata (`dput-1.2.4.egg-info`) and the entry script `/usr/bin/dput` links
+  to - and the script finds the other two through that directory, which Python puts first on `sys.path` for a script
+  it runs; from 6.3.8 `.gitlab-ci.yml` gives every job `PYTHONSAFEPATH`, which keeps a script's own directory off it,
+  so `dput` found neither. On 21 October, before that, the same job, image and `dput` uploaded 6.3.7.
+  `build/ci/channels/ppa-upload.py` now runs `dput` in the job's environment without `PYTHONSAFEPATH` alone
+  (`dput_environment`); `.gitlab/ci/channels.yml` says so beside the job's image, and ContinuousIntegration.md beside
+  the variables every job is given ("What runs beside them, and how Python runs"). The job's other Python variables
+  stand, and the directory Python then puts first is Debian's: the checkout is only the current directory, which
+  Python never puts on `sys.path` for a script. Of the programs the job runs from Debian, `dput` is the one written in
+  Python (`mk-origtargz` and the dpkg tools are Perl, `debsign` is shell); the job's own `ppa-upload.py` keeps
+  `PYTHONSAFEPATH`. The self-test drives the script as far as its two `dput` calls, with each program it runs
+  recorded, and holds the environment each is given: the job's, with the GnuPG home the key went into, for every
+  program, and without `PYTHONSAFEPATH` for `dput` alone. In the job's image on linix, with the job's Python
+  variables, 6.3.8's tarball at the digest the job verified and a throwaway key, 6.3.8's `ppa-upload.py` was refused
+  as the job was; the fixed one built both uploads and sent them to `dput`'s local method (good signatures on each
+  `.changes` and `.dsc`; `dpkg-source -x` unpacks both), and `dput -s` with the job's Launchpad configuration checked
+  both signatures and listed each upload's five files for `ppa.launchpad.net` (Channels.md, "What was tried"). Nothing
+  reached the PPA on 2 November: read at 17:29 UTC, it listed 6.3.7 alone. Pressed in a `master` pipeline after this
+  change, the job publishes the feed's latest release, 6.3.8 until another is published (`HM_CHANNEL_VERSION`, when
+  set, names it instead).
+
+### Build and tests
+
+- **The installer smoke test takes the VM's address from VMware's DHCP leases when the VM's tools report none, and
+  limits each SSH try.** On 2 November 2026, 6.3.8's release day, the smoke VM's VMware Tools reported no address all
+  day, so `build/ci/installer-smoke-run.sh` waited its whole five minutes for one and then asked 192.168.11.175, while
+  VMware's DHCP server, on the VMware host, gave the VM other addresses (.243, .153, .236, .130, .252), marking .175
+  abandoned when a revert began while the VM's MAC address held a live lease of .175, the resumed VM still answering
+  on it; and where the VM kept .175, the first SSH, at about five minutes, met the VM's SSH server as it began to reset
+  every connection, which it did for as long as it was watched, from about 350 seconds after the resume to about 810,
+  having answered from about 36 seconds to about 309 (Windows Update's servicing after the snapshot's 38-day jump of
+  the clock is the likeliest cause). Seven tries of the new installation failed on the VM's network; the eighth passed
+  with a `vmrun`, given through the script's own `HM_SMOKE_VMRUN`, that answered from the leases. The script now does
+  that itself: when the tools report no address, it takes the address of the newest lease the DHCP server gave the
+  VM's MAC address since the run's revert, read from the server's leases file (`--leases`, `HM_SMOKE_LEASES`, by
+  default `C:/ProgramData/VMware/vmnetdhcp.leases`, its times UTC), and none while the server has since marked that
+  address abandoned or leased it to another MAC address, never an older lease, which would be an address the VM has
+  left; and it says which lease it took. With neither, it waits its five minutes and asks `--host`, as before. Each
+  try of its wait for SSH now has five seconds to connect, 15 seconds without an answer once connected and a minute in
+  all, where a try that connected and then hung could hold the whole ten minutes under the 30 x 20 seconds of
+  keep-alive its other connections keep. Run twice with the signed 6.3.8 installer and no wrapper on 2 November 2026,
+  the tools reporting nothing both times, it gave 65 passed, 0 failed both times, the release's own 65 checks. In the
+  first run, begun with .175 marked abandoned by the server since an earlier run's last revert, the server leased the
+  VM 192.168.11.239 16 seconds after the resume and the script followed it: SSH answered at its first try about 66
+  seconds after the resume (that run's script took the revert's time just before the revert rather than just after
+  it, which gives its leases the same answer). In the second, begun after the VM's last lease, of .175, had run out,
+  the server leased the VM nothing during the run and the VM kept .175, which the script, finding no lease, asked after
+  its five minutes, as before: SSH answered about five minutes after the resume
+  ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "The installer smoke test").
+
+### Documentation
+
+- **6.3.8 is dated 2 November 2026, the day it was published, where the stamp said 1 November.** The stamp dates the
+  section and the files it writes with the day the release was expected to be published, 1 November 2026, and the
+  release was published on 2 November at 14:39 UTC (GitLab's `released_at`, 2026-11-02T14:39:25Z), after the tag had
+  been made. CHANGELOG.md's opening line and its 6.3.8 heading, the lines on the latest release in SECURITY.md,
+  CONTRIBUTING.md, ForkAndOriginal.md and EvidencePack.md, `CITATION.cff`'s `date-released`, the Debian source
+  package's changelog entry (Mon, 02 Nov 2026) and the RPM spec's (Mon Nov 02 2026) now say 2 November. The `v6.3.8`
+  tag, and with it the release's source tarball and the packages built from it, keep the date the stamp gave them. The
+  other places that name 1 or 2 November 2026 - a comment in `MessageStoreBlobs.cpp` that dates a run of the Windows
+  gate, and the dates of test fixtures - are not the release's and stay. `build/check-changelog.py`,
+  `build/check-citation.py` and `build/check-linux-version-stamp.sh` pass. SECURITY.md's 6.3.8 paragraph said that
+  the fixes other than work item 100's were pushed about half a day before the release was published; with the day
+  moved it says when they were: from 1 November 2026, 07:14 UTC, when the batch was pushed for its gates, about
+  thirty-one hours before the release, longer than step 3's window of about a day.
+- **ContainerImage.md and the Helm chart's README.md say that the published chart of 6.3.8 starts a server, and give
+  the record.** On 2 November 2026 the chart 6.3.8 published - SHA-256 `d424c695...`, the same in the repository's
+  index, in the package registry and in what `helm pull` saved, and passing `cosign verify-blob` - was installed from
+  the repository with the published image, the index `sha256:0f4add79...`, in a throwaway one-node k3s beside a
+  PostgreSQL 18. Its pod became ready as 999:999 with the pod sysctl at 0; the server listened on 25, 110, 143, 587 and
+  8045, offered STARTTLS on 25, answered the REST API with 401 without credentials and `6.3.8-B47` as Administrator,
+  and a message sent over SMTP to an account made over the API was in its inbox. A release installed from 6.3.7's chart
+  the same way stopped at `CreateContainerConfigError`; moved to 6.3.8's chart by
+  `helm upgrade --version 6.3.8 --reset-then-reuse-values` and its pod deleted, it started. ContainerImage.md's "What
+  was run by hand" has the record, and its "What is not shown yet" says that the published charts of 6.3.6 and 6.3.7
+  start no server and 6.3.8's does, where it said that the first that does is the release after 6.3.7's; the chart's
+  README.md says that the first release made after 23 October 2026, published on 2 November, was the first to serve a
+  chart that starts one, and that until then the chart of a checkout was the one that started the published image,
+  where it said that it is, and gives the 2 November installation with `<version>` for the versions, since
+  `build/check-linux-version-stamp.sh` refuses a version written out under `platform/packaging/`. ContainerImage.md
+  also says that 6.3.8's image was copied to Docker Hub by `registry-mirror` and to `ghcr.io` by hand, under `6.3.8`,
+  `6.3` and `latest`; that 6.3.8's tag pipeline ran the two start tests, the update check's question among them, and
+  both passed beside PostgreSQL and beside MariaDB with schema 6108, where it said that no tag's pipeline had; and
+  that Artifact Hub's two listings are at 6.3.8 with the icon and a description and README that say the project is
+  Progressive Robot's fork (read through its API at 17:23 UTC on 2 November), where it said that they were at 6.3.7
+  and would say so from the next release.
+- **Channels.md, Snap.md and PackageManagers.md say where each channel stands after 6.3.8, read on 2 November 2026.**
+  Docker Hub has `6.3.8`, `6.3` and `latest`, the index `sha256:0f4add79...`, from `registry-mirror`, and `ghcr.io` the
+  same three tags; PyPI has `hmailserver-cli` 6.3.8 and the PowerShell Gallery `HmailServer` 6.3.8. The Snap Store has
+  `hmailserver` 6.3.8 on `edge` and `candidate`, revision 1 for amd64 and 2 for arm64, the snap's first upload; `stable`
+  is the owner's step. Copr's build 11245504 of 6.3.8 succeeded for Fedora 43 and 44 and EPEL 10 on x86_64 and aarch64,
+  the last at 17:53 UTC. Chocolatey's job pushed `hmailserver-progressiverobot` 6.3.8, which waits for moderation (its
+  page said "Pending automated review" at 17:19 UTC). The PPA keeps 6.3.7, because `ppa-upload` failed at its `dput`
+  step with `PackageNotFoundError: No package metadata was found for dput`, a fault of the job's environment
+  (`PYTHONSAFEPATH`, which `.gitlab-ci.yml` gives every job from 6.3.8, keeps `dput` from its own metadata) that
+  `dput_environment` in `ppa-upload.py` mends, so that the job pressed again publishes 6.3.8 without a new release, and
+  OBS keeps 6.3.7, because `obs-publish` was not run: its package waits for the tree's new `_service`, which goes in
+  through OBS's web page. winget's manifests for 6.3.8 are rendered and pass the project's offline check, and are not
+  submitted, the first submission being the owner's. Channels.md's "What was tried" has the jobs, with their numbers;
+  its "Ubuntu PPA" says how `dput` runs. Snap.md, which said that nothing was in the store and that the first snap
+  would be the next release's, says that 6.3.8's is the first, that the store's review at upload passed the
+  `system-usernames` both snaps ask for, and installs it with `sudo snap install hmailserver --candidate` while
+  `stable` has nothing; PackageManagers.md's paragraph on the original's 5.7 names 6.3.8 where it named 6.3.7, and adds
+  that 6.3.8's setup refuses such an installation before it changes anything (Upgrading.md).
+- **SECURITY-INSIGHTS.yml lists the release's `hmailserver.intoto.jsonl` among its attestations, and its `last-updated`
+  is 2 November 2026.** From the release after 6.3.7 a release carries the provenance's DSSE envelope again as one line
+  of JSON, a file the list did not name. The new entry gives its address (the file's permanent name, as
+  `build/ci/release-chain.py` gives it), says that it is the same provenance and not a second signature, and that it
+  carries neither the certificate nor the transparency log's entry, so a file is verified with the bundle. 6.3.8's,
+  read on 2 November 2026, is 15,114 bytes and is the bundle's `dsseEnvelope` exactly, on one line.
+  `build/check-security-insights.py` passes with four links to release files, where it passed with three.
+  `HelpPagesData.cpp` is regenerated.
+- **The documents that say which releases GitHub holds say every release from 6.0.0-B1 to 6.3.8, where they said
+  6.3.7.** GitHub's copy of 6.3.8 was published on 2 November 2026 at 17:03 UTC from the package registry's 161 files,
+  each held to the SHA-256 the registry records for it, with its notes cut at GitHub's limit of 125,000 characters and
+  attached whole as `release-notes-v6.3.8.md` (162 assets), and read back as immutable (GitHub's API, 2 November
+  2026). "Where the releases are" above, SECURITY.md's paragraph on the releases pages, EvidencePack.md's sentence on
+  the copy, README.md's opening and its line on the releases, GOVERNANCE.md, RELEASE.md's opening and "The copy on
+  GitHub", Mirroring.md's opening, RegulatoryScope.md, and Roadmap3.md's opening and its row on the push mirror name
+  6.3.8 where they named 6.3.7; those of them that say whose notes are cut there name 6.3.6, 6.3.7 and 6.3.8; and this
+  file, SECURITY.md, EvidencePack.md and RELEASE.md name the copy of 6.3.8, published after the immutable-releases
+  setting was on, beside those of 6.3.6 and 6.3.7 among the immutable ones.
+- **CommandLinePackages.md, Mirroring.md and Roadmap3.md say what 6.3.8's channel jobs and copies did on 2 November
+  2026, and Roadmap3.md's rows on the Helm chart as a package and on its Artifact Hub listing are done.**
+  CommandLinePackages.md says that `pypi-publish` and `psgallery-publish` (jobs 17653735763 and 17653735764, in
+  `master`'s pipeline 3016322466) published `hmailserver-cli` 6.3.8, wheel and sdist, at 15:30 UTC and `HmailServer`
+  6.3.8 at 15:33 UTC, each the latest there, with the summary and description that name the fork. Mirroring.md's list
+  of the copies made by hand adds 6.3.8's release on GitHub, published at 17:03 UTC with 162 assets and immutable, and
+  says that 6.3.8's image was copied to `ghcr.io` on linix in the order the list gives, cosign's five tags first and
+  then `6.3.8`, `6.3` and `latest`, each of the eight at GitLab's digest, that `cosign verify` of `:6.3.8` passed
+  without signing in, and that the package's newest version carries `6.3.8`, `latest` and `6.3`, so its page offers
+  the release's pull command, where it said that the page would do so once a later release's copy pushed its new index
+  last, and to pull by the release's tag until then. In Roadmap3.md, the row on the chart as a package is done: the
+  published chart of 6.3.8, installed from the Helm repository with `helm install` in a throwaway k3s on 2 November
+  2026, started the server (ContainerImage.md, "What was run by hand"), where the row waited for that release. The row
+  on the chart's Artifact Hub listing is done too: the listing shows the chart at 6.3.8 with the Verified publisher
+  label (Artifact Hub's API, 17:23 UTC that day), and the same installation meets its *Done when*. The rows on Docker
+  Hub, Copr, Chocolatey, the Snap Store, the PPA and OBS say what 6.3.8's jobs did that day: `registry-mirror`
+  published the index `sha256:0f4add79...`; Copr's build 11245504 succeeded in all six chroots, and no installation of
+  6.3.8 from it has been tried; Chocolatey's 6.3.8 waits for moderation; the Snap Store has 6.3.8 on `edge` and
+  `candidate`, the snap's first upload; `ppa-upload` stopped at `dput` and is mended in the tree (Downloads and the
+  release, above); and OBS keeps 6.3.7 until the package holds the tree's `_service`. The rows on the PyPI and
+  PowerShell Gallery packages say that 6.3.8's texts name the fork, where they said so of the release to come, the row
+  on the Compose file and the chart and the order of work say that 6.3.8's chart starts a server and was installed,
+  and the counter reads 53 done and 18 in motion, where it read 51 and 20.
+
 ---
 
-## [6.3.8](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.8) - 2026-11-01
+## [6.3.8](https://gitlab.com/hmailserver/hmailserver/-/releases/v6.3.8) - 2026-11-02
 
 Everything that landed on `master` after the `v6.3.7` tag, from 17 October 2026 ([compare `v6.3.7` with
 `v6.3.8`](https://gitlab.com/hmailserver/hmailserver/-/compare/v6.3.7...v6.3.8)). This is Progressive Robot's fork of

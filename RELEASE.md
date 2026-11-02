@@ -13,7 +13,7 @@ published there first, and the update feed, the package repositories and the
 container registry are GitLab's. Since 18 October 2026 the project is published
 on GitHub again, under the account `RainbowWizard-coder`
 (<https://github.com/RainbowWizard-coder/hMailServer>): a second home, which
-holds the repository and every release from 6.0.0-B1 to 6.3.7 with the same
+holds the repository and every release from 6.0.0-B1 to 6.3.8 with the same
 files byte for byte; a release is copied there once it is published on GitLab
 ([The release on GitLab](#the-release-on-gitlab), "The copy on GitHub"), and no
 pipeline of the project runs on GitHub. Steps 11 to 13
@@ -330,13 +330,14 @@ copied by hand to the project's GitHub repository,
 <https://github.com/RainbowWizard-coder/hMailServer/releases>, with the same files byte for byte, each
 checked against the SHA-256 the package `hmailserver/X.Y.Z` records for it - from the release after 6.3.7
 `hmailserver-X.Y.Z.intoto.jsonl` among them, the one file OpenSSF Scorecard's Signed-Releases check
-counts there as the release's provenance - and the same notes (6.3.6's and 6.3.7's, longer than GitHub's
-limit of 125,000 characters, are cut at it there and attached whole as a file). GitHub writes `.` where a
-file name has `~`, so the per-distribution `.deb` files are renamed there; no server reads that copy,
-since the update feed is GitLab's. GitHub's immutable-releases setting is on: a release published there
-with it on keeps its files and its tag as published, though its notes can still be edited, and so do the
-copies of 6.3.6 and 6.3.7, published after it was switched on during the copying of 18 October 2026; the
-copies of the releases before them, published before it, can still be changed. Its tag reaches GitHub as
+counts there as the release's provenance - and the same notes (6.3.6's, 6.3.7's and 6.3.8's, longer than
+GitHub's limit of 125,000 characters, are cut at it there and attached whole as a file). GitHub writes
+`.` where a file name has `~`, so the per-distribution `.deb` files are renamed there; no server reads
+that copy, since the update feed is GitLab's. GitHub's immutable-releases setting is on: a release
+published there with it on keeps its files and its tag as published, though its notes can still be
+edited, and so do the copies of 6.3.6 and 6.3.7, published after it was switched on during the copying of
+18 October 2026, and of 6.3.8, published there on 2 November 2026; the copies of the releases before
+them, published before it, can still be changed. Its tag reaches GitHub as
 `master` does, by GitLab's push mirror, which has pushed every tag and every protected branch there after
 each push since 18 October 2026 ([Mirroring.md](hmailserver/docs/Mirroring.md)). No pipeline of the
 project runs on GitHub; of its workflows GitHub Actions runs two, `.github/workflows/scorecard.yml` and

@@ -39,6 +39,15 @@ are](#whose-clients-these-are)). A version a channel has is never sent again
 files Authenticode-signed, each with its Sigstore bundle ([Publishing](#publishing),
 step 5).
 
+**6.3.8 was published the same way on 2 November 2026,** in the `master` pipeline
+3016322466: `pypi-publish` (job 17653735763) uploaded `hmailserver-cli` 6.3.8, wheel
+and sdist, at 15:30 UTC (`https://pypi.org/project/hmailserver-cli/6.3.8/`), and
+`psgallery-publish` (job 17653735764) published `HmailServer` 6.3.8 at 15:33 UTC;
+PyPI's JSON and the Gallery's feed give 6.3.8 as the latest. Their summary and
+description name the fork (PyPI: "hmctl, the command-line client of Progressive
+Robot's fork of hMailServer, for the fork's REST API - not the original hMailServer,
+which has none").
+
 Both packages are at the server's version: `hmailserver-cli` 6.3.7 and
 `HmailServer` 6.3.7 are the clients as the 6.3.7 release has them. They speak the
 REST API, so either works against any server whose API has the routes it asks for;

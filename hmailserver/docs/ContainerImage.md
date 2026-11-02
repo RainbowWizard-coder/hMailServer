@@ -44,7 +44,13 @@ is public, and `cosign verify` of it, and `cosign verify` and `cosign verify-att
 of each platform's image, with the identity and issuer below pass, without signing
 in (checked that day). The
 `registry-mirror` job ([Channels.md](Channels.md), "Container registries") is what
-copies a release there. Nothing here pulls from either copy. The container registry is GitLab's: each
+copies a release there. 6.3.8's image was copied to both on 2 November 2026, the
+index `sha256:0f4add79a1c068b4bf8796400936dceac6c1c566f5e4d14af8cca6f56d218a0d`
+under the tags `6.3.8`, `6.3` and `latest`: to Docker Hub by `registry-mirror`,
+and to `ghcr.io` by hand, each tag at the digest GitLab's registry gives it, with
+the signatures and attestations; `cosign verify` of the `ghcr.io` copy of `6.3.8`,
+with the identity and issuer below, passed without signing in. Nothing here pulls
+from either copy. The container registry is GitLab's: each
 release's pipeline pushes and signs its image there, and
 `registry.gitlab.com/hmailserver/hmailserver` is the address the Compose file, the
 chart and these documents give.
@@ -376,12 +382,12 @@ the organization's home URL has been `https://gitlab.com/hmailserver/hmailserver
 since 6 October 2026, the day the maintainers added its two repositories, the
 chart's and the image's. Each listing gets the Verified publisher label from a
 metadata file that carries its repository ID, which the tree holds from that day
-and which reaches Artifact Hub as each item below says. Both listings are at 6.3.7
+and which reaches Artifact Hub as each item below says. Both listings are at 6.3.8
 and both have the label: Artifact Hub's API gives each repository as a verified
-publisher's, the chart with the versions 6.3.7 and 6.3.6 and the image with 6.3.7,
-`latest` and 6.3.6, and neither with an error at its last tracking - the chart's
-on 18 October 2026, the image's on 21 October 2026 (read that day). Neither is
-marked Official.
+publisher's, the chart with the versions 6.3.8, 6.3.7 and 6.3.6 and the image with
+6.3.8, `latest`, 6.3.7 and 6.3.6, and neither with an error at its last tracking -
+the chart's at 15:07 UTC and the image's at 17:11 UTC on 2 November 2026 (read at
+17:23 UTC that day). Neither is marked Official.
 
 - **The chart.** The repository `hmailserver`, shown as hMailServer, of kind Helm
   charts, with the URL `https://updates.progressiverobot.com/helm/`, which has
@@ -393,7 +399,7 @@ marked Official.
   default branch's `package-repos` has written it since the ID landed there, and
   the file the site serves names it (read on 14 October 2026). Artifact Hub lists
   the chart at `https://artifacthub.io/packages/helm/hmailserver/hmailserver`, at
-  6.3.7, with the label. Until 6.3.7 it listed 6.3.6 without it: its tracking of 6
+  6.3.8, with the label. Until 6.3.7 it listed 6.3.6 without it: its tracking of 6
   October 2026 at 03:45 UTC, before the ID reached the default branch, read the
   file 6.3.6's pipeline had written, which said that no ID was there yet. The chart's
   annotations name its licence (`artifacthub.io/license`), its image
@@ -411,19 +417,22 @@ marked Official.
   and earlier have no such file. `helm lint`, which said of the chart "icon is
   recommended", no longer does. `build/check-package-texts.py` holds the PNG
   to the Control Panel's `.ico` and both fields to that address. The chart and the
-  image of 6.3.7 and earlier have no icon; the next release's carry it.
+  image of 6.3.7 and earlier have no icon; 6.3.8's carry it, and Artifact Hub shows
+  it on both listings (read at 17:23 UTC on 2 November 2026).
 - **The image.** The repository `hmailserver-image`, shown as hMailServer container
   image, of kind Container images, with the address
   `oci://registry.gitlab.com/hmailserver/hmailserver`, lists it from its labels,
   which both platforms' images carry alike, at the tags the repository tracks:
-  `6.3.7` and `6.3.6`, each marked immutable, which Artifact Hub reads once, and
-  `latest`, marked mutable, which it reads at each tracking and lists anew when the
-  tag moves, or when Artifact Hub reprocesses its listings (`latest`'s README is
-  master's text of 19 to 21 October 2026, though the tag last moved on 17 October).
+  `6.3.8`, `6.3.7` and `6.3.6`, each marked immutable, which Artifact Hub reads once,
+  and `latest`, marked mutable, which it reads at each tracking and lists anew when
+  the tag moves, or when Artifact Hub reprocesses its listings (`latest`'s README was
+  master's text of 19 to 21 October 2026, though the tag had last moved on 17
+  October; at 17:23 UTC on 2 November 2026 it was 6.3.8's).
   A maintainer sets those tags on Artifact Hub, in its Control Panel or through its
   API, ten at most; a new release's version tag is not tracked by itself, so a
-  maintainer adds it with each release. Its Verified publisher label needs a
-  metadata file of its own, with the repository ID Artifact Hub gave that
+  maintainer adds it with each release (6.3.8's on 2 November 2026, through the API).
+  Its Verified publisher label needs a metadata file of its own, with the repository
+  ID Artifact Hub gave that
   repository, `8cd87f71-a93b-4eb0-b3a0-a78ece5b5796`, pushed to the image's
   repository under the tag `artifacthub.io`. That file is
   `platform/packaging/docker/artifacthub-repo.yml` in the tree, which holds the ID
@@ -849,9 +858,11 @@ from the Dockerfile before that change passed beside PostgreSQL and failed besid
 MariaDB, its server stopping at `--create-database` with "The MySQL client library
 could not be loaded ... Tried: libmariadb.so.3, libmysqlclient.so.21,
 libmysqlclient.so, libmariadb.so"; and the Dockerfile with the package left out
-of its `apt-get install` stopped at its build, where the library is loaded. No
-tag's pipeline has run the two starts yet - two services of one image, each
-with variables of its own - and the next release's is the first.
+of its `apt-get install` stopped at its build, where the library is loaded.
+6.3.8's tag pipeline ran the two starts on 2 November 2026 - two services of one
+image, each with variables of its own - and `container-image-start` and
+`container-image-start-arm64` passed: beside PostgreSQL and beside MariaDB the
+image started as 6.3.8, with schema 6108 in each database.
 
 On 24 October 2026 the test, with its question to the update check, was run by
 hand the same way, on an x86-64 Ubuntu machine with Docker 29, against three
@@ -871,8 +882,8 @@ above. The amd64 image built again with `HM_INSTALL_KIND` emptied
 `"installKind":"deb","liveUpdate":true,"updateCommand":""`, as the `.deb` the image
 installs would, and the test failed there ("GET /api/v1/update does not say
 installKind container"), where the test as it was before that question passed the
-same image. No tag's pipeline has asked a started image yet; the next release's is
-the first.
+same image. 6.3.8's tag pipeline asked a started image on 2 November 2026: its two
+start jobs passed, this question among them.
 
 ### What was run by hand
 
@@ -1080,6 +1091,45 @@ child inherit the server's environment as the server has it.
   own image does; with Ubuntu's `libmariadb3` added to that image, as the
   Dockerfile now installs it, every step passed beside both, schema 6108 in each.
 
+On 2 November 2026, on server2, the published chart of 6.3.8 was run as a user runs
+it, from the published repository with the published image, in a throwaway one-node
+Kubernetes: k3s v1.36.1 and containerd 2.3.7 in a container on Alpine Linux 3.24,
+with Alpine's own Helm, kubectl and cosign, beside a PostgreSQL 18 in the cluster,
+and a self-signed pair for the REST listener in a Secret made with `kubectl create
+secret tls`. The proof ran eight times. The seven before the last stopped in the
+scripts that made the cluster, guarded the machine and asked the questions, and not
+at the chart or the image; the last ran every step as expected:
+
+- **The chart.** `helm repo add hmailserver https://updates.progressiverobot.com/helm/`
+  and `helm search repo hmailserver/hmailserver --versions` listed 6.3.8, 6.3.7 and
+  6.3.6. `helm pull --version 6.3.8` saved the release's
+  file, whose SHA-256, `d424c695c3bbcd87f4c3a58bca4d6e738d0ea0a892187caf00c5eaace1f87a92`,
+  is the index's and the project's package registry's, and `cosign verify-blob` of
+  its bundle with the identity and issuer above passed.
+- **`helm install` of that chart** started a server, which neither published chart
+  before it had. `helm install mail hmailserver/hmailserver --version 6.3.8`, with
+  `database.host` at that PostgreSQL and `rest.tlsSecretName` at the Secret, made a
+  pod that became ready, whose security context was
+  `{"fsGroup":999,"runAsGroup":999,"runAsUser":999,"sysctls":[{"name":"net.ipv4.ip_unprivileged_port_start","value":"0"}]}`
+  and whose image was `registry.gitlab.com/hmailserver/hmailserver@sha256:0f4add79...`,
+  the release's index. The server, as 999, listened on 25, 110, 143, 587 and 8045
+  (the pod's sysctl is what lets it bind the first four, as The mail ports under the
+  chart, above, says), and its log shows the schema made at 6108 and the new
+  installation secured before the first start.
+- **Asked,** through `kubectl port-forward`. Port 25 offered STARTTLS and the
+  handshake completed (TLS 1.3, `CN=mail-hmailserver-0, O=hMailServer`, "self-signed
+  at installation"). `GET /api/v1/status` over TLS answered 401 without credentials
+  and `{"version":"6.3.8-B47","state":3}` as Administrator. A domain and an account
+  made over the API (HTTP 201) and one message sent to it over SMTP (250) left the
+  account's INBOX with the message, read back over the API.
+- **The published chart of 6.3.7, as the control,** installed the same way with
+  `--version 6.3.7`, stopped at `CreateContainerConfigError`: "container has
+  runAsNonRoot and image has non-numeric user (hmailserver), cannot verify user is
+  non-root". `helm upgrade --version 6.3.8 --reset-then-reuse-values` moved that
+  release to 6.3.8's chart, and after `kubectl delete pod` (Updates, above, says
+  why) the pod was made again from it, became ready with the same security context
+  and answered the same three questions, `6.3.8-B47` among them.
+
 ### Packaging and serving the chart
 
 `.gitlab/ci/helm-chart.yml`'s `helm-chart-package` job (linix, server2 or s1-linux,
@@ -1120,26 +1170,32 @@ and a package whose platforms had changed after the tree's were checked.
 
 ## What is not shown yet
 
-- The pipeline has made two releases' images. 6.3.6's tag pipeline 2914690858 made
+- The pipeline has made three releases' images. 6.3.6's tag pipeline 2914690858 made
   the first on 6 October 2026, where every image job passed (`container-image-deb`
-  on its second run), and 6.3.7's tag pipeline 2958958332 the second on 17 October
-  2026, where every image job passed at its first run: in each, both platforms'
+  on its second run), 6.3.7's tag pipeline 2958958332 the second on 17 October
+  2026, where every image job passed at its first run, and 6.3.8's tag pipeline
+  3016341592 the third on 2 November 2026, where every image job passed at its first
+  run (`container-image-deb` started by hand once): in each, both platforms'
   images built, the arm64 one under qemu-user, pushed under one Docker manifest
   list, signed, attested, scanned and started, the start test's GitLab half for
   both platforms among them. Read without credentials on 21 October 2026, the
-  registry's `6.3.7`, `6.3` and `latest` name 6.3.7's list,
+  registry's `6.3.7`, `6.3` and `latest` named 6.3.7's list,
   `sha256:2a5de4ebd04cd1e39f69ebeca3e905dd80217c3178132bd17a07880845ae629f`, and
-  `6.3.6` names 6.3.6's,
+  `6.3.6` named 6.3.6's,
   `sha256:0c7320b77209c0ce8eb032272171d60c07ea75bb05e9c4c8a28fb159ade13e8a`, each
   for linux/amd64 and linux/arm64/v8, beside cosign's signatures of each list and
-  of its two images and the attestations of the images. By hand, without signing
+  of its two images and the attestations of the images. Since 2 November 2026
+  `6.3.8`, `6.3` and `latest` name 6.3.8's,
+  `sha256:0f4add79a1c068b4bf8796400936dceac6c1c566f5e4d14af8cca6f56d218a0d`, which
+  `container-image` pushed and read back. By hand, without signing
   in, `cosign verify` has passed against the copy of 6.3.7's index on `ghcr.io`, and
   `cosign verify` and `cosign verify-attestation` against the copy on Docker Hub
-  and its platforms' images, at the same digests (above).
+  and its platforms' images, at the same digests (above); `cosign verify` has
+  passed against the copy of 6.3.8's on `ghcr.io` too.
   `docker compose up` with the tree's file and `helm install` of the chart, each
-  from the published image, were run on 23 October 2026 (What was run by hand,
-  above): the published charts of 6.3.6 and 6.3.7 start no server, and the first
-  that does is the release after 6.3.7's.
+  from the published image, were run on 23 October 2026, and `helm install` of the
+  published chart of 6.3.8 on 2 November 2026 (What was run by hand, above): the
+  published charts of 6.3.6 and 6.3.7 start no server, and 6.3.8's does.
 - The image's OpenSSL is Ubuntu 24.04's, 3.0.13, which has neither the hybrid
   post-quantum key exchange groups (OpenSSL 3.5) nor Argon2id (3.2). Its server logs
   HM5720 when it starts and takes the classical groups, and uses scrypt where
@@ -1150,22 +1206,14 @@ and a package whose platforms had changed after the tree's were checked.
   with.
 - No arm64 machine has run the image: only qemu-user on the project's x86-64
   runners.
-- Both listings on Artifact Hub are at 6.3.7 and carry the Verified publisher label
-  (read through its API on 21 October 2026): the chart with the versions 6.3.7 and
-  6.3.6, last tracked on 18 October 2026, and the image with 6.3.7, `latest` and
-  6.3.6, last tracked on 21 October 2026, neither with a tracking error (*Artifact
-  Hub*, above). The image's listing shows `latest` as its default version, beside
-  6.3.7. Neither listing's description says yet that it is Progressive Robot's fork:
-  each is the text the release carried, the chart's `Chart.yaml` and the image's
-  description label. Nor does either README that Artifact Hub shows. The chart's is
-  the 6.3.7 chart's own README.md. The image's is this document as Artifact Hub read
-  it when it last listed each version, not master's current copy: for 6.3.7 and
-  6.3.6 the text of that release's tag, and for `latest` master's text of 19 to 21
-  October 2026. Artifact Hub's API, read at 02:28 UTC on 22 October 2026, gives
-  every version's README without this document's opening, though master has had it
-  since 21 October and the image's repository was tracked again at 02:17 UTC that
-  day. The descriptions say so from the next release's chart and image. 6.3.7's and
-  6.3.6's READMEs keep the text they were first read with. `latest`'s shows this
-  document's opening when Artifact Hub next lists `latest` anew: when the tag moves
-  with the next release, or sooner, as happened once between 19 and 21 October 2026
-  without the tag moving.
+- Both listings on Artifact Hub are at 6.3.8 and carry the Verified publisher label
+  (read through its API at 17:23 UTC on 2 November 2026): the chart with the versions
+  6.3.8, 6.3.7 and 6.3.6, last tracked at 15:07 UTC, and the image with 6.3.8,
+  `latest`, 6.3.7 and 6.3.6, last tracked at 17:11 UTC, neither with a tracking error
+  (*Artifact Hub*, above). The image's listing shows 6.3.8 as its default version.
+  6.3.8's description on both, the chart's `Chart.yaml` and the image's description
+  label, says that it is Progressive Robot's fork, and so does the README each shows
+  for it: the 6.3.8 chart's own README.md, and this document as it stood at the
+  tag, which the image's `latest` shows too. 6.3.7's and 6.3.6's descriptions and
+  READMEs keep the text they were first read with, which does not say so: Artifact
+  Hub reads a version's text once.

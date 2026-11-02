@@ -19,7 +19,7 @@
 
 header:
   schema-version: 2.2.0
-  last-updated: '2026-10-23'
+  last-updated: '2026-11-02'
   last-reviewed: '2026-10-23'
   url: https://gitlab.com/hmailserver/hmailserver/-/raw/master/SECURITY-INSIGHTS.yml
   comment: >-
@@ -181,6 +181,20 @@ repository:
           recorded in the public Rekor log. Replace {version} with the release's
           version, such as 6.3.7. SECURITY.md, "Verifying a release", gives the
           cosign command that checks a file against it.
+      - name: SLSA build provenance, as one line of JSON
+        location: https://gitlab.com/hmailserver/hmailserver/-/releases/v{version}/downloads/hmailserver.intoto.jsonl
+        predicate-uri: https://slsa.dev/provenance/v1
+        comment: >-
+          From 6.3.8. The provenance above again, its DSSE envelope alone as one line
+          of JSON: the form in-toto gives a bundle of attestations, and the one name
+          ending, .intoto.jsonl, that OpenSSF Scorecard's Signed-Releases check counts
+          as provenance. It is not a second signature. The release pipeline writes it
+          from the Sigstore bundle and holds it to the bundle's envelope before the
+          release is published, and it carries neither the certificate nor the
+          transparency log's entry, so a file is verified with the bundle, not with
+          this. 6.3.6 and 6.3.7 carry the bundle alone. Replace {version} with the
+          release's version, such as 6.3.8. SECURITY.md, "Verifying a release", says
+          more.
       - name: CycloneDX SBOM of the Windows installer
         location: https://gitlab.com/hmailserver/hmailserver/-/releases/v{version}/downloads/hMailServer-x64.exe.cdx.json
         predicate-uri: https://cyclonedx.org/bom

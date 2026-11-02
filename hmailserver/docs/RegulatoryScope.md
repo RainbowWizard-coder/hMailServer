@@ -24,7 +24,7 @@ facts staying true:
   (<https://gitlab.com/hmailserver/hmailserver>), which is canonical, and on
   GitHub, at <https://github.com/RainbowWizard-coder/hMailServer> under the
   account `RainbowWizard-coder` since 18 October 2026, where every release from
-  6.0.0-B1 to 6.3.7 is a copy of GitLab's, with the same files byte for byte; a
+  6.0.0-B1 to 6.3.8 is a copy of GitLab's, with the same files byte for byte; a
   release is built, signed and published on GitLab first and then copied there.
   The project was on GitHub before, under the account
   `Progressiverobot`, until GitHub suspended that account on 18 September 2026;

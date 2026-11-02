@@ -16,7 +16,7 @@ home has been GitLab since 22 September 2026, and GitLab is canonical. Since
 <https://github.com/RainbowWizard-coder/hMailServer>, under the account
 `RainbowWizard-coder`, as GitLab's mirror: the repository (`master`, the
 `batch*` branches and every tag, which GitLab's push mirror has pushed there after
-every push since that day), every release so far, 6.0.0-B1 to 6.3.7, with the
+every push since that day), every release so far, 6.0.0-B1 to 6.3.8, with the
 same files byte for byte, the project's labels and milestones, the wiki's copy and
 Discussions. GitLab is the one place the project is worked on: an issue is opened
 there alone, since the GitHub repository has no Issues, and a pull request on

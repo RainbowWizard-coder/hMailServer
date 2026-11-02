@@ -12,7 +12,7 @@ The two projects
 
 **This project is Progressive Robot's fork of hMailServer.** Progressive Robot Ltd
 forked the original in 2026 and released 6.0.0 on 12 June 2026; the latest release is
-6.3.8, of 1 November 2026. It is maintained by Christopher Holloway and Progressive
+6.3.8, of 2 November 2026. It is maintained by Christopher Holloway and Progressive
 Robot Ltd, and its versions are numbered 6.x.
 
 * Home: <https://gitlab.com/hmailserver/hmailserver>, where it is worked on, with the

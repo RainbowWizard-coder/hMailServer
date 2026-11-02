@@ -12,34 +12,59 @@ Two channels have no job here because nothing is published to them: the Nix flak
 in the repository itself ([Nix.md](Nix.md)), and Alpine Linux, whose package is a
 merge request to aports built from the APKBUILD in the tree ([Alpine.md](Alpine.md)).
 
-**Where each channel stands, read on 21 October 2026, Chocolatey's on 23 October and Docker Hub's on 26 October.** Three build services carry
-6.3.7, each from its job's run on `master` that day ([What was tried](#what-was-tried)):
-OBS's home project `home:progressiverobot` publishes it for openSUSE Leap 16.0
-(x86_64 and aarch64) and Tumbleweed (x86_64), in repositories OBS signs; Copr's
-`progressiverobot/hmailserver` built it for Fedora 44 and 43 and EPEL 10, each on
-x86_64 and aarch64, and serves it; and the PPA `ppa:hmailserver/hmailserver`
-publishes it for Ubuntu 24.04 and 26.04, amd64 and arm64. On 23 October 2026 6.3.7
-was installed from each of the three as a user installs it - on Ubuntu 24.04 and
-26.04, Fedora 44 and AlmaLinux 10, amd64 and arm64 each, and on Leap 16.0, both,
-and Tumbleweed, x86_64 - and the server it installed started and answered SMTP and
-the REST API over TLS ([What was tried](#what-was-tried)). Docker Hub's
-`progressiverobot/hmailserver` has it too, copied by hand that day after
-`registry-mirror`, written for an image of one platform, refused the release's image
-index; the job, changed to verify and copy an index, copied it there itself on 22
-October 2026, and on 26 October 2026 Docker Hub gave `6.3.7`, `6.3` and `latest`
-the digest GitLab's registry gives them
-([Container registries](#container-registries-docker-hub-quayio-amazon-ecr-public)).
-Chocolatey's job pushed `hmailserver-progressiverobot` 6.3.7 on 20 October 2026, which
-then waited for Chocolatey's moderation; a moderator approved it on 23 October 2026
-([Chocolatey](#chocolatey)). Quay.io, ECR Public, the AUR and the Snap Store have
-nothing: `registry-mirror` copies only to a registry whose credential is stored, and
-`aur-publish` says "not configured" and passes, until the owner has made the channel's
-account and a maintainer has stored its credential; the Snap Store's credential is
-stored, and its first upload, of 6.3.7, failed ([Snap Store](#snap-store)). Ansible
-Galaxy has nothing either: the collection and its two jobs are written, and
-`galaxy-publish` says "not configured" until the owner's Galaxy account holds the
-namespace and its token is stored ([Ansible Galaxy](#ansible-galaxy)). Every job was
-first run on a laptop against a fixture release. No release before 6.3.6 can be
+**Where each channel stands, read on 2 November 2026, the day 6.3.8 was published.**
+Each channel below stands as the jobs started that afternoon in `master`'s pipeline
+3016322466, and the copies made by hand, left it ([What was tried](#what-was-tried));
+the times are UTC.
+
+- **Docker Hub.** `progressiverobot/hmailserver` has `6.3.8`, `6.3` and `latest`, the
+  index `sha256:0f4add79a1c068b4bf8796400936dceac6c1c566f5e4d14af8cca6f56d218a0d`,
+  which `registry-mirror` copied at 15:20
+  ([Container registries](#container-registries-docker-hub-quayio-amazon-ecr-public)).
+  `ghcr.io/rainbowwizard-coder/hmailserver` has the same three tags, copied by hand,
+  and GitHub has the release 6.3.8, a copy of GitLab's.
+- **Fedora Copr.** Build 11245504 of `6.3.8-1` succeeded for all six chroots: Fedora
+  43 and 44 on x86_64 and aarch64 (between 16:45 and 16:56), and EPEL 10 on aarch64
+  (17:43) and x86_64 (17:53) ([Fedora Copr](#fedora-copr)). 6.3.7 was built for all
+  six on 21 October 2026.
+- **Ubuntu PPA.** It keeps 6.3.7, for Ubuntu 24.04 and 26.04, amd64 and arm64.
+  `ppa-upload` built and signed both source packages of 6.3.8 and failed at its
+  `dput` step, a fault of the job's own environment (`importlib.metadata.PackageNotFoundError:
+  No package metadata was found for dput`), so that nothing reached Launchpad: the
+  PPA lists 6.3.7 alone, read at 17:29. The job is mended (`dput_environment`,
+  [Ubuntu PPA](#ubuntu-ppa)); pressed in a `master` pipeline that has the fix, it
+  publishes 6.3.8 without a new release.
+- **openSUSE Build Service.** It keeps 6.3.7, for openSUSE Leap 16.0 (x86_64 and
+  aarch64) and Tumbleweed (x86_64). `obs-publish` was not run: the package must
+  hold the tree's new `_service` first, which goes in through the package's page on
+  OBS ([openSUSE Build Service](#opensuse-build-service)).
+- **Chocolatey.** The job, which finished at 15:28, pushed
+  `hmailserver-progressiverobot` 6.3.8 (HTTP 201), and it waits for Chocolatey's
+  moderation: its page said "Pending automated review" at 17:19, and the community
+  repository's feed listed 6.3.7 alone, which a moderator approved on 23 October 2026
+  ([Chocolatey](#chocolatey)).
+- **winget.** The manifests of 6.3.8 are rendered from the signed installer and pass
+  `build/check-package-manifests.py --offline`, which does not hold them to winget's
+  schemas (`winget validate` comes with the submission); nothing is submitted, since
+  the first submission is the owner's ([PackageManagers.md](PackageManagers.md)).
+- **PyPI and the PowerShell Gallery.** `hmailserver-cli` 6.3.8 is on PyPI and
+  `HmailServer` 6.3.8 on the Gallery ([CommandLinePackages.md](CommandLinePackages.md)).
+- **Snap Store.** `hmailserver` 6.3.8 is on `edge` and `candidate`, revision 1 for
+  amd64 and revision 2 for arm64, the snap's first upload, released to both channels
+  at 17:09; `stable` is the owner's step ([Snap Store](#snap-store)).
+- **Quay.io, ECR Public, the AUR and Ansible Galaxy** have nothing: `registry-mirror`
+  copies only to a registry whose credential is stored, and `aur-publish` and
+  `galaxy-publish` say "not configured" and pass, until the owner has made the
+  channel's account and a maintainer has stored its credential (for Galaxy, until
+  the owner's account holds the namespace and its token is stored:
+  [Ansible Galaxy](#ansible-galaxy)). `aur-publish` and `galaxy-build` were not
+  pressed on 2 November.
+
+6.3.7 was installed from the PPA, Copr and OBS on 23 October 2026 as a user installs
+it - on Ubuntu 24.04 and 26.04, Fedora 44 and AlmaLinux 10, amd64 and arm64 each,
+and on Leap 16.0, both, and Tumbleweed, x86_64 - and the server it installed started
+and answered SMTP and the REST API over TLS ([What was tried](#what-was-tried)).
+Every job was first run on a laptop against a fixture release. No release before 6.3.6 can be
 published to the AUR, the PPA, Copr or OBS: they build from the release's source tarball
 ([SourceTarball.md](SourceTarball.md)), and the Debian and RPM packaging inside it
 ([SourcePackages.md](SourcePackages.md)), which 6.3.6 is the first to carry.
@@ -266,6 +291,14 @@ each Ubuntu release: `noble` (24.04) and `resolute` (26.04) unless
   refuses one whose bytes differ, and refuses an upload that names an orig it does
   not hold: so no upload rests on another having been taken first (until 6.3.6 the
   first release's upload alone carried it).
+- **How `dput` runs.** Without the `PYTHONSAFEPATH` that `.gitlab-ci.yml` gives every
+  job, and with the job's other variables as they are (`dput_environment`). Debian's
+  `dput` (1.2.4 in Debian 13) finds its own package and metadata through the
+  directory of its entry script, `/usr/share/dput`, which that variable keeps off
+  Python's module path. On 2 November 2026 the job built and signed 6.3.8's uploads,
+  and `dput` stopped at "No package metadata was found for dput" before it sent
+  anything. The directory is Debian's; the checkout, the job's current directory,
+  is not on a script's module path.
 - **The owner, once.** On Launchpad: the team `~hmailserver` and its PPA
   `hmailserver`, with arm64 builds enabled. The maintainers make a dedicated upload
   key (`gpg --quick-generate-key "hMailServer PPA upload <...>" ed25519 sign 2y`); the
@@ -364,7 +397,9 @@ Copr's builder verifies again, and the PPA uploads the verified file.
   once. The `_service` that takes `obs/hmailserver-rpmlintrc` therefore goes in
   once the release after 6.3.7 is published: on 6.3.7's tarball its step for the
   filters fails ("Not found in archive"). Until the package holds the tree's file,
-  `obs-publish` refuses, and says so.
+  `obs-publish` refuses, and says so. 6.3.8, the release after 6.3.7, was published
+  on 2 November 2026, and `obs-publish` was not run for it: the package keeps 6.3.7
+  until the tree's `_service` has been put in through the package's page on OBS.
 
 ### Chocolatey
 
@@ -435,6 +470,13 @@ Windows. Pressing `chocolatey-release` starts both.
   installed 6.3.7 with the service running and ports 25, 110 and 143 answering, and
   `choco uninstall hmailserver-progressiverobot` removed it, leaving no uninstall
   entry and no service. Every new version waits for a moderator the same way.
+- **6.3.8, pushed on 2 November 2026.** `chocolatey-release` (job 17653735771) verified
+  6.3.8's installer and read the release's day, 2 November 2026, from its
+  `released_at`; `chocolatey-publish` (job 17653735772, in `master`'s pipeline
+  3016322466) packed `hmailserver-progressiverobot` 6.3.8 from it and pushed it
+  (HTTP 201), ending at 15:28 UTC. It is listed once a moderator has approved it.
+  At 17:19 UTC its page on community.chocolatey.org said "Pending automated
+  review", and the community repository's feed listed 6.3.7 alone.
 
 ### Snap Store
 
@@ -488,6 +530,18 @@ environment itself.
   one that could release to `stable`, or of which it is told nothing, before it
   uploads anything. The credentials carry the expiry date `--expires` gives; once past
   it the job fails with the store's refusal, and the same command makes new ones.
+- **The first upload, on 2 November 2026.** In `master`'s pipeline 3016322466, whose
+  commit is `v6.3.8`'s, the two `.deb` builds of Ubuntu 24.04 were played, then
+  `snap-build-amd64` and `snap-build-arm64`, then `snap-upload` (job 17653735773),
+  which held each snap to the release ("built in this pipeline, whose commit is
+  v6.3.8's"), found that its credential may release to `edge` and `candidate` and
+  not to `stable`, and uploaded both with `--release=edge,candidate` at 17:08 and
+  17:09 UTC. Both ask for `system-usernames` (`snap_daemon`), and the store's review
+  at upload passed them: the last line of snapcraft's answer was "Status: ready to
+  release!" for amd64 and "Status: released" for arm64. The store's channel map, read
+  at 17:31 UTC, gives 6.3.8 on `edge` and `candidate`: revision 1 for amd64 and
+  revision 2 for arm64. It is the first snap of `hmailserver` in the store. `stable`
+  is the owner's step ([Snap.md](Snap.md)).
 
 ### Ansible Galaxy
 
@@ -854,9 +908,66 @@ On 28 September 2026, on a laptop (Windows 11, WSL Ubuntu, Docker in WSL):
     not installed. Each run took 182 to 260 seconds, three minutes of it the
     first refresh of the distribution's own repositories.
 
+- **On 2 November 2026, the channels for 6.3.8**, each from its job in `master`'s
+  pipeline 3016322466, whose commit is `v6.3.8`'s, started by hand after the release
+  was published at 14:39 UTC (times UTC):
+  - `registry-mirror` (job 17653735766, 15:18 to 15:20) verified 6.3.8's index in
+    GitLab's registry as the `v6.3.8` tag's pipeline, with each platform's image,
+    signature and SBOM attestation, and published it to
+    `docker.io/progressiverobot/hmailserver` at `6.3.8`, `6.3` and `latest`, each
+    `sha256:0f4add79a1c068b4bf8796400936dceac6c1c566f5e4d14af8cca6f56d218a0d`,
+    verified there as the same identity ("PUBLISHED: ... to Docker Hub"). Docker Hub
+    answered an anonymous request for `latest` with that digest, and held the
+    signatures and attestations.
+  - `ppa-upload` (job 17653735768, 15:21 to 15:22) built and signed
+    `6.3.8+ds-1~noble1` and `6.3.8+ds-1~resolute1`, and failed at the `dput` of the
+    first: `importlib.metadata.PackageNotFoundError: No package metadata was found
+    for dput`. The `dput` the job installs could not find its own package metadata,
+    a fault of the job's environment and not of Launchpad or the network: from 6.3.8
+    `.gitlab-ci.yml` gives every job `PYTHONSAFEPATH`, which keeps the directory of
+    `dput`'s entry script, `/usr/share/dput`, off the module path. The fix is in
+    `build/ci/channels/ppa-upload.py`, which runs `dput` without it
+    (`dput_environment`). Launchpad's API lists 6.3.7 alone as published (read at
+    17:29).
+  - `copr-build` (job 17653735769, 15:23 to 15:26) verified the tarball and called
+    the webhook; Copr's build 11245504 of `hmailserver-6.3.8-1.src.rpm` started at
+    15:25 in six chroots. Fedora 43 and 44 succeeded on x86_64 and aarch64 between
+    16:45 and 16:56, and EPEL 10 on aarch64 at 17:43 and on x86_64 at 17:53 (Copr's
+    API).
+  - `chocolatey-release` and `chocolatey-publish` (jobs 17653735771 and 17653735772,
+    to 15:28): [Chocolatey](#chocolatey).
+  - `pypi-publish` (job 17653735763, to 15:31) and `psgallery-publish` (job
+    17653735764, to 15:33) published `hmailserver-cli` 6.3.8, wheel and sdist, and
+    `HmailServer` 6.3.8; PyPI and the Gallery's feed give 6.3.8 as their latest.
+  - `snap-upload` (job 17653735773, to 17:09): [Snap Store](#snap-store).
+  - By hand, on linix: `ghcr.io/rainbowwizard-coder/hmailserver` took cosign's five
+    tags and then `6.3.8`, `6.3` and `latest`, each of the eight at the digest GitLab's
+    registry gives it, and `cosign verify` of the `6.3.8` copy, without signing in,
+    passed as the tag's identity.
+  - By hand, from a laptop: the GitHub release 6.3.8 was published at 17:03 from the
+    package registry's 161 files, each held to the registry's SHA-256, with its notes
+    cut at GitHub's 125,000 characters and attached whole as a file: 162 assets, read
+    back by name and size, and immutable.
+  - Not pressed: `obs-publish` (the package's `_service` first,
+    [openSUSE Build Service](#opensuse-build-service)), `aur-publish` and
+    `galaxy-build`. winget's manifests were rendered from the signed installer and
+    passed `build/check-package-manifests.py --offline --release-date 2026-11-02`;
+    nothing was submitted.
+- **The PPA's `dput` under the jobs' Python variables**, on 2 November 2026, in the
+  job's image (Debian 13 by its digest) on linix, with `.gitlab-ci.yml`'s five
+  Python variables, the job's apt line, 6.3.8's source tarball at the digest the job
+  verified, and a throwaway key. 6.3.8's `ppa-upload.py` built and signed both
+  uploads and was refused at `dput` as the job was. The fixed one sent both to
+  `dput`'s local method: good signatures on each `.changes` and `.dsc`, and
+  `dpkg-source -x` unpacks both. `dput -s` with the job's Launchpad configuration
+  checked both signatures and listed each upload's five files for
+  `ppa.launchpad.net`, and from linix's container `ppa.launchpad.net:21` answered
+  "220 Launchpad upload server". Nothing was uploaded.
+
 Not tried: a push to Quay.io, ECR Public and the AUR, whose accounts do not exist.
-`chocolatey-publish` has run on bench150, and pushed 6.3.7
+`chocolatey-publish` has run on bench150, and pushed 6.3.7 and 6.3.8
 ([Chocolatey](#chocolatey)). `snap-upload` ran for 6.3.7 on 18 October 2026 (job
 17257943981) and stopped before it reached the store or the credential, the image
-having no `git` for its check of the tag; the store's answer to an upload is still
-untried ([Snap.md](Snap.md), "The Snap Store").
+having no `git` for its check of the tag; for 6.3.8, on 2 November 2026, it made the
+first upload to the store ([Snap Store](#snap-store)). `ppa-upload` has not yet
+published 6.3.8, and `obs-publish` has not been run for it.

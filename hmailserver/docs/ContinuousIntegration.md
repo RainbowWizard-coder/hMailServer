@@ -3265,24 +3265,43 @@ everything is uninstalled:
        hmailserver/installation/Output/hMailServer-6.3.3-x64.exe
 
 With a single installer, the test installs it and uninstalls it. The script
-takes these options: `--vmx`, `--snapshot`, `--mac`, `--host`, `--user`,
-`--key` and `--out`, and each has an `HM_SMOKE_*` variable with the same
-meaning. `--keep-vm` leaves the VM as the run left it, so that a failure can
-be examined; the next run reverts it anyway.
+takes these options: `--vmx`, `--snapshot`, `--mac`, `--host`, `--leases`,
+`--user`, `--key` and `--out`, and each has an `HM_SMOKE_*` variable with the
+same meaning. `--keep-vm` leaves the VM as the run left it, so that a failure
+can be examined; the next run reverts it anyway.
 
 The script does the following:
 
 1. It checks that the `.vmx` carries the smoke VM's MAC address and that it has
    the snapshot. This comes before any revert, so a wrong `--vmx` cannot revert
    another machine.
-2. It reverts the VM to the snapshot and starts it, waits until the address the
-   VM's own VMware Tools report has held for 45 seconds, and waits for SSH. The
-   VM resumes still holding the address it had when the snapshot was taken and
-   asks VMware's DHCP server, on the VMware host, for a lease again; twice on 27
-   September 2026 that server found the address answering, marked its lease
-   abandoned and gave the VM another address 15 to 35 seconds after the revert,
-   so the address the tools settle on is followed, and said, when it is not
-   `--host`. A copy that fails is tried again the same way.
+2. It reverts the VM to the snapshot and starts it, waits until the VM's address
+   has held for 45 seconds, and waits for SSH. The address is the one the VM's
+   own VMware Tools report or, when they report none, the one VMware's DHCP
+   server, on the VMware host, last leased the VM's MAC address since the
+   revert, read from the server's leases file (`--leases`, by default
+   `C:/ProgramData/VMware/vmnetdhcp.leases`), and none while the server has
+   since marked that address abandoned or leased it to another MAC address.
+   With neither, it waits its whole five minutes and asks `--host`. The VM
+   resumes still holding the address it had when the snapshot was taken and
+   asks that server for a lease again; twice on 27 September 2026 the server
+   found the address answering, marked its lease abandoned and gave the VM
+   another address 15 to 35 seconds after the revert, so the address that
+   settles is followed, and said, when it is not `--host`. The leases are read
+   because on 2 November 2026 the tools reported no address all day, and the
+   server gave the VM another address after five of the reverts made for
+   6.3.8's smoke test. Before it read them, the script waited its whole five
+   minutes for the tools and then asked `--host`, which the VM no longer held,
+   or reached the VM just as its SSH server began to reset every connection,
+   which it did for as long as it was watched, from about 350 seconds after the
+   resume to about 810, having answered from about 36 seconds to about 309
+   (Windows Update's servicing after the snapshot's 38-day jump of the clock is
+   the likeliest cause). Followed from the leases, SSH answered at about a
+   minute, and Windows Update, which the script stops for the run once SSH
+   answers, was stopped well before the resets. Each SSH try has five seconds
+   to connect, 15 seconds without an answer once connected and a minute in all,
+   so that a try that connects and then hangs cannot hold the whole ten minutes
+   the script waits. A copy that fails is tried again the same way.
 3. It checks that the address answers ARP with the same MAC. This comes before
    anything is copied, so a wrong `--host`, or an address the VM has let go,
    cannot install on bench150 or linix.
@@ -3908,6 +3927,14 @@ nothing else in the CI files - a job, a rule, a service, a template or a
 workflow rule - sets one of those or another of `PYTHON_RUN_VARIABLES`, the
 variables that change which code Python runs or where it finds it
 (`PYTHONPATH`, `PYTHONHOME`, `PYTHONSTARTUP`, `PYTHONUSERBASE` and the rest).
+`ppa-upload` runs Debian's `dput` without `PYTHONSAFEPATH`. Its entry script
+finds its own package and metadata through its own directory,
+`/usr/share/dput`, which the variable keeps off the module path, and
+`build/ci/channels/ppa-upload.py` takes the variable out of the environment it
+runs `dput` in, and of no other (`dput_environment`); nothing in the CI files
+but `.gitlab-ci.yml`'s `variables:` sets it. The directory Python then puts
+first is Debian's, and the checkout, the job's current directory, is never on a
+script's module path.
 The checker itself runs no file of the tree in its own process but
 `build/land-via-mr.py`, the Python files of `CHAIN_SCRIPT_SHA256` whose
 digests are the ones it holds, which it asks before it runs any of them, and

@@ -228,7 +228,9 @@ aur-publish:
 ppa-upload:
   stage: release
   # Debian 13 by digest, as package-repos has it: devscripts' mk-origtargz and
-  # debsign, dpkg-dev and dput, from Debian.
+  # debsign, dpkg-dev and dput, from Debian. dput, the one Python program among them,
+  # runs without the PYTHONSAFEPATH .gitlab-ci.yml gives every job, which keeps it from
+  # its own files (ppa-upload.py, dput_environment).
   image: debian:13@sha256:d5ce19d4736f0ebbacd686d1040271a5aeb0cc920f5990c1bfae1717627f0674
   needs: []
   timeout: 30 minutes

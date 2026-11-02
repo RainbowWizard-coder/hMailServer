@@ -400,19 +400,20 @@ download, has their files (Roadmap3, *The files GitLab does not have*); a bundle
 names the GitHub workflow that signed it, and the cosign command in SECURITY.md
 verifies it without contacting GitHub. A release is built, signed and published on
 GitLab first and then copied to GitHub: since 18 October 2026 every release from
-6.0.0-B1 to 6.3.7 is there too with the same files byte for byte, each checked
+6.0.0-B1 to 6.3.8 is there too with the same files byte for byte, each checked
 against the SHA-256 GitLab's package registry records for it; GitHub's
 immutable-releases setting is on: a release published there with it on keeps its
 files and its tag as published, though its notes can still be edited, and so do
 the copies of 6.3.6 and 6.3.7, published after it was switched on during that
-copying; the copies of the releases before them, published before it, can still be
-changed. GitHub writes "." where a file name has "~", which renames the
-per-distribution `.deb` files there, and the notes of 6.3.6 and 6.3.7, longer than
-its limit of 125,000 characters, are cut there and attached whole as a file.
+copying, and of 6.3.8, published there on 2 November 2026; the copies of the
+releases before them, published before it, can still be changed. GitHub writes "."
+where a file name has "~", which renames the per-distribution `.deb` files there,
+and the notes of 6.3.6, 6.3.7 and 6.3.8, longer than its limit of 125,000
+characters, are cut there and attached whole as a file.
 
 That row is done: **since 6.3.5 every release is built, signed and published by
 its tag's GitLab pipeline**, every file with a Sigstore bundle the pipeline signs,
-6.3.8 on 1 November 2026 the latest; 6.3.4 alone was built and signed by hand,
+6.3.8 on 2 November 2026 the latest; 6.3.4 alone was built and signed by hand,
 with Authenticode and no Sigstore bundle ([ContinuousIntegration.md](ContinuousIntegration.md),
 *The release*). The package-manager manifests are rendered by hand, and the
 container image is in the project's container registry, as

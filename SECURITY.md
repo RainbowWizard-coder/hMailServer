@@ -7,7 +7,7 @@
 | 6.3.x   | :white_check_mark: security fixes until 30 September 2027 ([While releases pause](#while-releases-pause)) |
 | < 6.3   | :x:                |
 
-The 6.3 line is the one that receives security fixes. Its latest release is 6.3.8, published on 1 November
+The 6.3 line is the one that receives security fixes. Its latest release is 6.3.8, published on 2 November
 2026. A fix for a confirmed vulnerability ships in the next release; it is not back-ported to 6.2 or anything
 older, because there are no maintenance branches. That is less of a burden than it sounds: an upgrade in place
 keeps the configuration and the mail, and the database upgrade chain runs from every earlier version of this fork,
@@ -193,8 +193,10 @@ decided on 24 October 2026, under the owner's delegation, for a reason of its ow
 published Helm charts of 6.3.6 and 6.3.7 start no server, which only a release can put right. One of its fixes was
 public before the release for longer than step 3 below allows: work item 100's, on GitLab from 19 October 2026 and on
 `master` from 20 October 2026, a week before the project judged it a vulnerability and requested its CVE, on 26
-October 2026. The others were pushed with the batch the release was made from, about half a day before it was
-published. The list above, and step 3's window of about a day, stand for every release after 6.3.8.
+October 2026. The others were public from 1 November 2026, 07:14 UTC, when the batch the release was made from was
+pushed for its gates, about thirty-one hours before the release was published on 2 November: longer than step 3's
+window of about a day, since the batch's gates and the release's own pipeline took that long. The list above, and
+step 3's window of about a day, stand for every release after 6.3.8.
 
 ### How a report is handled
 
@@ -326,14 +328,15 @@ first published on GitHub, under the old account `Progressiverobot`. Where GitLa
 from one of them, it is the same file, byte for byte, with the same signatures and Sigstore bundle, so everything
 below verifies it exactly as it verified the original. GitHub's releases page, since 18 October 2026, is a copy of
 GitLab's: a release is built, signed and published on GitLab first and then copied there, and every release from
-6.0.0-B1 to 6.3.7 is there with the same files, byte for byte, each checked against the SHA-256 that GitLab's
+6.0.0-B1 to 6.3.8 is there with the same files, byte for byte, each checked against the SHA-256 that GitLab's
 package registry records for it; so everything below verifies a file from either page the same way. GitHub writes
 "." where a file name has "~", so the per-distribution `.deb` files are renamed there, their bytes the same; the
-notes of 6.3.6 and 6.3.7 are cut at GitHub's limit of 125,000 characters and attached whole as a file; and GitHub's
-immutable-releases setting is on: a release published there with it on keeps its files and its tag as published,
-though its notes can still be edited, and so do the copies of 6.3.6 and 6.3.7, published after it was switched on
-during the copying of 18 October 2026 (at 05:26 and 05:31 UTC), while the copies of the releases before them,
-6.0.0-B1 to 6.3.5 and the two build-inputs releases, published before it, can still be changed.
+notes of 6.3.6, 6.3.7 and 6.3.8 are cut at GitHub's limit of 125,000 characters and attached whole as a file; and
+GitHub's immutable-releases setting is on: a release published there with it on keeps its files and its tag as
+published, though its notes can still be edited, and so do the copies of 6.3.6 and 6.3.7, published after it was
+switched on during the copying of 18 October 2026 (at 05:26 and 05:31 UTC), and of 6.3.8, published there on
+2 November 2026 (at 17:03 UTC), while the copies of the releases before them, 6.0.0-B1 to 6.3.5 and the two
+build-inputs releases, published before it, can still be changed.
 
 - **The release tag** (from `v6.2.23-alpha2` on) is an annotated tag signed with a maintainer's SSH key listed in
   `.gitlab/allowed_signers`. That allow list is in the repository, so a clone can check it without trusting
