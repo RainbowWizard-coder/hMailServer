@@ -1,0 +1,34 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# What GitHub shows beside the three issue forms when someone opens an issue on the
+# project's copy there. No blank issue: a report without a form loses what makes it
+# useful. A question has no form of its own and goes to Discussions' Q&A, which is
+# what that category is for. hmailserver/docs/Mirroring.md says how an issue on
+# GitHub is dealt with; build/check-github-files.py holds this file to the forms and
+# to .gitlab/issue_templates.
+
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question
+    url: https://github.com/RainbowWizard-coder/hMailServer/discussions/categories/q-a
+    about: Configuration, an upgrade path, "is this supposed to work like this". Q&A in Discussions answers these.
+  - name: Report a security problem privately
+    url: https://github.com/RainbowWizard-coder/hMailServer/security/advisories/new
+    about: Never in a public issue. SECURITY.md gives the other private routes, one of them an email with no account.
+  - name: Open a bug report on GitLab instead
+    url: https://gitlab.com/hmailserver/hmailserver/-/issues/new?issuable_template=Bug
+    about: GitLab is where the project tracks its work. The same questions as the form here, with a GitLab account.
+  - name: Propose a feature on GitLab instead
+    url: https://gitlab.com/hmailserver/hmailserver/-/issues/new?issuable_template=Feature
+    about: GitLab is where the project tracks its work. The same questions as the form here, with a GitLab account.
+  - name: Report an accessibility barrier on GitLab instead
+    url: https://gitlab.com/hmailserver/hmailserver/-/issues/new?issuable_template=Accessibility
+    about: GitLab is where the project tracks its work. ACCESSIBILITY.md gives every route, one of them an email with no account.
+  - name: Ask a question on GitLab instead
+    url: https://gitlab.com/hmailserver/hmailserver/-/issues/new?issuable_template=Question
+    about: GitLab has no Discussions, so a question there is an issue with the question label.
+  - name: The forum
+    url: https://www.hmailserver.co.uk/category/8/general-support
+    about: General support for running hMailServer, where this fork's releases are announced too.

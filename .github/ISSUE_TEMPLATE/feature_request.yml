@@ -1,0 +1,71 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# GitHub's form for a feature. It asks what .gitlab/issue_templates/Feature.md asks;
+# build/check-github-files.py holds the pair together.
+
+name: Feature request
+description: A new capability, or a change to one. A concrete problem beats a list of wishes.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before writing it, read [Roadmap2.md](https://github.com/RainbowWizard-coder/hMailServer/blob/master/Roadmap2.md) (the plan: it may already be a row), [Roadmap3.md](https://github.com/RainbowWizard-coder/hMailServer/blob/master/Roadmap3.md) for a package, an image or a place to install from, and [Roadmap.md](https://github.com/RainbowWizard-coder/hMailServer/blob/master/Roadmap.md) (the record, which says what was deliberately not done, and why).
+
+        **A security problem does not belong here.** [SECURITY.md](https://github.com/RainbowWizard-coder/hMailServer/blob/master/SECURITY.md) gives the private routes.
+
+        **This request is public.** Redact passwords, keys and real email addresses from anything you paste.
+
+        GitLab is where the project tracks its work. If this is taken up, a maintainer opens a GitLab issue and links it here.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to do, and what stops you today. Who meets it - an administrator, a mail user, a client program, another server?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you propose
+      description: What the server, the Control Panel, the Control Deck, the webmail or the API would do instead.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other ways round it, including a setting, a rule, a script or another product that already does it, and why they fall short.
+  - type: input
+    id: version
+    attributes:
+      label: hMailServer version you run
+      description: The Control Panel's administrator menu or About page; on Linux, run hmailserver --version.
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: Windows, a Linux distribution, or a container.
+  - type: dropdown
+    id: database
+    attributes:
+      label: Database backend
+      description: If it matters.
+      options:
+        - SQL Server Compact
+        - Microsoft SQL Server
+        - MySQL or MariaDB
+        - PostgreSQL
+  - type: input
+    id: roadmap-row
+    attributes:
+      label: Roadmap2.md or Roadmap3.md row
+      description: The row it belongs to, if there is one.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log lines
+      description: If the problem shows in the server's behaviour, the log lines that show it.
+      render: text

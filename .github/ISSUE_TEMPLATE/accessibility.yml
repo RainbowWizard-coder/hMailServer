@@ -1,0 +1,81 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# GitHub's form for an accessibility barrier. It asks what
+# .gitlab/issue_templates/Accessibility.md asks; build/check-github-files.py holds the
+# pair together. It has to be usable by keyboard and screen reader itself, so every
+# label carries its meaning whole, no placeholder holds anything that matters, and
+# all but the first two questions are optional. It asks nobody about a disability.
+
+name: Accessibility barrier
+description: Something in hMailServer is hard or impossible to use with the way you use a computer.
+labels: [accessibility]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting this. Only the first two questions are required. You do not have to tell us about any disability, and you do not have to attach a screenshot.
+
+        **This report is public.** Leave out passwords, keys and real email addresses. To report privately instead, with no account, use the email address in [ACCESSIBILITY.md](https://github.com/RainbowWizard-coder/hMailServer/blob/master/ACCESSIBILITY.md#how-to-report-a-barrier).
+
+        **A security problem does not belong here.** [SECURITY.md](https://github.com/RainbowWizard-coder/hMailServer/blob/master/SECURITY.md) gives the private routes.
+
+        GitLab is where the project tracks its work. If this needs work, a maintainer opens a GitLab issue and links it here.
+  - type: textarea
+    id: trying-to-do
+    attributes:
+      label: What were you trying to do?
+      description: For example, sign in, read a message, or add an account.
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What stopped you or got in your way, in your own words.
+    validations:
+      required: true
+  - type: dropdown
+    id: which-part
+    attributes:
+      label: Which part of hMailServer were you using?
+      options:
+        - The webmail
+        - A page a link led to, such as a shared file or a confidential message
+        - The Control Deck, in a browser
+        - The Control Panel, on the Windows desktop
+        - The installer
+        - An older Windows tool, such as DBSetup, DBUpdater or ImportTool
+        - The command line, hmctl or the PowerShell module
+        - The documents, the wiki or the help pages
+        - Something else, or not sure
+  - type: input
+    id: assistive-technology
+    attributes:
+      label: Which assistive technology do you use, and which version?
+      description: For example, a screen reader, magnifier, voice control or a high contrast theme. Leave this empty if none or if you would rather not say.
+  - type: input
+    id: browser-and-system
+    attributes:
+      label: Which browser and system?
+      description: For example, the browser and its version, and Windows, Linux or a phone.
+  - type: dropdown
+    id: how-much
+    attributes:
+      label: How much does it stop you?
+      options:
+        - "Blocks me: I cannot do the task at all"
+        - "Serious: I can do it only with great effort, or with someone's help"
+        - "Moderate: I can do it, but it is slow or confusing"
+        - "Minor: it gets in my way, but I can carry on"
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Does anything get you round it?
+      description: Anything that works instead, even in part. It may help someone else meanwhile.
+  - type: textarea
+    id: anything-else
+    attributes:
+      label: Anything else you want to add
+      description: The hMailServer version if you know it. A screenshot or a recording is welcome if you want to send one, and is never required.

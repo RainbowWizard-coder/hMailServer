@@ -1,0 +1,71 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# GitHub's form for a defect. It asks what .gitlab/issue_templates/Bug.md asks;
+# build/check-github-files.py holds the pair together.
+
+name: Bug report
+description: Something in hMailServer is broken. The log is worth more than everything else together.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **A security problem does not belong here.** [SECURITY.md](https://github.com/RainbowWizard-coder/hMailServer/blob/master/SECURITY.md) gives the private routes.
+
+        **This report is public.** Redact passwords, keys and real email addresses from anything you paste.
+
+        GitLab is where the project tracks its work. If this needs work, a maintainer opens a GitLab issue and links it here.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead. If mail is accepted but never delivered, or a session hangs, say which.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: In order. Is it reproducible every time, sometimes, or once?
+  - type: input
+    id: version
+    attributes:
+      label: hMailServer version
+      description: The Control Panel shows it in the administrator menu at the top right and on its About page; on Linux, run hmailserver --version. If you built it, give the commit.
+    validations:
+      required: true
+  - type: textarea
+    id: operating-system
+    attributes:
+      label: Operating system
+      description: "Windows: the edition and version. Linux: the distribution and version, the architecture (x86-64 or AArch64), and how it was installed (.deb, .rpm, AppImage, PKGBUILD, or built with CMake). A container: the image and its tag, and what runs it (Docker Compose, the Helm chart, something else)."
+    validations:
+      required: true
+  - type: dropdown
+    id: database
+    attributes:
+      label: Database backend
+      description: Give its version under "Anything else" if it matters.
+      options:
+        - SQL Server Compact
+        - Microsoft SQL Server
+        - MySQL or MariaDB
+        - PostgreSQL
+  - type: input
+    id: installed-how
+    attributes:
+      label: Installed how
+      description: A new installation, or an upgrade from which version.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: The window around the problem from the application log, with debug logging on (Control Panel, Monitoring & troubleshooting, Logging, Debug messages), and the `ERROR_hmailserver_<date>.log` for the same window if there is one.
+      render: text
+  - type: textarea
+    id: anything-else
+    attributes:
+      label: Anything else
+      description: Settings you changed from the defaults that touch this, a Windows Event Log entry, a screenshot of an error dialog.
