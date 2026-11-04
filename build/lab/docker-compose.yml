@@ -82,7 +82,7 @@ services:
   mariadb:
     <<: *db
     profiles: [mariadb]
-    image: mariadb:11.8@sha256:88acb8b5f037e8462531db9359ee5725ddd374a271c1ae5f299402f44323ae78
+    image: mariadb:11.8@sha256:c4124d1afa875e47f2892edf26b482fa54f796e2f342d3717a04ca091a22a9bd
     environment:
       MARIADB_ROOT_PASSWORD: ${HMLAB_MARIADB_ROOT_PASSWORD:-}
       # A volume a former version made (11.4's, until 2 October 2026) has its system
@@ -118,7 +118,7 @@ services:
   mssql:
     <<: *db
     profiles: [mssql]
-    image: mcr.microsoft.com/mssql/server:2022-latest@sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090
+    image: mcr.microsoft.com/mssql/server:2022-latest@sha256:cf8f0ab2ebe61feec2eed2629061a07d247f791c2a8ddda74a4ac9f06a291718
     environment:
       # The Developer edition's licence terms, accepted for the lab: free for
       # development and testing, never for production.
@@ -217,7 +217,7 @@ services:
   # runs as vmail and binds nothing below 1024 (dovecot/hmlab.conf).
   dovecot:
     profiles: [peers]
-    image: dovecot/dovecot:2.4.5@sha256:c807be4fb5a97d9c3a90770569d3a6c4cbdcb36742ad41f90409cbd929166553
+    image: dovecot/dovecot:2.4.5@sha256:43c14def08a57f25107593cbcf64a0a6fbae84a7b9de7aa038513c9b21e91914
     restart: "no"
     hostname: imap.peer.test
     environment:
@@ -268,7 +268,7 @@ services:
 
   numbers-dovecot:
     profiles: [numbers]
-    image: dovecot/dovecot:2.4.5@sha256:c807be4fb5a97d9c3a90770569d3a6c4cbdcb36742ad41f90409cbd929166553
+    image: dovecot/dovecot:2.4.5@sha256:43c14def08a57f25107593cbcf64a0a6fbae84a7b9de7aa038513c9b21e91914
     restart: "no"
     hostname: imap.numbers.test
     environment:
