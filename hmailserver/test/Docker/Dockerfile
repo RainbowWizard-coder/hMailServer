@@ -13,7 +13,7 @@
 #   docker pull mcr.microsoft.com/windows/servercore:ltsc2022
 #   docker inspect --format='{{index .RepoDigests 0}}' mcr.microsoft.com/windows/servercore:ltsc2022
 # and update the digest below, rather than dropping back to the bare tag.
-FROM mcr.microsoft.com/windows/servercore:ltsc2022@sha256:76cf422c98ca437b308374d0498280541fa42ac7061bb44015a6c8b70cf4db6a
+FROM mcr.microsoft.com/windows/servercore:ltsc2022@sha256:b52799a67fa596d4bddcd82ae1dab0077a84767fbc33c7342b72b53ecc71ad09
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop';"]
 
