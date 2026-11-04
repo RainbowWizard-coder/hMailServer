@@ -1,0 +1,233 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Dependabot on the project's copy on GitHub (RainbowWizard-coder/hMailServer).
+#
+# GitLab is canonical and Renovate (renovate.json) is where a dependency update is
+# merged; a Dependabot pull request on GitHub cannot land there (master is the push
+# mirror's), so it is a notice that closes once the same version reaches GitHub's
+# master through a landing, or a maintainer closes it if it stays open
+# (hmailserver/docs/Mirroring.md, "Dependabot on the copy").
+# Hence: one grouped pull request per block, weekly on Monday, the day Renovate takes
+# routine updates, at 06:00 London time, the existing label dependencies, and a
+# seven-day cooldown (Renovate waits three days for the registries it names; GitHub
+# Actions and the container registries have no minimumReleaseAge there).
+#
+# Tried on 4 November 2026 on a private repository holding only this tree's manifests;
+# every block below ran to "success" there. Blocks that are on and have nothing to
+# propose today are marked "nothing today". build/check-github-files.py fails when a
+# manifest in the tree has no block here, or a block names a directory the tree has not.
+# The file is .yaml, which GitHub reads as it reads .yml, because
+# build/reuse-original-paths.txt lists .github/dependabot.yml, a path the original
+# project once held, and this file is the fork's own.
+#
+# Ecosystems this repository has no manifest for, and so no entry: apm, bazel, bun,
+# bundler, cargo, composer, conda, deno, devcontainers, elm, gitsubmodule, gomod,
+# gradle, julia, maven, mix, npm, opentofu, pre-commit, pub, rust-toolchain, sbt,
+# swift, terraform, vcpkg. Not supported by Dependabot at all: the Visual C++ projects
+# (.vcxproj), snapcraft.yaml, the RPM spec, the Ansible collection, .gitlab-ci.yml
+# and its includes, the native libraries (openssl, boost, ...) Renovate reads.
+version: 2
+updates:
+  # The workflows (.github/workflows). Pinned by commit with the version in a
+  # comment: Dependabot moves both.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule: {interval: weekly, day: monday, time: "06:00", timezone: Europe/London}
+    labels: [dependencies]
+    cooldown: {default-days: 7}
+    groups:
+      github-actions-all:
+        patterns: ["*"]
+
+  # The command-line package's pyproject.toml: no dependencies today, and flit_core's
+  # range in [build-system] requires already takes the newest release (nothing today).
+  - package-ecosystem: pip
+    directory: "/hmailserver/source/Tools/Cli/python"
+    schedule: {interval: weekly, day: monday, time: "06:00", timezone: Europe/London}
+    labels: [dependencies]
+    cooldown: {default-days: 7}
+    groups:
+      pip-all:
+        patterns: ["*"]
+
+  # build/ and build/ci/ hold the hash-locked requirements: .in files chosen by
+  # hand, .txt files made from them by "uv pip compile --universal --generate-hashes".
+  # The pip ecosystem takes each .txt for pip-compile's output (by its .in file's
+  # name, whatever the header says) and runs pip-compile on it: without
+  # --universal and --python-version, so a pull request drops every environment
+  # marker (11 of them in cli-packages-requirements.txt: colorama, cffi, keyring,
+  # jeepney, ...) and a conflict with a package that pins another (semgrep's
+  # mcp==1.29.0, pyjwt~=2.13.0) ends in "unknown_error" and a failed run. That is
+  # what failed on this repository on 18 October 2026, and what GitHub PR 202 and
+  # GitHub PR 203 (RainbowWizard-coder) are. The uv ecosystem below reads the uv header
+  # and keeps the lock valid, so pip is told to leave both directories alone. One entry
+  # per directory: the same ignore on one entry with two "directories" still started the
+  # security runs, which then failed with all_versions_ignored; with "directory" it
+  # started none. The cost: no Dependabot security pull request for a transitive pin in
+  # these locked files. The alert stays on the Security tab, and the fix is the lock
+  # regenerated with the command in its header.
+  - package-ecosystem: pip
+    directory: "/build"
+    schedule: {interval: weekly, day: monday, time: "06:00", timezone: Europe/London}
+    ignore:
+      - dependency-name: "*"
+
+  - package-ecosystem: pip
+    directory: "/build/ci"
+    schedule: {interval: weekly, day: monday, time: "06:00", timezone: Europe/London}
+    ignore:
+      - dependency-name: "*"
+
+  # The locked requirements, through uv: it reads the "uv pip compile" command of
+  # each .txt file's header (--universal, --python-version 3.14, --generate-hashes)
+  # and runs it with -P for the package, so the .in pin and the .txt lock move
+  # together and keep their hashes. directory "/build" is enough: the files of
+  # build/ci are found beneath it. allow direct: a transitive pin is not offered
+  # on its own (a lock whose boltons or click moved apart from semgrep's pins is
+  # not what uv would make), and the .in files are where a version is chosen.
+  # Its pull requests change the "# via -r build/ci/x.in" comments to "# via -r
+  # ci/x.in" (uv writes the path it was run with); regenerate by hand when the
+  # same update is made on GitLab.
+  - package-ecosystem: uv
+    directory: "/build"
+    schedule: {interval: weekly, day: monday, time: "06:00", timezone: Europe/London}
+    labels: [dependencies]
+    cooldown: {default-days: 7}
+    allow:
+      - dependency-type: direct
+    groups:
+      python-locked:
+        patterns: ["*"]
+
+  # Every directory with a .csproj or a packages.config: the SDK-style projects'
+  # PackageReference (their packages.lock.json too) and the three packages.config
+  # projects, whose HintPath, Import and Reference lines it changes with the
+  # package. A directory is listed by hand: add the one of a new project here.
+  - package-ecosystem: nuget
+    directories:
+      - "/hmailserver/source/Tools/ControlPanel"
+      - "/hmailserver/source/Tools/ControlPanel.Core"
+      - "/hmailserver/source/Tools/ControlPanel.Tests"
+      - "/hmailserver/source/Tools/DBSetup"
+      - "/hmailserver/source/Tools/DBSetup.Tests"
+      - "/hmailserver/source/Tools/DBSetupQuick"
+      - "/hmailserver/source/Tools/DBUpdater"
+      - "/hmailserver/source/Tools/DataDirectorySynchronizer"
+      - "/hmailserver/source/Tools/ImportTool"
+      - "/hmailserver/source/Tools/ImportTool.Tests"
+      - "/hmailserver/source/Tools/Shared"
+      - "/hmailserver/test/LinuxRegressionTests"
+      - "/hmailserver/test/MemoryTests"
+      - "/hmailserver/test/PerformanceTest"
+      - "/hmailserver/test/RegressionTests"
+      - "/hmailserver/test/StressTest"
+      - "/hmailserver/test/TestBedUI"
+      - "/hmailserver/test/TestInvalidConnections"
+      - "/hmailserver/test/VMTestRunner.Console"
+      - "/hmailserver/test/hMailServer.PerformanceTests/hMailServer.PerformanceTests"
+      - "/hmailserver/test/hMailServer.PerformanceTests/hMailServer.PerformanceTests.Console"
+      - "/hmailserver/test/hMailServer.Test.Infrastructure"
+      - "/hmailserver/tools/APIDocumentationCreator/APIDocumentationCreator"
+      - "/hmailserver/tools/ConfigureInstallation"
+      - "/hmailserver/tools/DatabaseUnicodeConversion"
+      - "/hmailserver/tools/PasswordDisplayer"
+      - "/hmailserver/tools/SQLScriptCreator"
+      - "/hmailserver/tools/TranslationExtractor"
+      - "/hmailserver/tools/TranslationImporter"
+    schedule: {interval: weekly, day: monday, time: "06:00", timezone: Europe/London}
+    labels: [dependencies]
+    cooldown: {default-days: 7}
+    groups:
+      nuget-all:
+        patterns: ["*"]
+
+  # global.json: with rollForward latestFeature its version is the lowest SDK a
+  # build accepts, not the one it uses, so raising it refuses every machine below
+  # it; renovate.json disables the same update and says why. All of it ignored,
+  # as there (nothing, by design).
+  - package-ecosystem: dotnet-sdk
+    directory: "/"
+    schedule: {interval: weekly, day: monday, time: "06:00", timezone: Europe/London}
+    labels: [dependencies]
+    cooldown: {default-days: 7}
+    ignore:
+      - dependency-name: "*"
+
+  # build/ci/linux.Dockerfile, the packaging Dockerfile, the operator's and the
+  # Windows test image's: the same rules as renovate.json's packageRules. The .NET
+  # image stays on .NET 10 (a major version moves by hand); a distribution's image
+  # names a release, so no version of it is proposed (Renovate still moves its
+  # digest; Dependabot proposed none for ubuntu in the trial); the operator's
+  # helm-operator stays on its release.
+  - package-ecosystem: docker
+    directories:
+      - "/build/ci"
+      - "/hmailserver/source/Server/platform/packaging/docker"
+      - "/hmailserver/source/Server/platform/packaging/helm/operator"
+      - "/hmailserver/test/Docker"
+    schedule: {interval: weekly, day: monday, time: "06:00", timezone: Europe/London}
+    labels: [dependencies]
+    cooldown: {default-days: 7}
+    ignore:
+      - dependency-name: "dotnet/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "ubuntu"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+      - dependency-name: "operator-framework/*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+    groups:
+      docker-all:
+        patterns: ["*"]
+
+  # The test lab's matrix (MySQL 8.4, MariaDB 11.8, PostgreSQL 17, SQL Server 2022
+  # ...) is chosen by hand and docs/TestLab.md's results are for those versions:
+  # only the digests move, as in renovate.json.
+  - package-ecosystem: docker-compose
+    directory: "/build/lab"
+    schedule: {interval: weekly, day: monday, time: "06:00", timezone: Europe/London}
+    labels: [dependencies]
+    cooldown: {default-days: 7}
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
+    groups:
+      compose-lab-all:
+        patterns: ["*"]
+
+  # The packaging compose file, which is what users deploy: a PostgreSQL major
+  # version does not open the data directory of the one before (nothing today:
+  # postgres:18 is current and its own image, registry.gitlab.com/hmailserver/
+  # hmailserver, is not looked up there).
+  - package-ecosystem: docker-compose
+    directory: "/hmailserver/source/Server/platform/packaging/docker"
+    schedule: {interval: weekly, day: monday, time: "06:00", timezone: Europe/London}
+    labels: [dependencies]
+    cooldown: {default-days: 7}
+    ignore:
+      - dependency-name: "postgres"
+        update-types: ["version-update:semver-major"]
+    groups:
+      compose-all:
+        patterns: ["*"]
+
+  # The chart (Chart.yaml) has no "dependencies:" and values.yaml names the
+  # project's own image with an empty tag: nothing today, and no groups entry,
+  # which would only warn that nothing matches.
+  - package-ecosystem: helm
+    directory: "/hmailserver/source/Server/platform/packaging/helm/hmailserver"
+    schedule: {interval: weekly, day: monday, time: "06:00", timezone: Europe/London}
+    labels: [dependencies]
+    cooldown: {default-days: 7}
+
+  # flake.lock pins nixpkgs as a release tarball from releases.nixos.org
+  # (flake = false, the address names the release), not a github: or git: input:
+  # the trial found nothing to move (nothing today). The trial's repository was
+  # private, which GitHub's page says this ecosystem does not support, so a run on
+  # the public repository is the one that counts.
+  - package-ecosystem: nix
+    directory: "/"
+    schedule: {interval: weekly, day: monday, time: "06:00", timezone: Europe/London}
+    labels: [dependencies]
+    cooldown: {default-days: 7}

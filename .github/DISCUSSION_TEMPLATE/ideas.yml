@@ -1,0 +1,31 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The form for a new discussion in Ideas: GitHub reads a category's form from a file
+# named by the category's slug, ideas.
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A discussion is public: redact passwords, keys and real email addresses. **A security problem does not belong here:** [SECURITY.md](https://github.com/RainbowWizard-coder/hMailServer/blob/master/SECURITY.md) gives the private routes.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to do, and what stops you today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Your idea
+      description: What hMailServer would do instead.
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you have tried instead
+      description: A setting, a rule, a script or another product, and how far it got you.

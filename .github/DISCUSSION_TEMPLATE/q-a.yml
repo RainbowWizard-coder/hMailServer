@@ -1,0 +1,49 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The form for a new discussion in Q&A: GitHub reads a category's form from a file
+# named by the category's slug, q-a. It asks for the environment that
+# .gitlab/issue_templates/Question.md asks for.
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A discussion is public: redact passwords, keys and real email addresses. **A security problem does not belong here:** [SECURITY.md](https://github.com/RainbowWizard-coder/hMailServer/blob/master/SECURITY.md) gives the private routes.
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you have tried
+      description: The settings, the documentation page, the steps you took and what happened.
+  - type: input
+    id: version
+    attributes:
+      label: hMailServer version
+      description: The Control Panel's administrator menu or About page; on Linux, run hmailserver --version.
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: Windows and which, a Linux distribution and how it was installed, or a container.
+  - type: dropdown
+    id: database
+    attributes:
+      label: Database backend
+      options:
+        - SQL Server Compact
+        - Microsoft SQL Server
+        - MySQL or MariaDB
+        - PostgreSQL
+  - type: textarea
+    id: log
+    attributes:
+      label: Log excerpt
+      description: If it is about something the server did, the lines of the application log around it.
+      render: text

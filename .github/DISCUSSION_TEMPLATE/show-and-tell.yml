@@ -1,0 +1,28 @@
+# https://www.progressiverobot.com
+# Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# The form for a new discussion in Show and tell: GitHub reads a category's form from
+# a file named by the category's slug, show-and-tell.
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A discussion is public: redact passwords, keys and real email addresses. **A security problem does not belong here:** [SECURITY.md](https://github.com/RainbowWizard-coder/hMailServer/blob/master/SECURITY.md) gives the private routes.
+  - type: textarea
+    id: built
+    attributes:
+      label: What you built
+      description: A setup, a script, a rule, a guide. What it does and who it might help.
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: A link, if there is one
+  - type: input
+    id: version
+    attributes:
+      label: hMailServer version
+      description: The version you run it on, if it matters.
