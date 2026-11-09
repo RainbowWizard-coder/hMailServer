@@ -268,6 +268,7 @@ namespace HM
          { _T("SimulateDatabaseFailureFor"), _T(""), false, AppliesNow, LevelServer },
          { _T("SimulateSpoolWriteFailure"), _T("0"), true, AppliesNow, LevelServer },
          { _T("SlowQueryLogMilliseconds"), _T("0"), true, AppliesNow, LevelServer },
+         { _T("SentAutoCopyEnabled"), _T("1"), true, AppliesNow, LevelServer },
          { _T("SmtpAuthenticatedSenderCheck"), _T("0"), true, AppliesNow, LevelServer },
          { _T("SmtpTarpitCount"), _T("0"), true, AppliesNow, LevelServer },
          { _T("SmtpTarpitDelaySeconds"), _T("0"), true, AppliesNow, LevelServer },

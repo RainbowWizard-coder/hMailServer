@@ -7,6 +7,8 @@
 
 #include "IMAPCommand.h"
 #include "../Common/Util/ByteBuffer.h"
+#include <string>
+#include <cstdint>
 
 namespace HM
 {
@@ -62,6 +64,8 @@ namespace HM
 
          // Its marker (see SweepAbandonedAppends), or empty.
          String markerFile;
+          std::string sent57_sha256;
+          std::uint64_t sent57_bytes = 0;
       };
 
       // The command stays in binary mode from the first literal to the final

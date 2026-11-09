@@ -144,6 +144,7 @@ namespace HM
          bool batv_enabled_ = false;
          bool outbound_pipelining_ = true;
          bool outbound_chunking_ = true;
+         bool sent_auto_copy_enabled_ = true;
          bool smtp_authenticated_sender_check_ = false;
          int metrics_history_days_ = 7;
          String batv_secret_;
@@ -933,6 +934,7 @@ namespace HM
       // because nothing constrained this before 5 September 2026 and an
       // installation may depend on that; on, a compromised or careless account
       // can no longer send as anyone it likes, and a Send-As grant means something.
+      bool GetSentAutoCopyEnabled() const { return Current()->sent_auto_copy_enabled_; }
       bool GetSmtpAuthenticatedSenderCheck() const { return Current()->smtp_authenticated_sender_check_; }
 
       // How many days of metric samples hm_metricsamples keeps: one row per metric

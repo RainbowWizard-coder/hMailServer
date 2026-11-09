@@ -987,6 +987,7 @@ namespace HM
       v.batv_enabled_ = ReadIniSettingInteger_("Settings", "BATVEnabled", 0) == 1;
       v.outbound_pipelining_ = ReadIniSettingInteger_("Settings", "OutboundPipelining", 1) == 1;
       v.outbound_chunking_ = ReadIniSettingInteger_("Settings", "OutboundChunking", 1) == 1;
+      v.sent_auto_copy_enabled_ = ReadIniSettingInteger_("Settings", "SentAutoCopyEnabled", 1) == 1;
       v.smtp_authenticated_sender_check_ = ReadIniSettingInteger_("Settings", "SmtpAuthenticatedSenderCheck", 0) == 1;
       v.metrics_history_days_ = ReadIniSettingInteger_("Settings", "MetricsHistoryDays", 7);
       if (v.metrics_history_days_ < 0)

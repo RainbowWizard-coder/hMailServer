@@ -2308,6 +2308,14 @@ namespace hMailServer.ControlPanel.Views
          });
          smtp.Settings.Add(new IniBool
          {
+            Path = "SentAutoCopyEnabled",
+            Label = L("Automatically keep authenticated SMTP submissions in IMAP Sent"),
+            Default = true,
+            Blurb = L("On by default for the planned Sent auto-copy feature. This setting is shared with Control Deck. WARNING: this build does not yet contain the completed SMTP/IMAP persistence and reconciliation engine; enabling this setting alone does not save messages in Sent. Do not use it as proof that the feature is operational."),
+            IniStore = iniStore_
+         });
+         smtp.Settings.Add(new IniBool
+         {
             Path = "SmtpAuthenticatedSenderCheck",
             Label = L("An authenticated session may only send as an address its account owns or has been granted"),
             Default = false,
