@@ -27,7 +27,7 @@
 #
 # then put this file's three header lines back at the top of the output, and keep
 # flit_core's range in pyproject.toml's [build-system] requires holding the pin.
-flit_core==4.1.0
+flit_core==4.2.0
 build==1.6.1
 twine==7.0.0
 pypi-attestations==0.0.30
