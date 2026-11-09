@@ -279,6 +279,20 @@ namespace HM
    bool
    MessageUtilities::CopyToDesignatedSent(std::shared_ptr<const Account> account, std::shared_ptr<Message> message)
    {
+      __int64 ignoredMessageId = 0;
+      return CopyToDesignatedSent(account, message, ignoredMessageId);
+   }
+
+   bool
+   MessageUtilities::CopyToDesignatedSent(std::shared_ptr<const Account> account, std::shared_ptr<Message> message, __int64 &newMessageId)
+   {
+      return CopyToDesignatedSent(account, message, newMessageId, false);
+   }
+
+   bool
+   MessageUtilities::CopyToDesignatedSent(std::shared_ptr<const Account> account, std::shared_ptr<Message> message, __int64 &newMessageId, bool createIfMissing)
+   {
+      newMessageId = 0;
       if (!account || !message)
          return false;
 
@@ -294,6 +308,30 @@ namespace HM
       {
          if ((it->second & IMAPSpecialUse::DesignationSent) != 0)
             sent = folders->GetItemByDBIDRecursive(it->first);
+      }
+      if (!sent && createIfMissing)
+      {
+         // SMTP-only accounts may never have logged in with an IMAP client.
+         // Create the canonical Sent folder only if its name is unoccupied;
+         // never override an existing folder explicitly marked as Drafts, etc.
+         // CreatePath persists the folder before exposing it to the collection.
+         if (!folders->GetFolderByName(_T("Sent"), false))
+         {
+            std::vector<String> path;
+            path.push_back(_T("Sent"));
+            folders->CreatePath(folders, path, true);
+            designations.clear();
+            IMAPSpecialUse::Resolve(folders, designations);
+            for (const auto &entry : designations)
+            {
+               if ((entry.second & IMAPSpecialUse::DesignationSent) != 0)
+               {
+                  sent = folders->GetItemByDBIDRecursive(entry.first);
+                  if (sent)
+                     break;
+               }
+            }
+         }
       }
       if (!sent)
          return false;
@@ -330,6 +368,7 @@ namespace HM
          std::shared_ptr<ChangeNotification>(new ChangeNotification(account->GetID(), sent->GetID(), ChangeNotification::NotificationMessageAdded, added));
       Application::Instance()->GetNotificationServer()->SendNotification(notification);
 
+      newMessageId = copy->GetID();
       return true;
    }
 

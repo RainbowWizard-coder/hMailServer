@@ -44,6 +44,9 @@ namespace HM
       // when the account has no such folder, its quota has no room for one,
       // or the copy could not be made or saved; the message itself is untouched.
       static bool CopyToDesignatedSent(std::shared_ptr<const Account> account, std::shared_ptr<Message> message);
+      static bool CopyToDesignatedSent(std::shared_ptr<const Account> account, std::shared_ptr<Message> message, __int64 &newMessageId);
+      // Only experimental authenticated SMTP may create a missing canonical Sent folder.
+      static bool CopyToDesignatedSent(std::shared_ptr<const Account> account, std::shared_ptr<Message> message, __int64 &newMessageId, bool createIfMissing);
 
       // Whether a folder named the way a rule or Sieve script names it exists and
       // can be delivered into by this account. Kept HERE, beside MoveToIMAPFolder,

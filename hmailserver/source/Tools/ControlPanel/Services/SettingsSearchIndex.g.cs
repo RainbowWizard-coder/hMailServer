@@ -433,6 +433,7 @@ namespace hMailServer.ControlPanel.Services
          new SettingEntry("Allow plain-text authentication (AUTH PLAIN/LOGIN)", "AllowSMTPAuthPlain", "protocols", "SMTP", "SMTP"),
          new SettingEntry("Allow SASL initial client response", "IMAPSASLInitialResponseEnabled", "protocols", "IMAP", "IMAP"),
          new SettingEntry("Allow SASL PLAIN authentication", "IMAPSASLPlainEnabled", "protocols", "IMAP", "IMAP"),
+         new SettingEntry("Automatically keep authenticated SMTP submissions in IMAP Sent", "SentAutoCopyEnabled", "protocols", "SMTP", "SMTP"),
          new SettingEntry("An authenticated session may only send as an address its account owns or has been granted", "SmtpAuthenticatedSenderCheck", "protocols", "SMTP", "SMTP"),
          new SettingEntry("COMPRESS=DEFLATE (RFC 4978)", "IMAPCompressionEnabled", "protocols", "IMAP", "IMAP"),
          new SettingEntry("Create Drafts, Sent, Trash and Junk for new accounts", "CreateDefaultSpecialUseFoldersEnabled", "protocols", "IMAP", "IMAP"),

@@ -36,6 +36,9 @@
 #include "../Common/BO/SecurityRange.h"
 #include "../Common/Mime/Mime.h"
 #include "../Common/Util/MessageUtilities.h"
+#include "../Common/Util/GUIDCreator.h"
+#include "../Common/Util/SentMimeFingerprint.h"
+#include "../Common/Persistence/PersistentSentSubmission.h"
 #include "../Common/Util/Utilities.h"
 #include "../Common/Util/File.h"
 #include "../Common/Scripting/ClientInfo.h"
@@ -2561,7 +2564,12 @@ namespace HM
             header_creator.SetCipherInfo(GetCipherInfo());
 
          AnsiString new_headers = header_creator.Create();
-         
+
+         // Etapa 56.5: the prefix is prepended at the very first flush, for
+         // both DATA and BDAT. Record its exact octet length, not a guessed
+         // header list or a MIME normalization rule.
+         sent_trace_header_prefix_bytes_ = static_cast<std::uint64_t>(new_headers.GetLength());
+
          std::shared_ptr<ByteBuffer> new_data = std::shared_ptr<ByteBuffer>(new ByteBuffer);
          new_data->Add((BYTE*)new_headers.GetBuffer(), new_headers.GetLength());
          new_data->Add(transmission_buffer_->GetBuffer()->GetBuffer(), transmission_buffer_->GetBuffer()->GetSize());
@@ -3100,6 +3108,121 @@ namespace HM
             // here - each subscription that wants it gets a queue row.
             RaiseWebhookMessageReceived_();
 
+            // Experimental fail-closed SMTP Sent copy. The feature remains OFF
+            // until schema, recovery and IMAP reconciliation have been validated.
+            // Never change the already accepted SMTP delivery based on this path.
+            // Each submission gets a fresh server GUID: Message-ID/body hash are
+            // not unique identifiers for legitimate repeated sends.
+            if (!heldForReview && isAuthenticated_ &&
+                IniFileSettings::Instance()->GetSentAutoCopyEnabled() &&
+                PersistentSentSubmission::IsRecoveryReady())
+            {
+               std::shared_ptr<const Account> sentAccount = SignedInAccount_();
+               if (sentAccount)
+               {
+                  const String submissionId = GUIDCreator::GetGUID();
+                  const __int64 nowUtc = static_cast<__int64>(time(nullptr));
+                  const __int64 accountId = sentAccount->GetID();
+                  // Do NOT copy without durable bookkeeping. Missing table,
+                  // database failure or missing GUID must never bypass this gate.
+                  if (!submissionId.IsEmpty() && nowUtc > 0 &&
+                      PersistentSentSubmission::InsertPending(submissionId, accountId,
+                                                               nowUtc, nowUtc + 3600))
+                  {
+                     // A lost SQL response is not permission to claim again.
+                     if (PersistentSentSubmission::ClaimCopy(submissionId, accountId) == 1)
+                     {
+                        // Fingerprint the original MIME, excluding precisely
+                        // the server-generated SMTP header prefix.
+                        sentlab::Fingerprint sent57PersistentFp;
+                        const bool sent57FingerprintReady =
+                           sent_trace_header_prefix_bytes_ > 0 &&
+                           sentlab::FingerprintFileFromOffset(
+                              MessageStore::WorkingFile(current_message_).c_str(),
+                              sent_trace_header_prefix_bytes_,
+                              sent57PersistentFp) &&
+                           sent57PersistentFp.sha256_hex.size() == 64 &&
+                           sent57PersistentFp.bytes > 0 &&
+                           sent57PersistentFp.bytes <= static_cast<std::uint64_t>(INT64_MAX);
+
+                        __int64 sentCopyId = 0;
+                        const bool copied = MessageUtilities::CopyToDesignatedSent(
+                           sentAccount, current_message_, sentCopyId, true);
+
+                        const __int64 sent57ConfirmedUtc =
+                           copied ? static_cast<__int64>(time(nullptr)) : 0;
+                        // Distinguish failure stages without exposing account or message data.
+                        // Preserve the existing fail-closed behavior: do not retry a physical copy.
+                        const bool validCopyId = sentCopyId > 0;
+                        const __int64 commitResult =
+                           (copied && validCopyId && sent57FingerprintReady &&
+                            sent57ConfirmedUtc > 0)
+                           ? PersistentSentSubmission::CommitCopy(
+                                submissionId, accountId, sentCopyId,
+                                String(sent57PersistentFp.sha256_hex.c_str()),
+                                static_cast<__int64>(sent57PersistentFp.bytes),
+                                sent57ConfirmedUtc)
+                           : -1;
+                        if (!copied || !validCopyId || commitResult != 1)
+                        {
+                           // A copy may exist even when acknowledgment was lost.
+                           // Quarantine; never retry blindly or delete a message.
+                           PersistentSentSubmission::MarkNeedsReview(submissionId, accountId);
+                           if (Logger::Instance()->GetLogDebug())
+                           {
+                              if (!copied)
+                              {
+                                 LOG_DEBUG("SentSmtpStage: copy_not_confirmed; correlation=unproven");
+                              }
+                              else if (!validCopyId)
+                              {
+                                 LOG_DEBUG("SentSmtpStage: invalid_copy_id; correlation=unproven");
+                              }
+                              else
+                              {
+                                 LOG_DEBUG("SentSmtpStage: commit_not_confirmed; correlation=unproven");
+                              }
+                           }
+                           LOG_DEBUG("SMTPConnection - experimental Sent copy requires reconciliation.");
+                        }
+                        else
+                        {
+                            // Build57B: compute the confirmed SMTP fingerprint
+                            // regardless of DEBUG logging.
+                            sentlab::Fingerprint sent57Fp;
+                            if (sent_trace_header_prefix_bytes_ > 0 &&
+                                sentlab::FingerprintFileFromOffset(
+                                   MessageStore::WorkingFile(current_message_).c_str(),
+                                   sent_trace_header_prefix_bytes_, sent57Fp))
+                            {
+                               if (Logger::Instance()->GetLogDebug())
+                                  LOG_DEBUG(Formatter::Format(
+                                  "Sent57ASmtpCopied: submission={0}; account={1}; message={2}; sha256={3}; bytes={4}; correlation=unproven",
+                                  submissionId, accountId, sentCopyId,
+                                  String(sent57Fp.sha256_hex.c_str()),
+                                  static_cast<__int64>(sent57Fp.bytes)));
+                            }
+                           // Diagnostic only: a confirmed SMTP copy is not evidence
+                           // that a later IMAP APPEND represents the same submission.
+                           // Never change SMTP delivery, copy count, or IMAP UIDs here.
+                           if (Logger::Instance()->GetLogDebug())
+                              LOG_DEBUG(Formatter::Format(
+                              "SentSmtpObservation: submission={0}; account={1}; message={2}; correlation=unproven",
+                              submissionId, accountId, sentCopyId));
+                        }
+                     }
+                     else
+                     {
+                        // Do not re-attempt an uncertain/contended claim.
+                        PersistentSentSubmission::MarkNeedsReview(submissionId, accountId);
+                        LOG_DEBUG("SMTPConnection - experimental Sent copy claim not confirmed.");
+                     }
+                  }
+                  else
+                     LOG_DEBUG("SMTPConnection - experimental Sent copy ledger unavailable; delivery continues.");
+               }
+            }
+
             // Add this message to the delivery queue cache. This way,
             // we won't have to read it from the database. A message held for
             // review is not the deliverer's until it is released, and is read
@@ -3521,6 +3644,29 @@ namespace HM
          return false;
       }
 
+      // Etapa 56.5: diagnostic hash of the SMTP MIME after undoing ONLY the
+      // server-generated prefix, by the exact length captured at first flush.
+      // DATA transparency decoding has already happened in the spool; BDAT is
+      // byte-transparent. This is observation only: no matching or suppression.
+      if (isAuthenticated_ && IniFileSettings::Instance()->GetSentAutoCopyEnabled() &&
+          Logger::Instance()->GetLogDebug())
+      {
+         sentlab::Fingerprint fp;
+         if (sent_trace_header_prefix_bytes_ > 0 &&
+             sentlab::FingerprintFileFromOffset(fileName.c_str(),
+                sent_trace_header_prefix_bytes_, fp))
+         {
+            LOG_DEBUG(Formatter::Format(
+               "SentMimeSmtp56: sha256={0}; bytes={1}; prefix_bytes={2}; correlation=unproven",
+               String(fp.sha256_hex.c_str()), static_cast<__int64>(fp.bytes),
+               static_cast<__int64>(sent_trace_header_prefix_bytes_)));
+         }
+         else
+         {
+            LOG_DEBUG("SentMimeSmtp56: fingerprint_unavailable; correlation=unproven");
+         }
+      }
+
 
       // Check so that message isn't to big. Max message
       // size is specified in KB.
@@ -3754,6 +3900,8 @@ namespace HM
       {
          transmission_buffer_.reset();
       }
+
+      sent_trace_header_prefix_bytes_ = 0;
 
       // Reset the current message.
       if (current_message_)

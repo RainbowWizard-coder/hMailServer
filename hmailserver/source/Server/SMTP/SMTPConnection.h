@@ -1,9 +1,11 @@
-// https://www.progressiverobot.com
+﻿// https://www.progressiverobot.com
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2005 Martin Knafve / hMailServer.com.
 
 #pragma once
+
+#include <cstdint>
 
 
 #include "../Common/TCPIP/TCPConnection.h"
@@ -440,6 +442,10 @@ namespace HM
       std::shared_ptr<Message> current_message_;
 
       bool trace_headers_written_;
+      // Etapa 56.5: exact length of the trace-header prefix written at the
+      // beginning of this SMTP spool. The diagnostic hash skips only this prefix.
+      // Per-transaction state; no persistent schema or IMAP behavior changes.
+      std::uint64_t sent_trace_header_prefix_bytes_ = 0;
 
       // True when this server is the message submission server (RFC 6409) for the
       // current message rather than a relay: the client authenticated, or it sends

@@ -83,6 +83,7 @@
 #include "../Persistence/MailboxMove.h"
 #include "MigrationManager.h"
 #include "../Persistence/PersistentMessage.h"
+#include "../Persistence/PersistentSentSubmission.h"
 #include "../Persistence/PersistentDomain.h"
 #include "../Persistence/PersistentAccount.h"
 #include "../Persistence/PreSaveLimitationsCheck.h"
@@ -932,6 +933,15 @@ namespace HM
       }
 
       ServerStatus::Instance()->SetState(ServerStatus::StateStarting);
+
+      // Before accepting SMTP connections, quarantine any Sent-copy claim whose
+      // process may have crashed after writing a mailbox file but before its
+      // database acknowledgement. If the ledger cannot be checked, disable only
+      // this experimental feature; normal SMTP/IMAP startup must still work.
+      // PrepareAtServerStart also clears its in-process readiness latch when
+      // the feature is not enabled. No background service or mailbox scan.
+      if (!PersistentSentSubmission::PrepareAtServerStart())
+         LOG_DEBUG("SentAutoCopy: startup recovery unavailable; experimental copy disabled for this server run.");
 
       // The firewall is made to match the auto-ban ranges before a listener is
       // open: a rule for a ban that expired while the service was down is removed
