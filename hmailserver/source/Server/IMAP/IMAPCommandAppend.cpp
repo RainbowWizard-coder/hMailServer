@@ -16,7 +16,10 @@
 #include "../Common/BO/Message.h"
 #include "../Common/Cache/CacheContainer.h"
 #include "../Common/Application/EffectiveSetting.h"
+#include "../Common/Application/FolderManager.h"
 #include "../Common/Persistence/PersistentMessage.h"
+#include "../Common/Persistence/PersistentSentSubmission.h"
+#include <ctime>
 #include "../Common/Persistence/MessageStore.h"
 #include "../Common/Util/Unicode.h"
 #include "../Common/Util/MailboxKeys.h"
@@ -26,9 +29,13 @@
 #include "../Common/Util/DiskSpace.h"
 #include "../Common/Util/File.h"
 #include "../Common/Util/FileInfo.h"
+#include "../Common/Util/SentMimeFingerprint.h"
 #include "../Common/Util/Time.h"
+#include "../Common/Util/Strings/Formatter.h"
 #include "../SMTP/SMTPConfiguration.h"
 
+#include "IMAPFolderContainer.h"
+#include "IMAPSpecialUse.h"
 #include "IMAPSimpleCommandParser.h"
 #include "MessagesContainer.h"
 #include "IMAPFolderView.h"
@@ -946,6 +953,45 @@ namespace HM
       if (destination_folder_ && !destination_folder_->IsPublicFolder())
          messageOwner = pConnection->GetAccountOwningFolder(destination_folder_);
 
+       // Build57A.1 - fingerprint do literal original.
+       std::string sent57Sha;
+       std::uint64_t sent57Bytes = 0;
+      // Etapa 54B: calculate before compression/encryption in PlaceWorkingFileFor.
+      // Diagnostics only. APPEND still saves normally, including on hash failure.
+      // Restrict to the authoritative IMAP SPECIAL-USE \Sent destination.
+      if (destination_folder_ &&
+          !destination_folder_->IsPublicFolder())
+      {
+         const __int64 accountId54 = destination_folder_->GetAccountID();
+         const auto folders54 = IMAPFolderContainer::Instance()->GetFoldersForAccount(accountId54);
+         if (folders54)
+         {
+            std::map<__int64, int> designation54;
+            IMAPSpecialUse::Resolve(folders54, designation54);
+            const auto found54 = designation54.find(destination_folder_->GetID());
+            if (found54 != designation54.end() &&
+                (found54->second & IMAPSpecialUse::DesignationSent) != 0)
+            {
+               sentlab::Fingerprint fp;
+               if (sentlab::FingerprintFile(message_file_name_.c_str(), fp))
+               {
+                   sent57Sha = fp.sha256_hex;
+                   sent57Bytes = fp.bytes;
+                  if (Logger::Instance()->GetLogDebug())
+                     LOG_DEBUG(Formatter::Format(
+                     "SentMimeImap54B: account={0}; folder={1}; sha256={2}; bytes={3}; correlation=unproven",
+                     accountId54, destination_folder_->GetID(),
+                     String(fp.sha256_hex.c_str()), static_cast<__int64>(fp.bytes)));
+               }
+               else
+               {
+                  if (Logger::Instance()->GetLogDebug())
+                     LOG_DEBUG("SentMimeImap54B: fingerprint_unavailable; correlation=unproven");
+               }
+            }
+         }
+      }
+
       MessageStore::PlaceRefusal refusal = MessageStore::PlaceAccepted;
       if (!MessageStore::PlaceWorkingFileFor(messageOwner, message_file_name_, false, refusal))
       {
@@ -1038,6 +1084,8 @@ namespace HM
       pending.message = current_message_;
       pending.fileName = message_file_name_;
       pending.markerFile = current_marker_;
+       pending.sent57_sha256 = sent57Sha;
+       pending.sent57_bytes = sent57Bytes;
       current_marker_.Empty();
       pending_messages_.push_back(pending);
 
@@ -1373,6 +1421,337 @@ namespace HM
          return;
       }
 
+      // Build57.49 - hardened single-message SMTP Sent reconciliation.
+      //
+      // MULTIAPPEND, REPLACE, explicit flags and explicit internal
+      // dates continue through the original APPEND implementation.
+      // A claim with an uncertain outcome must not be treated
+      // as an ordinary "no candidate" result.
+      if (!replace_mode_ &&
+          pending_messages_.size() == 1 &&
+          create_time_to_set_.IsEmpty() &&
+          destination_folder_ &&
+          !destination_folder_->IsPublicFolder() &&
+          pConnection->GetAccount() &&
+          PersistentSentSubmission::IsRecoveryReady())
+      {
+         const PendingMessage &pending = pending_messages_.front();
+
+         const __int64 authenticatedAccount =
+            pConnection->GetAccount()->GetID();
+
+         const __int64 destinationAccount =
+            destination_folder_->GetAccountID();
+
+         const __int64 destinationFolder =
+            destination_folder_->GetID();
+
+         if (authenticatedAccount > 0 &&
+             authenticatedAccount == destinationAccount &&
+             destinationFolder > 0 &&
+             pending.message &&
+             pending.sent57_sha256.size() == 64 &&
+             pending.sent57_bytes > 0 &&
+             pending.sent57_bytes <= 0x7FFFFFFFFFFFFFFFLL &&
+             pConnection->CheckPermission(
+                destination_folder_,
+                ACLPermission::PermissionRead))
+         {
+            const auto folders =
+               IMAPFolderContainer::Instance()->GetFoldersForAccount(
+                  authenticatedAccount);
+
+            if (folders)
+            {
+               std::map<__int64, int> designations;
+               IMAPSpecialUse::Resolve(folders, designations);
+
+               const auto designated =
+                  designations.find(destinationFolder);
+
+               if (designated != designations.end() &&
+                   (designated->second &
+                       IMAPSpecialUse::DesignationSent) != 0)
+               {
+                  const String hash(
+                     pending.sent57_sha256.c_str());
+
+                  __int64 candidateId = 0;
+
+                  const __int64 nowUtc =
+                     static_cast<__int64>(std::time(nullptr));
+
+                  if (PersistentSentSubmission::FindUniqueSentCandidate(
+                         authenticatedAccount,
+                         destinationFolder,
+                         hash,
+                         static_cast<__int64>(pending.sent57_bytes),
+                         nowUtc,
+                         candidateId) &&
+                      candidateId > 0)
+                  {
+                     // Resolve a genuine IMAP UID before consuming
+                     // the ledger claim. A database message ID
+                     // is never an IMAP UID.
+                     auto messages =
+                        MessagesContainer::Instance()->GetMessages(
+                           destinationAccount,
+                           destinationFolder);
+
+                     unsigned int expectedUid = 0;
+
+                     if (messages)
+                     {
+                        for (const auto &existing :
+                             messages->GetSnapshot())
+                        {
+                           if (existing &&
+                               existing->GetID() == candidateId &&
+                               existing->GetAccountID() ==
+                                  destinationAccount &&
+                               existing->GetFolderID() ==
+                                  destinationFolder)
+                           {
+                              expectedUid = existing->GetUID();
+                              break;
+                           }
+                        }
+                     }
+
+                     if (expectedUid > 0)
+                     {
+                        __int64 claimedId = 0;
+
+                        const __int64 claimed =
+                           PersistentSentSubmission::
+                              ClaimUniqueSentCandidate(
+                                 authenticatedAccount,
+                                 destinationFolder,
+                                 hash,
+                                 static_cast<__int64>(
+                                    pending.sent57_bytes),
+                                 static_cast<__int64>(
+                                    std::time(nullptr)),
+                                 claimedId);
+
+                        if (claimed == 1)
+                        {
+                           // A successful claim must refer to the
+                           // precise candidate whose UID was checked.
+                           // Never fall through to a normal APPEND
+                           // after a committed claim.
+                           if (claimedId != candidateId)
+                           {
+                              LOG_APPLICATION(
+                                 "Sent57B49: claimed candidate changed; "
+                                 "APPEND success is not acknowledged.");
+
+                              CleanupPendingMessages_();
+
+                              pConnection->SendAsciiData(
+                                 current_tag_ +
+                                 _T(" NO [UNAVAILABLE] APPEND reconciliation "
+                                    "could not be confirmed.\r\n"));
+
+                              destination_folder_.reset();
+                              return;
+                           }
+
+                           // Refresh and recheck the existing message.
+                           // A cached UID alone is not sufficient
+                           // after the database transaction.
+                           MessagesContainer::Instance()->
+                              SetFolderNeedsRefresh(destinationFolder);
+
+                           auto refreshed =
+                              MessagesContainer::Instance()->GetMessages(
+                                 destinationAccount,
+                                 destinationFolder);
+
+                           bool verified = false;
+
+                           if (refreshed)
+                           {
+                              for (const auto &existing :
+                                   refreshed->GetSnapshot())
+                              {
+                                 if (existing &&
+                                     existing->GetID() == claimedId &&
+                                     existing->GetAccountID() ==
+                                        destinationAccount &&
+                                     existing->GetFolderID() ==
+                                        destinationFolder &&
+                                     existing->GetUID() == expectedUid)
+                                 {
+                                    verified = true;
+                                    break;
+                                 }
+                              }
+                           }
+
+                           if (!verified)
+                           {
+                              LOG_APPLICATION(
+                                 "Sent57B49: claimed SMTP copy was "
+                                 "not confirmed on refresh.");
+
+                              CleanupPendingMessages_();
+
+                              pConnection->SendAsciiData(
+                                 current_tag_ +
+                                 _T(" NO [UNAVAILABLE] APPEND reconciliation "
+                                    "could not be confirmed.\r\n"));
+
+                              destination_folder_.reset();
+                              return;
+                           }
+
+                            // Build57E: MIME identity never depends on IMAP flags.
+                            // Apply APPEND metadata to the confirmed SMTP copy
+                            // only after the ledger claim and UID verification.
+                            short allowedFlagMask = 0;
+
+                            if (pConnection->CheckPermission(
+                                   destination_folder_,
+                                   ACLPermission::PermissionWriteSeen))
+                               allowedFlagMask |= (short) Message::FlagSeen;
+
+                            if (pConnection->CheckPermission(
+                                   destination_folder_,
+                                   ACLPermission::PermissionWriteDeleted))
+                               allowedFlagMask |= (short) Message::FlagDeleted;
+
+                            const bool canWriteOthers =
+                               pConnection->CheckPermission(
+                                  destination_folder_,
+                                  ACLPermission::PermissionWriteOthers);
+
+                            if (canWriteOthers)
+                               allowedFlagMask |= (short) (
+                                  Message::FlagDraft |
+                                  Message::FlagAnswered |
+                                  Message::FlagFlagged);
+
+                            const short requestedFlags =
+                               pending.message->GetFlags();
+
+                            const std::vector<String> requestedKeywords =
+                               pending.message->GetKeywordList();
+
+                            const FolderManager::FlagChangeResult flagResult =
+                               Application::Instance()->GetFolderManager()->
+                                  ChangeMessageFlags(
+                                     destinationAccount,
+                                     destinationFolder,
+                                     claimedId,
+                                     [allowedFlagMask, requestedFlags,
+                                      canWriteOthers, requestedKeywords]
+                                     (Message &message) -> bool
+                                     {
+                                        message.SetFlagBits(
+                                           allowedFlagMask,
+                                           requestedFlags);
+
+                                        if (canWriteOthers)
+                                           message.SetKeywordList(
+                                              requestedKeywords);
+
+                                        return true;
+                                     });
+
+                            if (flagResult != FolderManager::FlagChangeStored)
+                           {
+                               LOG_APPLICATION(
+                                  "Sent57E: SMTP candidate claimed but "
+                                  "APPEND flags could not be persisted.");
+
+                               CleanupPendingMessages_();
+
+                               pConnection->SendAsciiData(
+                                  current_tag_ +
+                                  _T(" NO [UNAVAILABLE] APPEND flags "
+                                     "could not be confirmed.\r\n"));
+
+                               destination_folder_.reset();
+                               return;
+                           }
+
+                            // Notify other IMAP sessions of the metadata change.
+                            std::vector<__int64> changedMessageIds;
+                            changedMessageIds.push_back(claimedId);
+
+                            std::shared_ptr<ChangeNotification> flagNotification(
+                               new ChangeNotification(
+                                  destinationAccount,
+                                  destinationFolder,
+                                  ChangeNotification::NotificationMessageFlagsChanged,
+                                  changedMessageIds));
+
+                            Application::Instance()->GetNotificationServer()->
+                               SendNotification(
+                                  pConnection->GetNotificationClient(),
+                                  flagNotification);
+                           // The claim was acknowledged and the UID
+                           // belongs to the existing SMTP copy.
+                           // Only the unsaved IMAP working file
+                           // may be removed.
+                           CleanupPendingMessages_();
+
+                           String appendUid;
+                           appendUid.Format(
+                              _T("[APPENDUID %d %u] "),
+                              destination_folder_->
+                                 GetCreationTime().ToInt(),
+                              expectedUid);
+
+                           if (Logger::Instance()->GetLogDebug())
+                           {
+                              LOG_DEBUG(Formatter::Format(
+                                 "Sent57B49: deduplicated account={0}; folder={1}; message={2}; uid={3}",
+                                 authenticatedAccount,
+                                 destinationFolder,
+                                 claimedId,
+                                 expectedUid));
+                           }
+
+                           pConnection->SendAsciiData(
+                              current_tag_ + _T(" OK ") +
+                              appendUid +
+                              _T("APPEND completed\r\n"));
+
+                           destination_folder_.reset();
+                           return;
+                        }
+
+                        if (claimed < 0)
+                        {
+                           // This may include an unknown COMMIT
+                           // result. Continuing with normal APPEND
+                           // could duplicate an already claimed copy.
+                           LOG_APPLICATION(
+                              "Sent57B49: claim outcome uncertain; "
+                              "APPEND reconciliation refused.");
+
+                           CleanupPendingMessages_();
+
+                           pConnection->SendAsciiData(
+                              current_tag_ +
+                              _T(" NO [UNAVAILABLE] APPEND reconciliation "
+                                 "outcome is uncertain; retry later.\r\n"));
+
+                           destination_folder_.reset();
+                           return;
+                        }
+
+                        // claimed == 0:
+                        // No eligible unique candidate was claimed.
+                        // Continue through the original APPEND flow.
+                     }
+                  }
+               }
+            }
+         }
+      }
       // The saves that make an APPEND real. A database failure part-way rolls
       // back the rows already created - the command promised atomicity.
       //
@@ -1405,6 +1784,29 @@ namespace HM
          pConnection->AddRecentMessage(pending.message->GetID());
       }
 
+       // Build57A.1: somente observacao, sem deduplicacao.
+       if (Logger::Instance()->GetLogDebug())
+       {
+          for (const PendingMessage &pending : pending_messages_)
+          {
+             if (pending.message && !pending.sent57_sha256.empty())
+             {
+                String sent57Log = Formatter::Format(
+                   "Sent57AImapSaved: account={0}; folder={1}; message={2}; uid={3}",
+                   pending.message->GetAccountID(),
+                   pending.message->GetFolderID(),
+                   pending.message->GetID(),
+                   pending.message->GetUID());
+
+                sent57Log += Formatter::Format(
+                   "; sha256={0}; bytes={1}; correlation=unproven",
+                   String(pending.sent57_sha256.c_str()),
+                   static_cast<__int64>(pending.sent57_bytes));
+
+                LOG_DEBUG(sent57Log);
+             }
+          }
+       }
       // Every one has its row now: none is pending any more, and nothing from
       // here on - the destructor included - may remove its file. Their markers
       // go too; one that cannot be removed is harmless, since the sweep asks
@@ -1482,6 +1884,69 @@ namespace HM
          sAppendUid.Format(_T("[APPENDUID %d %s] "),
             destination_folder_->GetCreationTime().ToInt(),
             IMAPConnection::CompactUidSet(savedUids).c_str());
+      }
+
+      // Stage 33: independent reachability probe; observation-only.
+      // This does NOT authorize correlation or suppression, and logs no content.
+      if (Logger::Instance()->GetLogDebug())
+      {
+         LOG_DEBUG(Formatter::Format(
+            "SentAppendProbe: reached=1; debug_enabled={0}; saved_count={1}; folder_id={2}",
+            Logger::Instance()->GetLogDebug() ? 1 : 0,
+            static_cast<int>(savedMessages.size()), destination_folder_->GetID()));
+      }
+
+      // Diagnostics only. APPEND carries no server-side SMTP submission ID:
+      // logging a saved message is not proof that it duplicates a submission.
+      // Observe only after all SaveObject calls succeeded, REPLACE processing is
+      // complete and the UID set is known. Never modify, delete or deduplicate
+      // either copy based on these observations.
+      // Uses the existing DEBUG logging setting; no separate experimental latch.
+      if (Logger::Instance()->GetLogDebug())
+      {
+         const __int64 ownerAccountId = destination_folder_->GetAccountID();
+         const __int64 folderId = destination_folder_->GetID();
+         // Use the same effective \Sent mapping exposed by IMAP LIST and used
+         // by MessageUtilities::CopyToDesignatedSent(). A folder named Sent can
+         // explicitly be designated \Drafts; it MUST NOT count as sent mail.
+         const auto ownerFolders = IMAPFolderContainer::Instance()->GetFoldersForAccount(ownerAccountId);
+         // An APPEND has already succeeded by this point. A missing folder
+         // snapshot must not turn optional diagnostics into a server failure.
+         // Do not infer the Sent designation from a folder name when the
+         // authoritative tree is unavailable.
+         if (ownerFolders)
+         {
+            std::map<__int64, int> designations;
+            IMAPSpecialUse::Resolve(ownerFolders, designations);
+            const auto designation = designations.find(folderId);
+            if (designation == designations.end())
+            {
+               LOG_DEBUG("SentAppendStage: destination_unmapped; correlation=unproven");
+            }
+            else if ((designation->second & IMAPSpecialUse::DesignationSent) == 0)
+            {
+               LOG_DEBUG("SentAppendStage: destination_not_designated_sent; correlation=unproven");
+            }
+            else
+            {
+               if (savedMessages.empty())
+               {
+                  LOG_DEBUG("SentAppendStage: no_saved_messages; correlation=unproven");
+               }
+               for (const std::shared_ptr<Message> &savedMessage : savedMessages)
+               {
+                  if (!savedMessage)
+                     continue;
+                  LOG_DEBUG(Formatter::Format(
+                     "SentAppendObservation: account={0}; folder={1}; message={2}; uid={3}; correlation=unproven",
+                     ownerAccountId, folderId, savedMessage->GetID(), savedMessage->GetUID()));
+               }
+            }
+         }
+         else
+         {
+            LOG_DEBUG("SentAppendStage: folder_snapshot_unavailable; correlation=unproven");
+         }
       }
 
       // Send the OK response to the client.

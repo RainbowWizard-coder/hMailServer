@@ -1426,6 +1426,7 @@ $("#content").addEventListener("click",e=>{
   else if(d.act==="permedit")editPermission(d.id);
   else if(d.act==="permdel")deletePermission(d.id);
   else if(d.act==="diagrun")runDiagnostics();
+  else if(d.act==="sentautosave")saveSentAutoCopy();
   else if(d.act==="setsave")saveSettings(d.group);
   else if(d.act==="setpost")settingsPost(d.group,d.path,d.label);
   else if(d.act==="rulenew")openRule(0);
@@ -6154,9 +6155,49 @@ async function pendingBannerHtml(){
       ${reinitialize?`<div class="row" style="margin-top:10px"><button class="btn" data-act="applypending">${t("Apply now")}</button><div class="err" id="err_pending"></div></div>`:""}
     </div>`;
 }
+// Sent auto-copy preference. GET and PUT share the server's existing admin-only
+// [Settings] store; absence is the shipped default (enabled). This is not
+// an operational health indication: the engine must be separately integrated.
+const SENT_AUTO_COPY_KEY="SentAutoCopyEnabled";
+async function sentAutoCopyCard(){
+  if(!administrator)return "";
+  const path="/api/v1/settings/ini/"+SENT_AUTO_COPY_KEY;
+  try{
+    const setting=await api(path);
+    const enabled=setting.present?String(setting.value)==="1":true;
+    const managed=setting.managed===true;
+    return `<div class="sect" id="sentAutoCopyCard"><h2>${t("SMTP → IMAP Sent")}</h2>
+      <div class="card flat"><label class="row" style="align-items:center;gap:10px">
+        <input type="checkbox" id="sentAutoCopySwitch" ${enabled?"checked":""} ${managed?"disabled":""}>
+        <b>${t("Automatically keep authenticated SMTP submissions in IMAP Sent")}</b></label>
+        <p class="note">${t("Default: enabled. Applies to all hosted domains and accounts, subject to successful SMTP authentication.")}</p>
+        ${noticeHtml("warn",t("Configuration preference only: this build does not yet contain the completed SMTP/IMAP copy and deduplication engine. A checked box does not mean Sent copies are being made."))}
+        <div class="row" style="margin-top:12px"><button class="btn" data-act="sentautosave" ${managed?"disabled":""}>${t("Save Sent preference")}</button>
+        <div class="err" id="err_sentauto"></div></div></div></div>`;
+  }catch(e){
+    return `<div class="sect" id="sentAutoCopyCard"><h2>${t("SMTP → IMAP Sent")}</h2>
+      ${noticeHtml("warn",t("Cannot read the Sent auto-copy setting: ")+String(e.message||e))}</div>`;
+  }
+}
+async function saveSentAutoCopy(){
+  const control=$("#sentAutoCopySwitch");
+  if(!control)return;
+  setErr("err_sentauto","");
+  const enabled=control.checked;
+  try{
+    await api("/api/v1/settings/ini/"+SENT_AUTO_COPY_KEY,
+      {method:"PUT",body:JSON.stringify({value:enabled?"1":"0"})});
+    toast(t("Sent auto-copy preference saved; the copy engine is not yet active."));
+    await render();
+  }catch(e){
+    if(e.message==="auth"){signedOut(t("The session ended. Sign in again."));return;}
+    setErr("err_sentauto",e.message);
+  }
+}
 async function renderSettings(){
   await loadSpec();
   const pendingBar=await pendingBannerHtml();
+  const sentAutoCopy=await sentAutoCopyCard();
   const groups=[];
   for(const g of SETTING_GROUPS){
     const props=properties(g.path,"put");
@@ -6177,6 +6218,7 @@ async function renderSettings(){
       </div></div>`).join("");
   $("#content").innerHTML=`<div class="view">
     ${pendingBar}
+    ${sentAutoCopy}
     <div class="card flat">
       <p class="note">${tf("Every field below, its type and its words are read from the server's own OpenAPI document, so a setting added to the API appears here on its own. Only the fields you change are sent. A key marked {0} is sent only when you fill it in; one marked {1} is stored at once but reaches the running server when its services restart — the Ports view has the button that restarts them. A key marked {2} is a counter or a fact about the server, shown and not sent.",
         '<span class="badge info">'+t("write-only")+'</span>','<span class="badge warn">'+t("restart")+'</span>','<span class="badge info">'+t("read-only")+'</span>')}</p>
