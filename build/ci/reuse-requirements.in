@@ -30,4 +30,4 @@
 # then put this file's three header lines back at the top of each output, keep
 # poetry-core's pin within the range the new sdist's [build-system] requires, and
 # run the job's script (.gitlab-ci.yml, reuse) on the tree.
-reuse==6.2.0
+reuse==6.3.0

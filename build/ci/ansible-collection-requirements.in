@@ -27,7 +27,7 @@
 #       --output-file build/ci/ansible-collection-requirements.txt build/ci/ansible-collection-requirements.in
 #
 # then put this file's three header lines back at the top of the output.
-ansible==14.5.0
-ansible-lint==26.10.1
-molecule==26.10.0
+ansible==14.6.0
+ansible-lint==26.11.0
+molecule==26.11.0
 docker==7.2.0
